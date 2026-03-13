@@ -2,48 +2,100 @@
 <template>
   <div class="wz-grid-wrapper flex flex-col" :style="{ height: height + 'px' }">
 
-    <!-- ── 툴바 ─────────────────────────────────────────────────────────── -->
+    <!-- ── 툴바 ──────────────────────────────────────────────────────────── -->
     <div
-      v-if="showAdd || showDelete || hasToolbarSlot"
-      class="wz-grid-toolbar flex items-center justify-end gap-2 px-3 py-2 bg-gray-50 border border-gray-300 border-b-0 rounded-t"
+      v-if="showAdd || showDelete || hasToolbarSlot || showColumnSettings"
+      class="wz-grid-toolbar flex items-center justify-between gap-2 px-3 py-2 bg-gray-50 border border-gray-300 border-b-0 rounded-t"
     >
-      <!-- 커스텀 슬롯 (개발자가 자유롭게 추가) -->
-      <slot name="toolbar" />
+      <!-- 왼쪽: 컬럼 설정 + 필터 초기화 -->
+      <div class="flex items-center gap-2">
 
-      <!-- 구분선 (슬롯과 기본 버튼이 함께 있을 때) -->
-      <div v-if="hasToolbarSlot && (showAdd || showDelete)" class="w-px h-5 bg-gray-300 mx-1" />
+        <!-- 컬럼 표시/숨기기 -->
+        <div v-if="showColumnSettings" class="relative" @click.stop>
+          <button
+            @click="colSettingsOpen = !colSettingsOpen"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-gray-300 text-gray-600 hover:bg-gray-600 hover:text-white hover:border-gray-600"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+            </svg>
+            컬럼 설정
+            <span v-if="hiddenColKeys.length > 0" class="bg-blue-500 text-white rounded-full text-[9px] w-4 h-4 flex items-center justify-center">{{ hiddenColKeys.length }}</span>
+          </button>
 
-      <!-- 기본 삭제 버튼 -->
-      <button
-        v-if="showDelete"
-        @click="handleDelete"
-        :disabled="checkedCount === 0"
-        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all
-               bg-white border-red-300 text-red-600 hover:bg-red-500 hover:text-white hover:border-red-500
-               disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-red-600 disabled:hover:border-red-300"
-      >
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-        </svg>
-        삭제<span v-if="checkedCount > 0" class="opacity-80">({{ checkedCount }})</span>
-      </button>
+          <!-- 드롭다운 패널 -->
+          <div
+            v-if="colSettingsOpen"
+            class="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 w-52 max-h-72 flex flex-col"
+            @click.stop
+          >
+            <div class="px-3 py-2 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+              <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">컬럼 표시</span>
+              <button @click="hiddenColKeys = []" class="text-[10px] text-blue-500 hover:underline">전체 표시</button>
+            </div>
+            <div class="overflow-y-auto flex-grow">
+              <label
+                v-for="col in columns"
+                :key="col.key"
+                class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  :checked="!hiddenColKeys.includes(col.key)"
+                  @change="toggleColVisibility(col.key)"
+                  class="w-3.5 h-3.5 accent-blue-500 flex-shrink-0"
+                />
+                <span class="text-xs text-gray-700 truncate">{{ col.title }}</span>
+                <span v-if="col.pinned" class="ml-auto text-[9px] text-orange-500 bg-orange-50 px-1 rounded flex-shrink-0">고정</span>
+              </label>
+            </div>
+          </div>
+        </div>
 
-      <!-- 기본 추가 버튼 -->
-      <button
-        v-if="showAdd"
-        @click="$emit('click:add')"
-        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all
-               bg-white border-blue-300 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500"
-      >
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        추가
-      </button>
+        <!-- 필터 초기화 -->
+        <button
+          v-if="useFilter && activeFilterCount > 0"
+          @click="clearAllFilters"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-blue-50 border-blue-300 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          필터 초기화 ({{ activeFilterCount }})
+        </button>
+      </div>
+
+      <!-- 오른쪽: 커스텀 슬롯 + 삭제 + 추가 -->
+      <div class="flex items-center gap-2">
+        <slot name="toolbar" />
+        <div v-if="hasToolbarSlot && (showAdd || showDelete)" class="w-px h-5 bg-gray-300 mx-1" />
+        <button
+          v-if="showDelete"
+          @click="handleDelete"
+          :disabled="checkedCount === 0"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-red-300 text-red-600 hover:bg-red-500 hover:text-white hover:border-red-500 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-red-600 disabled:hover:border-red-300"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          삭제<span v-if="checkedCount > 0" class="opacity-80">({{ checkedCount }})</span>
+        </button>
+        <button
+          v-if="showAdd"
+          @click="$emit('click:add')"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-blue-300 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          추가
+        </button>
+      </div>
     </div>
 
+    <!-- ── 그리드 컨테이너 ─────────────────────────────────────────────── -->
     <div
-      :class="(showAdd || showDelete || hasToolbarSlot) ? 'rounded-b border-t-0' : 'rounded'"
+      :class="(showAdd || showDelete || hasToolbarSlot || showColumnSettings) ? 'rounded-b border-t-0' : 'rounded'"
       class="wz-grid-container relative border border-gray-300 overflow-auto bg-white select-none focus:ring-2 focus:ring-blue-400 outline-none flex-grow"
       @scroll="onScroll"
       @copy="onCopy"
@@ -54,12 +106,20 @@
       <div :style="{ paddingTop: topPadding + 'px', paddingBottom: bottomPadding + 'px', minWidth: 'max-content' }">
         <table class="table-fixed border-separate border-spacing-0">
           <thead class="sticky top-0 z-30 bg-gray-100 shadow-sm">
+
+            <!-- 헤더 행 -->
             <tr>
-              <!-- 체크박스 헤더 -->
+              <!-- 행 드래그 핸들 헤더 -->
+              <th
+                v-if="useRowDrag"
+                class="sticky left-0 z-40 border-b border-r border-gray-300 bg-gray-100 h-[40px]"
+                :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }"
+              ></th>
+
               <th
                 v-if="useCheckbox"
-                class="sticky left-0 z-40 border-b border-r border-gray-300 bg-gray-100 h-[40px]"
-                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px' }"
+                class="sticky z-40 border-b border-r border-gray-300 bg-gray-100 h-[40px]"
+                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (useRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
               >
                 <div class="flex items-center justify-center w-full h-full">
                   <input
@@ -67,458 +127,601 @@
                     type="checkbox"
                     :checked="isAllChecked"
                     @change="toggleAll"
-                    class="w-4 h-4 rounded border-gray-400 text-blue-600 cursor-pointer accent-blue-500"
+                    class="w-4 h-4 rounded border-gray-400 cursor-pointer accent-blue-500"
                   />
                 </div>
               </th>
 
               <th
-                v-for="(col, colIdx) in columns"
+                v-for="(col, colIdx) in visibleColumns"
                 :key="col.key"
-                :style="getColumnStyle(col, colIdx, true)"
-                class="border-b border-r border-gray-300 px-2 py-2 text-xs font-bold text-gray-600 uppercase tracking-wider h-[40px] relative group cursor-pointer hover:bg-gray-200 transition-colors"
-                :class="{ 'sticky left-0 z-40 bg-gray-100': col.pinned }"
-                @click="toggleSort(col.key)"
+                :style="getColumnStyle(col, colIdx)"
+                class="border-b border-r border-gray-300 px-2 py-2 text-xs font-bold text-gray-600 uppercase tracking-wider h-[40px] relative group transition-colors"
+                :class="{
+                  'sticky left-0 z-40 bg-gray-100': col.pinned,
+                  'bg-blue-100 border-l-2 border-l-blue-500': dragOverColIdx === colIdx && !col.pinned,
+                  'opacity-40': dragSourceColIdx === colIdx,
+                  'cursor-pointer hover:bg-gray-200': !col.pinned,
+                  'cursor-default': col.pinned,
+                }"
+                :draggable="!col.pinned"
+                @dragstart="!col.pinned && onDragStart(colIdx)"
+                @dragover.prevent="!col.pinned && onDragOver(colIdx)"
+                @dragleave="onDragLeave"
+                @drop.prevent="!col.pinned && onDrop(colIdx)"
+                @dragend="onDragEnd"
+                @click="toggleSort(col.key, $event)"
               >
                 <div class="flex items-center w-full" :class="getAlignClass(col.headerAlign || 'center')">
+                  <!-- 드래그 핸들 (pinned 아닌 컬럼) -->
+                  <svg v-if="!col.pinned" class="w-3 h-3 mr-1 text-gray-400 flex-shrink-0 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 6a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm8-16a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4z"/>
+                  </svg>
                   <span class="truncate">{{ col.title }}</span>
                   <span v-if="col.required" class="ml-1 text-red-500">*</span>
-                  <span v-if="sortConfig.key === col.key" class="ml-1 text-[10px]">
-                    {{ sortConfig.order === 'asc' ? '▲' : '▼' }}
+                  <!-- 다중 정렬 표시 -->
+                  <span v-if="getSortEntry(col.key)" class="ml-1 text-[10px] text-blue-600 flex items-center gap-0.5 flex-shrink-0">
+                    {{ getSortEntry(col.key)?.order === 'asc' ? '▲' : '▼' }}<sup v-if="sortConfigs.length > 1" class="text-[8px] leading-none">{{ getSortIndex(col.key) + 1 }}</sup>
                   </span>
+                  <!-- 활성 필터 표시 -->
+                  <span v-if="useFilter && isFilterActive(col.key)" class="ml-1 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0 inline-block" title="필터 적용 중"></span>
                 </div>
                 <div class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 z-10" @mousedown.stop="startResize($event, colIdx)"></div>
               </th>
             </tr>
+
+            <!-- 필터 행 -->
+            <tr v-if="useFilter">
+              <th v-if="useRowDrag" class="sticky left-0 z-40 border-b border-r border-gray-200 bg-gray-50 p-0" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }"></th>
+              <th
+                v-if="useCheckbox"
+                class="sticky z-40 border-b border-r border-gray-200 bg-gray-50 p-0"
+                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (useRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
+              ></th>
+              <th
+                v-for="(col, colIdx) in visibleColumns"
+                :key="'f-' + col.key"
+                :style="getColumnStyle(col, colIdx)"
+                class="border-b border-r border-gray-200 bg-gray-50 p-1 relative"
+                :class="{ 'sticky left-0 z-40': col.pinned }"
+                @mousedown.stop
+                @click.stop
+              >
+                <!-- text / link / 기타 -->
+                <input
+                  v-if="!col.type || col.type === 'text' || col.type === 'link' || col.type === 'radio'"
+                  v-model="filters[col.key].value"
+                  type="text"
+                  placeholder="검색..."
+                  class="filter-input"
+                />
+
+                <!-- number: min ~ max -->
+                <div v-else-if="col.type === 'number'" class="flex items-center gap-0.5">
+                  <input v-model="filters[col.key].min" type="number" placeholder="최소" class="filter-input" />
+                  <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
+                  <input v-model="filters[col.key].max" type="number" placeholder="최대" class="filter-input" />
+                </div>
+
+                <!-- date: from / to -->
+                <div v-else-if="col.type === 'date'" class="flex flex-col gap-0.5">
+                  <input v-model="filters[col.key].from" type="date" class="filter-input" style="font-size:10px;" />
+                  <input v-model="filters[col.key].to"   type="date" class="filter-input" style="font-size:10px;" />
+                </div>
+
+                <!-- select / badge -->
+                <select
+                  v-else-if="col.type === 'select' || col.type === 'badge'"
+                  v-model="filters[col.key].value"
+                  class="filter-input"
+                >
+                  <option value="">전체</option>
+                  <option v-for="opt in col.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                </select>
+
+                <!-- boolean -->
+                <select v-else-if="col.type === 'boolean'" v-model="filters[col.key].value" class="filter-input">
+                  <option value="">전체</option>
+                  <option value="true">예</option>
+                  <option value="false">아니요</option>
+                </select>
+
+                <!-- 나머지 타입(image, button, progress): 빈 칸 -->
+                <template v-else></template>
+
+                <!-- 개별 필터 초기화 -->
+                <button
+                  v-if="isFilterActive(col.key)"
+                  @click.stop="clearFilter(col.key)"
+                  class="absolute right-0.5 top-0.5 w-3.5 h-3.5 flex items-center justify-center text-[9px] text-gray-400 hover:text-red-500 bg-white rounded-full border border-gray-200 hover:border-red-300 transition-colors z-10"
+                  title="필터 초기화"
+                >✕</button>
+              </th>
+            </tr>
+
           </thead>
 
           <tbody>
-            <tr v-for="rowIdx in visibleRowsRange" :key="getRow(rowIdx)?.id || rowIdx" :style="{ height: rowHeight + 'px' }">
-              <!-- 체크박스 셀 -->
-              <td
-                v-if="useCheckbox"
-                class="sticky left-0 z-10 border-b border-r border-gray-200 p-0 transition-colors"
-                :class="isRowChecked(getRow(rowIdx)?.id) ? 'bg-blue-50' : 'bg-white'"
-                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px' }"
-                @mousedown.stop
-              >
-                <div class="flex items-center justify-center w-full h-full">
-                  <input
-                    type="checkbox"
-                    :checked="isRowChecked(getRow(rowIdx)?.id)"
-                    @change="toggleRow(getRow(rowIdx)?.id)"
-                    class="w-4 h-4 rounded border-gray-400 text-blue-600 cursor-pointer accent-blue-500"
-                  />
-                </div>
-              </td>
+            <template v-for="itemIdx in visibleRowsRange" :key="itemIdx">
 
-              <td
-                v-for="(col, colIdx) in columns"
-                :key="col.key"
-                :style="getColumnStyle(col, colIdx)"
-                class="border-b border-r border-gray-200 p-0 relative group"
-                :class="{
-                  'bg-blue-50/50': isSelected(rowIdx, colIdx),
-                  'sticky left-0 z-10 bg-white group-hover:bg-gray-50': col.pinned,
-                  'bg-blue-50/80': col.pinned && isSelected(rowIdx, colIdx),
-                  'ring-1 ring-inset ring-red-500 bg-red-50': hasError(rowIdx, col.key)
-                }"
-                @mousedown="startSelection(rowIdx, colIdx)"
-                @mouseenter="updateSelection(rowIdx, colIdx)"
-                @mouseup="endSelection"
-                @dblclick="startEditing(rowIdx, colIdx)"
+              <!-- ── 그룹 헤더 행 ────────────────────────────────────────── -->
+              <tr
+                v-if="getItem(itemIdx)?.type === 'group-header'"
+                :style="{ height: rowHeight + 'px' }"
+                class="bg-blue-50 hover:bg-blue-100 cursor-pointer select-none"
+                @click="toggleGroup(asGroupHeader(itemIdx).key)"
+                @mousedown.prevent
               >
-                <!-- 에러 툴팁 -->
-                <div v-if="hasError(rowIdx, col.key)" class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-red-600 text-white text-[10px] rounded shadow-lg z-50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  {{ getError(rowIdx, col.key) }}
-                  <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-red-600"></div>
-                </div>
+                <td v-if="useRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-b border-r border-gray-200 p-0 sticky left-0 z-10 bg-blue-50"></td>
+                <td v-if="useCheckbox" :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (useRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-blue-50"></td>
+                <td :colspan="visibleColumns.length" class="border-b border-gray-300 px-3 py-0">
+                  <div class="flex items-center gap-2">
+                    <span class="text-blue-500 w-3 text-center flex-shrink-0">{{ asGroupHeader(itemIdx).collapsed ? '▶' : '▼' }}</span>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ groupColTitle }}</span>
+                    <span class="text-sm font-semibold text-blue-700">{{ asGroupHeader(itemIdx).label }}</span>
+                    <span class="text-[11px] text-gray-400 bg-blue-100 px-1.5 py-0.5 rounded-full">{{ asGroupHeader(itemIdx).count.toLocaleString() }}건</span>
+                  </div>
+                </td>
+              </tr>
 
-                <!-- 데이터 툴팁 (에러가 없고 tooltip: true인 컬럼) -->
-                <div
-                  v-else-if="col.tooltip && getTooltipValue(rowIdx, col)"
-                  class="absolute bottom-full left-0 mb-2 px-2.5 py-1.5 bg-gray-800 text-white text-xs leading-snug rounded shadow-xl z-50 max-w-[280px] break-words whitespace-normal opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
+              <!-- ── 소계 행 ─────────────────────────────────────────────── -->
+              <tr
+                v-else-if="getItem(itemIdx)?.type === 'subtotal'"
+                :style="{ height: rowHeight + 'px' }"
+                class="bg-amber-50"
+              >
+                <td v-if="useRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-b border-r border-gray-200 p-0 sticky left-0 z-10 bg-amber-50"></td>
+                <td v-if="useCheckbox" :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (useRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-amber-50"></td>
+                <td
+                  v-for="(col, colIdx) in visibleColumns"
+                  :key="'sub-' + col.key"
+                  :style="getColumnStyle(col, colIdx)"
+                  :class="{ 'sticky left-0 z-10 bg-amber-50': col.pinned }"
+                  class="border-b border-r border-gray-200 px-2 py-1"
                 >
-                  {{ getTooltipValue(rowIdx, col) }}
-                  <div class="absolute top-full left-4 border-4 border-transparent border-t-gray-800"></div>
-                </div>
-
-                <!-- 1. 편집 모드 -->
-                <div v-if="isEditing(rowIdx, colIdx)" class="absolute inset-0 z-30 bg-white">
-                  <!-- 날짜: type="date" 로 브라우저 달력 UI 사용 -->
-                  <input
-                    v-if="col.type === 'date'"
-                    ref="editInput" v-model="editValue" type="date"
-                    class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
-                    @blur="stopEditing(true)" @keydown.enter="stopEditing(true)" @keydown.esc="stopEditing(false)" @mousedown.stop
-                    @change="stopEditing(true)"
-                  />
-                  <input
-                    v-else-if="col.type !== 'select' && col.type !== 'boolean'"
-                    ref="editInput" v-model="editValue" :type="col.type === 'number' ? 'number' : 'text'"
-                    class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
-                    @blur="stopEditing(true)" @keydown.enter="stopEditing(true)" @keydown.esc="stopEditing(false)" @mousedown.stop
-                    @input="handleInput(col)"
-                  />
-                  <select v-else-if="col.type === 'select'" ref="editInput" v-model="editValue" class="w-full h-full px-1 text-sm border-2 border-blue-500 outline-none" @blur="stopEditing(true)" @change="stopEditing(true)" @mousedown.stop>
-                    <option v-for="opt in col.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-                  </select>
-                </div>
-
-                <!-- 2. 읽기 모드 -->
-                <div v-else class="px-2 py-1 text-sm w-full h-full flex items-center overflow-hidden" :class="[getAlignClass(col.align), col.truncate !== false ? 'truncate' : '']">
-                  <!-- 텍스트/숫자/날짜 -->
-                  <template v-if="!col.type || col.type === 'text' || col.type === 'number' || col.type === 'date'">
-                    {{ col.type === 'number' ? Number(getRow(rowIdx)?.[col.key] || 0).toLocaleString() : (getRow(rowIdx)?.[col.key] || '') }}
+                  <template v-if="colIdx === 0">
+                    <span class="text-[11px] font-bold text-amber-700">소계</span>
+                    <span class="text-[10px] text-gray-400 ml-1">({{ asSubtotal(itemIdx).count.toLocaleString() }}건)</span>
                   </template>
-
-                  <!-- 셀렉트 (읽기 모드에서도 라벨 표시) -->
-                  <template v-else-if="col.type === 'select'">
-                    {{ getOptionLabel(rowIdx, col) }}
+                  <template v-else-if="col.type === 'number'">
+                    <div class="text-xs font-semibold text-gray-700 text-right w-full">{{ asSubtotal(itemIdx).sums[col.key]?.toLocaleString() }}</div>
                   </template>
+                </td>
+              </tr>
 
-                  <!-- 불리언 -->
-                  <template v-else-if="col.type === 'boolean'">
-                    <div class="flex items-center justify-center w-full h-full" @mousedown.stop>
-                      <input type="checkbox" :checked="!!getRow(rowIdx)?.[col.key]" @change="toggleBoolean(rowIdx, col.key)" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer" />
-                    </div>
-                  </template>
+              <!-- ── 데이터 행 ───────────────────────────────────────────── -->
+              <tr
+                v-else
+                :style="{ height: rowHeight + 'px' }"
+                :class="{
+                  'opacity-40': useRowDrag && rowDragSrcIdx === itemIdx,
+                  'row-drag-over-top':    useRowDrag && rowDragOverIdx === itemIdx && rowDragOverPos === 'above',
+                  'row-drag-over-bottom': useRowDrag && rowDragOverIdx === itemIdx && rowDragOverPos === 'below',
+                }"
+                @dragover="useRowDrag && onRowDragOver($event, itemIdx)"
+                @drop="useRowDrag && onRowDrop($event, itemIdx)"
+                @dragend="useRowDrag && onRowDragEnd()"
+              >
+                <!-- 행 드래그 핸들 셀 -->
+                <td
+                  v-if="useRowDrag"
+                  class="sticky left-0 z-10 border-b border-r border-gray-200 p-0 bg-white cursor-grab active:cursor-grabbing"
+                  :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }"
+                  draggable="true"
+                  @dragstart="onRowDragStart(itemIdx)"
+                  @mousedown.stop
+                >
+                  <div class="flex items-center justify-center w-full h-full text-gray-300 hover:text-gray-500 transition-colors">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 6a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm8-16a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4z"/>
+                    </svg>
+                  </div>
+                </td>
 
-                  <!-- 배지 -->
-                  <template v-else-if="col.type === 'badge'">
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm" :class="getBadgeColor(rowIdx, col)">{{ getOptionLabel(rowIdx, col) }}</span>
-                  </template>
+                <!-- 체크박스 셀 -->
+                <td
+                  v-if="useCheckbox"
+                  class="sticky z-10 border-b border-r border-gray-200 p-0 transition-colors"
+                  :style="{ left: (useRowDrag ? ROW_DRAG_WIDTH : 0) + 'px', width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px' }"
+                  :class="isRowChecked(getRow(itemIdx)?.id) ? 'bg-blue-50' : 'bg-white'"
+                  @mousedown.stop
+                >
+                  <div class="flex items-center justify-center w-full h-full">
+                    <input
+                      type="checkbox"
+                      :checked="isRowChecked(getRow(itemIdx)?.id)"
+                      @change="toggleRow(getRow(itemIdx)?.id)"
+                      class="w-4 h-4 rounded border-gray-400 cursor-pointer accent-blue-500"
+                    />
+                  </div>
+                </td>
 
-                  <!-- 프로그레스 -->
-                  <template v-else-if="col.type === 'progress'">
-                    <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden border border-gray-200 mx-1">
-                      <div class="bg-blue-500 h-full transition-all duration-500" :style="{ width: (getRow(rowIdx)?.[col.key] || 0) + '%' }"></div>
-                    </div>
-                  </template>
+                <template v-for="(col, colIdx) in visibleColumns" :key="col.key">
+                <td
+                  v-if="!getMerge(itemIdx, col.key)?.hidden"
+                  :rowspan="getMerge(itemIdx, col.key)?.rowspan ?? 1"
+                  :colspan="getMerge(itemIdx, col.key)?.colspan ?? 1"
+                  :style="getColumnStyle(col, colIdx)"
+                  class="border-b border-r border-gray-200 p-0 relative group"
+                  :class="{
+                    'bg-blue-50/50': isSelected(itemIdx, colIdx),
+                    'sticky left-0 z-10 bg-white group-hover:bg-gray-50': col.pinned,
+                    'bg-blue-50/80': col.pinned && isSelected(itemIdx, colIdx),
+                    'ring-1 ring-inset ring-red-500 bg-red-50': hasError(itemIdx, col.key)
+                  }"
+                  @mousedown="startSelection(itemIdx, colIdx)"
+                  @mouseenter="updateSelection(itemIdx, colIdx)"
+                  @mouseup="endSelection"
+                  @dblclick="startEditing(itemIdx, colIdx)"
+                  @contextmenu="useContextMenu && openContextMenu($event, itemIdx, colIdx)"
+                >
+                  <!-- 에러 툴팁 -->
+                  <div v-if="hasError(itemIdx, col.key)" class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-red-600 text-white text-[10px] rounded shadow-lg z-50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    {{ getError(itemIdx, col.key) }}
+                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-red-600"></div>
+                  </div>
 
-                  <!-- 이미지 -->
-                  <template v-else-if="col.type === 'image'">
-                    <div class="flex items-center justify-center w-full"><img :src="getRow(rowIdx)?.[col.key]" class="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-sm" /></div>
-                  </template>
+                  <!-- 데이터 툴팁 -->
+                  <div
+                    v-else-if="col.tooltip && getTooltipValue(itemIdx, col)"
+                    class="absolute bottom-full left-0 mb-2 px-2.5 py-1.5 bg-gray-800 text-white text-xs leading-snug rounded shadow-xl z-50 max-w-[280px] break-words whitespace-normal opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
+                  >
+                    {{ getTooltipValue(itemIdx, col) }}
+                    <div class="absolute top-full left-4 border-4 border-transparent border-t-gray-800"></div>
+                  </div>
 
-                  <!-- 버튼 -->
-                  <template v-else-if="col.type === 'button'">
-                    <div class="flex items-center justify-center w-full" @mousedown.stop>
-                      <button @click="onButtonClick(rowIdx, col.key)" class="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded border border-blue-200 hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-95">{{ col.options?.[0]?.label || '액션' }}</button>
-                    </div>
-                  </template>
+                  <!-- 편집 모드 -->
+                  <div v-if="isEditing(itemIdx, colIdx)" class="absolute inset-0 z-30 bg-white">
+                    <input
+                      v-if="col.type === 'date'"
+                      ref="editInput" v-model="editValue" type="date"
+                      class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
+                      @blur="stopEditing(true)" @keydown.enter="stopEditing(true)" @keydown.esc="stopEditing(false)" @mousedown.stop
+                      @change="stopEditing(true)"
+                    />
+                    <input
+                      v-else-if="col.type !== 'select' && col.type !== 'boolean'"
+                      ref="editInput" v-model="editValue" :type="col.type === 'number' ? 'number' : 'text'"
+                      class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
+                      @blur="stopEditing(true)" @keydown.enter="stopEditing(true)" @keydown.esc="stopEditing(false)" @mousedown.stop
+                      @input="handleInput(col)"
+                    />
+                    <select v-else-if="col.type === 'select'" ref="editInput" v-model="editValue" class="w-full h-full px-1 text-sm border-2 border-blue-500 outline-none" @blur="stopEditing(true)" @change="stopEditing(true)" @mousedown.stop>
+                      <option v-for="opt in col.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                    </select>
+                  </div>
 
-                  <!-- 링크 -->
-                  <template v-else-if="col.type === 'link'">
-                    <div class="flex items-center w-full overflow-hidden" @mousedown.stop>
-                      <a :href="getRow(rowIdx)?.[col.key]" target="_blank" class="text-blue-600 hover:underline truncate text-sm flex items-center gap-1">
-                        <span class="truncate">{{ getRow(rowIdx)?.[col.key] }}</span>
-                        <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                      </a>
-                    </div>
-                  </template>
+                  <!-- 읽기 모드 -->
+                  <div v-else class="px-2 py-1 text-sm w-full h-full flex items-center overflow-hidden" :class="[getAlignClass(col.align), col.truncate !== false ? 'truncate' : '']">
+                    <template v-if="!col.type || col.type === 'text' || col.type === 'number' || col.type === 'date'">
+                      {{ col.type === 'number' ? Number(getRow(itemIdx)?.[col.key] || 0).toLocaleString() : (getRow(itemIdx)?.[col.key] || '') }}
+                    </template>
+                    <template v-else-if="col.type === 'select'">{{ getOptionLabel(itemIdx, col) }}</template>
+                    <template v-else-if="col.type === 'boolean'">
+                      <div class="flex items-center justify-center w-full h-full" @mousedown.stop>
+                        <input type="checkbox" :checked="!!getRow(itemIdx)?.[col.key]" @change="toggleBoolean(itemIdx, col.key)" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer" />
+                      </div>
+                    </template>
+                    <template v-else-if="col.type === 'badge'">
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm" :class="getBadgeColor(itemIdx, col)">{{ getOptionLabel(itemIdx, col) }}</span>
+                    </template>
+                    <template v-else-if="col.type === 'progress'">
+                      <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden border border-gray-200 mx-1">
+                        <div class="bg-blue-500 h-full transition-all duration-500" :style="{ width: (getRow(itemIdx)?.[col.key] || 0) + '%' }"></div>
+                      </div>
+                    </template>
+                    <template v-else-if="col.type === 'image'">
+                      <div class="flex items-center justify-center w-full"><img :src="getRow(itemIdx)?.[col.key]" class="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-sm" /></div>
+                    </template>
+                    <template v-else-if="col.type === 'button'">
+                      <div class="flex items-center justify-center w-full" @mousedown.stop>
+                        <button @click="onButtonClick(itemIdx, col.key)" class="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded border border-blue-200 hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-95">{{ col.options?.[0]?.label || '액션' }}</button>
+                      </div>
+                    </template>
+                    <template v-else-if="col.type === 'link'">
+                      <div class="flex items-center w-full overflow-hidden" @mousedown.stop>
+                        <a :href="getRow(itemIdx)?.[col.key]" target="_blank" class="text-blue-600 hover:underline truncate text-sm flex items-center gap-1">
+                          <span class="truncate">{{ getRow(itemIdx)?.[col.key] }}</span>
+                          <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        </a>
+                      </div>
+                    </template>
+                    <template v-else-if="col.type === 'radio'">
+                      <div class="flex items-center gap-3 overflow-hidden px-1" @mousedown.stop>
+                        <label v-for="opt in col.options" :key="opt.value" class="flex items-center gap-1 cursor-pointer whitespace-nowrap text-xs text-gray-600 hover:text-blue-600 transition-colors">
+                          <input type="radio" :name="`radio-${getRow(itemIdx)?.id}-${col.key}`" :value="opt.value" :checked="getRow(itemIdx)?.[col.key] === opt.value" @change="updateCellFromItem(itemIdx, col.key, opt.value)" class="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500" />
+                          {{ opt.label }}
+                        </label>
+                      </div>
+                    </template>
+                  </div>
+                  <div v-if="isSelected(itemIdx, colIdx)" class="absolute inset-0 pointer-events-none border-2 border-blue-500 z-10"></div>
+                </td>
+                </template>
+              </tr>
 
-                  <!-- 라디오 버튼 -->
-                  <template v-else-if="col.type === 'radio'">
-                    <div class="flex items-center gap-3 overflow-hidden px-1" @mousedown.stop>
-                      <label v-for="opt in col.options" :key="opt.value" class="flex items-center gap-1 cursor-pointer whitespace-nowrap text-xs text-gray-600 hover:text-blue-600 transition-colors">
-                        <input
-                          type="radio"
-                          :name="`radio-${getRow(rowIdx)?.id}-${col.key}`"
-                          :value="opt.value"
-                          :checked="getRow(rowIdx)?.[col.key] === opt.value"
-                          @change="updateCell(rowIdx, col.key, opt.value)"
-                          class="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500"
-                        />
-                        {{ opt.label }}
-                      </label>
-                    </div>
-                  </template>
-                </div>
-                <div v-if="isSelected(rowIdx, colIdx)" class="absolute inset-0 pointer-events-none border-2 border-blue-500 z-10"></div>
-              </td>
-            </tr>
+            </template>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Paging UI -->
-    <div v-if="usePaging" class="wz-grid-paging border-t border-gray-300 bg-gray-50 px-4 py-2 flex items-center justify-between text-sm text-gray-600">
-      <div class="flex items-center gap-4">
-        <span>Total: <strong>{{ rows.length.toLocaleString() }}</strong></span>
-        <!-- 체크박스 선택 건수 -->
-        <span v-if="useCheckbox && checkedCount > 0" class="text-blue-600 font-semibold">
-          {{ checkedCount.toLocaleString() }}건 선택됨
-        </span>
-        <div class="flex items-center gap-1">
-          <span>Page Size:</span>
-          <select
-            :value="pageSize"
-            @change="onPageSizeChange"
-            class="bg-white border border-gray-300 rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-400"
-          >
-            <option v-for="size in [10, 20, 50, 100]" :key="size" :value="size">{{ size }}</option>
-          </select>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <button
-          @click="setPage(1)"
-          :disabled="currentPage === 1"
-          class="px-2 py-1 rounded hover:bg-gray-200 disabled:opacity-30 transition-colors"
-        >
-          &laquo;
-        </button>
-        <button
-          @click="setPage(currentPage - 1)"
-          :disabled="currentPage === 1"
-          class="px-2 py-1 rounded hover:bg-gray-200 disabled:opacity-30 transition-colors"
-        >
-          &lsaquo;
-        </button>
-        <div class="flex items-center gap-1 px-2">
-          <input
-            type="number"
-            :value="currentPage"
-            @change="onPageInput"
-            class="w-12 text-center bg-white border border-gray-300 rounded py-0.5 outline-none focus:ring-1 focus:ring-blue-400"
-          />
-          <span>/ {{ totalPages }}</span>
-        </div>
-        <button
-          @click="setPage(currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          class="px-2 py-1 rounded hover:bg-gray-200 disabled:opacity-30 transition-colors"
-        >
-          &rsaquo;
-        </button>
-        <button
-          @click="setPage(totalPages)"
-          :disabled="currentPage === totalPages"
-          class="px-2 py-1 rounded hover:bg-gray-200 disabled:opacity-30 transition-colors"
-        >
-          &raquo;
-        </button>
-      </div>
-    </div>
+    <!-- ── 페이징 ──────────────────────────────────────────────────────── -->
+    <WZGridPagination
+      v-if="usePaging"
+      :total-filtered-rows="filteredRows.length"
+      :total-rows="rows.length"
+      :show-filter-note="useFilter && filteredRows.length !== rows.length"
+      :checked-count="checkedCount"
+      :page-size="pageSize"
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      @update:page-size="$emit('update:pageSize', $event)"
+      @go-to="setPage"
+    />
+
   </div>
+
+  <!-- ── 컨텍스트 메뉴 ──────────────────────────────────────────────── -->
+  <WZContextMenu
+    v-if="useContextMenu"
+    :visible="ctxMenu.visible"
+    :x="ctxMenu.x"
+    :y="ctxMenu.y"
+    @clear-cell="ctxClearCell"
+    @insert="ctxInsert"
+    @delete-row="ctxDeleteRow"
+  />
+
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, PropType, ref, reactive, nextTick, watch, watchEffect } from 'vue-demi';
-import { Column } from '../types/grid';
-import { useSelection } from '../composables/useSelection';
-import { useClipboard } from '../composables/useClipboard';
-import { useVirtualScroll } from '../composables/useVirtualScroll';
+import { defineComponent, computed, PropType, ref, reactive, nextTick, watch, onMounted, onBeforeUnmount } from 'vue-demi';
+import type { Column, SortConfig, GridItem, DataItem, GroupHeader, SubtotalItem } from '../types/grid';
+import { useSelection }      from '../composables/useSelection';
+import { useClipboard }      from '../composables/useClipboard';
+import { useVirtualScroll }  from '../composables/useVirtualScroll';
+import { useColumnSettings } from '../composables/useColumnSettings';
+import { useFilter }         from '../composables/useFilter';
+import { useGrouping }       from '../composables/useGrouping';
+import { useMerge }          from '../composables/useMerge';
+import { useSort }           from '../composables/useSort';
+import { useColumnDrag }     from '../composables/useColumnDrag';
+import { useRowDragDrop }    from '../composables/useRowDragDrop';
+import { useValidation }     from '../composables/useValidation';
+import { useCheckbox }       from '../composables/useCheckbox';
+import WZGridPagination      from './WZGridPagination.vue';
+import WZContextMenu         from './WZContextMenu.vue';
 
 const CHECKBOX_WIDTH = 40;
+const ROW_DRAG_WIDTH = 28;
 
 export default defineComponent({
   name: 'WZGrid',
+  components: { WZGridPagination, WZContextMenu },
   props: {
-    columns:      { type: Array as PropType<Column[]>, required: true },
-    rows:         { type: Array as PropType<any[]>, required: true },
-    height:       { type: Number, default: 500 },
-    rowHeight:    { type: Number, default: 40 },
-    usePaging:    { type: Boolean, default: false },
-    pageSize:     { type: Number, default: 20 },
-    currentPage:  { type: Number, default: 1 },
-    useCheckbox:  { type: Boolean, default: false },
-    showAdd:      { type: Boolean, default: false },
-    showDelete:   { type: Boolean, default: false },
+    columns:            { type: Array as PropType<Column[]>, required: true },
+    rows:               { type: Array as PropType<any[]>, required: true },
+    height:             { type: Number, default: 500 },
+    rowHeight:          { type: Number, default: 40 },
+    usePaging:          { type: Boolean, default: false },
+    pageSize:           { type: Number, default: 20 },
+    currentPage:        { type: Number, default: 1 },
+    useCheckbox:        { type: Boolean, default: false },
+    showAdd:            { type: Boolean, default: false },
+    showDelete:         { type: Boolean, default: false },
+    useFilter:          { type: Boolean, default: false },
+    showColumnSettings: { type: Boolean, default: false },
+    groupBy:            { type: String,  default: '' },
+    useContextMenu:     { type: Boolean, default: false },
+    useRowDrag:         { type: Boolean, default: false },
+    autoMergeCols:      { type: Array as PropType<string[]>, default: () => [] },
+    mergeCells:         { type: Function as PropType<(row: any, colKey: string) => { rowspan?: number; colspan?: number } | null | void>, default: null },
   },
+
   setup(props, { emit, slots }) {
     const hasToolbarSlot = computed(() => !!slots.toolbar);
     const { selection, startSelection, updateSelection, endSelection, isSelected, clearSelection, moveSelection } = useSelection();
 
-    // --- 1. Paging Logic ---
-    const totalPages = computed(() => Math.ceil(props.rows.length / props.pageSize) || 1);
+    // ── 1. 컬럼 표시/숨기기 ────────────────────────────────────────────
+    const { hiddenColKeys, visibleColumns, toggleColVisibility, colSettingsOpen } = useColumnSettings(
+      () => props.columns
+    );
 
-    watch(() => props.rows.length, () => {
+    // ── 2. 필터링 ──────────────────────────────────────────────────────
+    const { filters, isFilterActive, activeFilterCount, clearFilter, clearAllFilters, filteredRows } = useFilter(
+      () => props.rows,
+      () => props.columns,
+      () => props.useFilter
+    );
+
+    // ── 3. 그룹핑 ──────────────────────────────────────────────────────
+    const { collapsedGroups, toggleGroup, flatGroupedItems, groupColTitle } = useGrouping(
+      () => filteredRows.value,
+      () => props.groupBy,
+      () => visibleColumns.value,
+      () => props.columns
+    );
+
+    // ── 4. 페이징 ──────────────────────────────────────────────────────
+    const totalPages = computed(() => Math.ceil(flatGroupedItems.value.length / props.pageSize) || 1);
+
+    const setPage = (page: number) => {
+      emit('update:currentPage', Math.max(1, Math.min(page, totalPages.value)));
+    };
+
+    watch(() => flatGroupedItems.value.length, () => {
       if (props.currentPage > totalPages.value) setPage(totalPages.value);
     });
 
-    const setPage = (page: number) => {
-      const target = Math.max(1, Math.min(page, totalPages.value));
-      emit('update:currentPage', target);
-    };
+    // 필터 변경 시 1페이지로 리셋
+    watch(filters, () => { if (props.usePaging) setPage(1); }, { deep: true });
 
-    const onPageSizeChange = (e: Event) => {
-      const size = parseInt((e.target as HTMLSelectElement).value);
-      emit('update:pageSize', size);
-      emit('update:currentPage', 1);
-    };
-
-    const onPageInput = (e: Event) => {
-      setPage(parseInt((e.target as HTMLInputElement).value));
-    };
-
-    const pagedRows = computed(() => {
-      if (!props.usePaging) return props.rows;
+    const pagedItems = computed((): GridItem[] => {
+      if (!props.usePaging) return flatGroupedItems.value;
       const start = (props.currentPage - 1) * props.pageSize;
-      return props.rows.slice(start, start + props.pageSize);
+      return flatGroupedItems.value.slice(start, start + props.pageSize);
     });
 
-    // --- 2. Virtual Scroll ---
-    const { visibleRange, topPadding, bottomPadding, onScroll } = useVirtualScroll(
-      computed(() => pagedRows.value.length),
-      props.rowHeight,
-      props.height
-    );
+    // ── 5. 가상 스크롤 ─────────────────────────────────────────────────
+    const hasActiveMerge = computed(() => (props.autoMergeCols?.length ?? 0) > 0 || !!props.mergeCells);
+
+    const _vs = useVirtualScroll(computed(() => pagedItems.value.length), props.rowHeight, props.height);
+
+    const topPadding    = computed(() => hasActiveMerge.value ? 0 : _vs.topPadding.value);
+    const bottomPadding = computed(() => hasActiveMerge.value ? 0 : _vs.bottomPadding.value);
+    const onScroll      = _vs.onScroll;
 
     const visibleRowsRange = computed(() => {
+      if (hasActiveMerge.value) return Array.from({ length: pagedItems.value.length }, (_, i) => i);
       const range = [];
-      for (let i = visibleRange.value.startIdx; i < visibleRange.value.endIdx; i++) {
-        if (i < pagedRows.value.length) range.push(i);
+      for (let i = _vs.visibleRange.value.startIdx; i < _vs.visibleRange.value.endIdx; i++) {
+        if (i < pagedItems.value.length) range.push(i);
       }
       return range;
     });
 
-    const getRow = (idx: number) => pagedRows.value[idx];
+    const getItem = (idx: number): GridItem | undefined => pagedItems.value[idx];
+    const getRow  = (idx: number): any | undefined => {
+      const item = pagedItems.value[idx];
+      return item?.type === 'data' ? item.row : undefined;
+    };
 
-    // --- 3. Checkbox ---
-    // checkedIds: 체크된 row.id 집합. Set 변경 감지를 위해 ref + 새 Set 재할당 방식 사용
-    const checkedIds = ref<Set<any>>(new Set());
+    // 템플릿에서 as any 없이 사용하기 위한 타입 안전 헬퍼
+    const asGroupHeader = (idx: number) => getItem(idx) as GroupHeader;
+    const asSubtotal    = (idx: number) => getItem(idx) as SubtotalItem;
 
-    const isAllChecked = computed(
-      () => props.rows.length > 0 && props.rows.every(r => checkedIds.value.has(r.id))
+    // ── 6. 체크박스 ────────────────────────────────────────────────────
+    const { checkedIds, isAllChecked, checkedCount, isRowChecked, toggleAll, toggleRow, headerCheckboxEl } = useCheckbox(
+      () => filteredRows.value,
+      () => props.rows,
+      (checked) => emit('update:checked', checked)
     );
-    const isIndeterminate = computed(
-      () => !isAllChecked.value && props.rows.some(r => checkedIds.value.has(r.id))
+
+    const handleDelete = () => {
+      const checked = props.rows.filter(r => checkedIds.value.has(r.id));
+      emit('click:delete', checked);
+    };
+
+    // ── 7. 셀 병합 ─────────────────────────────────────────────────────
+    const { getMerge } = useMerge(
+      () => pagedItems.value,
+      () => visibleColumns.value,
+      () => props.autoMergeCols || [],
+      () => props.mergeCells || null
     );
-    const checkedCount = computed(() => checkedIds.value.size);
 
-    const isRowChecked = (id: any) => checkedIds.value.has(id);
+    // ── 8. 컨텍스트 메뉴 ──────────────────────────────────────────────
+    const ctxMenu = reactive({ visible: false, x: 0, y: 0, itemIdx: -1, colIdx: -1 });
 
-    const emitChecked = () => {
-      emit('update:checked', props.rows.filter(r => checkedIds.value.has(r.id)));
+    const openContextMenu = (e: MouseEvent, itemIdx: number, colIdx: number) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const menuW = 170, menuH = 180;
+      ctxMenu.x = e.clientX + menuW > window.innerWidth  ? e.clientX - menuW : e.clientX;
+      ctxMenu.y = e.clientY + menuH > window.innerHeight ? e.clientY - menuH : e.clientY;
+      ctxMenu.itemIdx = itemIdx; ctxMenu.colIdx = colIdx; ctxMenu.visible = true;
     };
 
-    const toggleAll = () => {
-      checkedIds.value = isAllChecked.value
-        ? new Set()
-        : new Set(props.rows.map(r => r.id));
-      emitChecked();
+    const closeCtxMenu = () => { ctxMenu.visible = false; };
+    onMounted(()       => document.addEventListener('click', closeCtxMenu));
+    onBeforeUnmount(() => document.removeEventListener('click', closeCtxMenu));
+
+    const ctxClearCell = () => {
+      const row = getRow(ctxMenu.itemIdx);
+      const col = visibleColumns.value[ctxMenu.colIdx];
+      if (row && col) { const fullIdx = props.rows.findIndex(r => r.id === row.id); updateCell(fullIdx, col.key, ''); }
+      closeCtxMenu();
+    };
+    const ctxInsert = (position: 'above' | 'below') => {
+      emit('click:insert', { position, row: getRow(ctxMenu.itemIdx) }); closeCtxMenu();
+    };
+    const ctxDeleteRow = () => {
+      const row = getRow(ctxMenu.itemIdx);
+      if (row) emit('click:delete', [row]); closeCtxMenu();
     };
 
-    const toggleRow = (id: any) => {
-      const next = new Set(checkedIds.value);
-      next.has(id) ? next.delete(id) : next.add(id);
-      checkedIds.value = next;
-      emitChecked();
-    };
+    // ── 9. 행 드래그 순서 변경 ─────────────────────────────────────────
+    const { rowDragSrcIdx, rowDragOverIdx, rowDragOverPos, onRowDragStart, onRowDragOver, onRowDrop, onRowDragEnd } = useRowDragDrop(
+      getRow,
+      (from, to, position) => emit('reorder:rows', { from, to, position })
+    );
 
-    // rows 교체 시(예: resetData) 체크 상태 초기화
-    watch(() => props.rows, () => { checkedIds.value = new Set(); }, { deep: false });
+    // ── 10. 유효성 검사 ────────────────────────────────────────────────
+    const { errors, validateCell } = useValidation(() => props.rows, () => props.columns);
+    const hasError = (rowIdx: number, colKey: string) => { const row = getRow(rowIdx); return row ? !!errors[`${row.id}:${colKey}`] : false; };
+    const getError = (rowIdx: number, colKey: string) => { const row = getRow(rowIdx); return row ? errors[`${row.id}:${colKey}`] : ''; };
 
-    // 헤더 체크박스 indeterminate 상태 — DOM 속성이라 watchEffect로 직접 설정
-    const headerCheckboxEl = ref<HTMLInputElement | null>(null);
-    watchEffect(() => {
-      if (headerCheckboxEl.value) {
-        headerCheckboxEl.value.indeterminate = isIndeterminate.value;
-      }
-    });
-
-    // --- 4. Error & Validation ---
-    const errors = reactive<Record<string, string>>({});
-    const hasError = (rowIdx: number, colKey: string) => {
-      const row = getRow(rowIdx);
-      return row ? !!errors[`${row.id}:${colKey}`] : false;
-    };
-    const getError = (rowIdx: number, colKey: string) => {
-      const row = getRow(rowIdx);
-      return row ? errors[`${row.id}:${colKey}`] : '';
-    };
-
-    const validateCell = (row: any, col: Column, value: any) => {
-      const errorKey = `${row.id}:${col.key}`;
-      if (col.required && (value === null || value === undefined || value === '')) {
-        errors[errorKey] = `${col.title}은(는) 필수 입력 항목입니다.`;
-        return false;
-      }
-      if (col.validator) {
-        const customError = col.validator(value, row);
-        if (customError) { errors[errorKey] = customError; return false; }
-      }
-      delete errors[errorKey];
-      return true;
-    };
-
-    watch(() => props.rows, () => {
-      props.rows.forEach(row => props.columns.forEach(col => validateCell(row, col, row[col.key])));
-    }, { immediate: true });
-
-    // --- 5. Styling & Resizing ---
-    // pinned 컬럼의 left 오프셋: 체크박스 컬럼 너비만큼 추가 확보
-    const getColumnStyle = (col: Column, colIdx: number, isHeader = false) => {
+    // ── 11. 스타일 & 리사이즈 ──────────────────────────────────────────
+    const getColumnStyle = (col: Column, colIdx: number) => {
       const style: Record<string, any> = { width: (col.width || 150) + 'px' };
       if (col.pinned) {
-        let leftOffset = props.useCheckbox ? CHECKBOX_WIDTH : 0;
+        let left = 0;
+        if (props.useRowDrag)  left += ROW_DRAG_WIDTH;
+        if (props.useCheckbox) left += CHECKBOX_WIDTH;
         for (let i = 0; i < colIdx; i++) {
-          if (props.columns[i].pinned) leftOffset += (props.columns[i].width || 150);
+          if (visibleColumns.value[i]?.pinned) left += (visibleColumns.value[i].width || 150);
         }
-        style.left = leftOffset + 'px';
+        style.left = left + 'px';
       }
       return style;
     };
 
     const getAlignClass = (align?: string) => ({
-      'justify-start': !align || align === 'left',
+      'justify-start':  !align || align === 'left',
       'justify-center': align === 'center',
-      'justify-end': align === 'right',
+      'justify-end':    align === 'right',
     });
 
     const startResize = (e: MouseEvent, colIdx: number) => {
-      const startX = e.pageX; const startWidth = props.columns[colIdx].width || 150;
-      const onMouseMove = (ev: MouseEvent) => { emit('resize:column', { colIdx, width: Math.max(50, startWidth + (ev.pageX - startX)) }); };
+      const startX = e.pageX;
+      const startWidth = visibleColumns.value[colIdx]?.width || 150;
+      const colKey = visibleColumns.value[colIdx]?.key;
+      const onMouseMove = (ev: MouseEvent) => emit('resize:column', { colIdx, colKey, width: Math.max(50, startWidth + (ev.pageX - startX)) });
       const onMouseUp = () => { document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); };
-      document.addEventListener('mousemove', onMouseMove); document.addEventListener('mouseup', onMouseUp);
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
     };
 
-    // --- 6. Sort & Keyboard ---
-    const sortConfig = reactive({ key: '', order: 'asc' as 'asc' | 'desc' });
-    const toggleSort = (key: string) => {
-      if (sortConfig.key === key) sortConfig.order = sortConfig.order === 'asc' ? 'desc' : 'asc';
-      else { sortConfig.key = key; sortConfig.order = 'asc'; }
-      emit('sort', { ...sortConfig });
-    };
+    // ── 12. 컬럼 드래그 앤 드롭 순서 변경 ─────────────────────────────
+    const { dragSourceColIdx, dragOverColIdx, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd } = useColumnDrag(
+      () => visibleColumns.value,
+      (srcKey, targetKey) => emit('reorder:columns', { srcKey, targetKey })
+    );
 
-    const handleInput = (col: Column) => {
-      if (col.onInput) editValue.value = col.onInput(editValue.value);
-    };
+    // ── 13. 다중 정렬 ──────────────────────────────────────────────────
+    const { sortConfigs, getSortEntry, getSortIndex, toggleSort } = useSort(
+      (configs) => emit('sort', configs)
+    );
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (editing.rowId !== null) return;
-      const dirs: any = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
-      if (dirs[e.key]) {
-        e.preventDefault();
-        moveSelection(dirs[e.key], e.shiftKey, pagedRows.value.length, props.columns.length);
-      }
-      else if (e.key === 'Enter') { e.preventDefault(); startEditing(selection.startRow, selection.startCol); }
-      else if (e.key === 'Escape') clearSelection();
-      else if (e.key === 'Backspace' || e.key === 'Delete') {
-        const row = getRow(selection.startRow);
-        if (row) updateCell(selection.startRow, props.columns[selection.startCol].key, '');
-      }
-      else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        const rowIdx = selection.startRow; const colIdx = selection.startCol;
-        if (rowIdx !== -1) { e.preventDefault(); startEditing(rowIdx, colIdx, e.key); }
-      }
-    };
-
-    // --- 7. Editing State ---
-    const editing = reactive({ rowId: null as any, colIdx: -1 });
+    // ── 14. 편집 ───────────────────────────────────────────────────────
+    const editing   = reactive({ rowId: null as any, colIdx: -1 });
     const editValue = ref<any>('');
     const editInput = ref<any>(null);
+
+    const handleInput = (col: Column) => { if (col.onInput) editValue.value = col.onInput(editValue.value); };
+
     const isEditing = (rIdx: number, cIdx: number) => {
       const row = getRow(rIdx);
       return row && editing.rowId === row.id && editing.colIdx === cIdx;
     };
 
+    const updateCell = (fullIdx: number, key: string, val: any) => {
+      const row = props.rows[fullIdx];
+      if (row) emit('update:cell', { rowIdx: fullIdx, row, colKey: key, value: val });
+    };
+
+    const updateCellFromItem = (itemIdx: number, key: string, val: any) => {
+      const row = getRow(itemIdx);
+      if (!row) return;
+      const fullIdx = props.rows.findIndex(r => r.id === row.id);
+      updateCell(fullIdx, key, val);
+    };
+
     const startEditing = async (rIdx: number, cIdx: number, initialValue?: string) => {
-      const row = getRow(rIdx); const col = props.columns[cIdx];
-      if (!row || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio'].includes(col.type || '')) return;
+      const row = getRow(rIdx);
+      const col = visibleColumns.value[cIdx];
+      if (!row || !col || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio'].includes(col.type || '')) return;
       editing.rowId = row.id; editing.colIdx = cIdx;
       const useInitial = initialValue !== undefined && col.type !== 'date';
       editValue.value = useInitial ? initialValue : row[col.key];
@@ -531,9 +734,8 @@ export default defineComponent({
       if (save && editing.rowId !== null) {
         const fullRowIdx = props.rows.findIndex(r => r.id === editing.rowId);
         if (fullRowIdx !== -1) {
-          const col = props.columns[editing.colIdx];
-          validateCell(props.rows[fullRowIdx], col, editValue.value);
-          updateCell(fullRowIdx, col.key, editValue.value);
+          const col = visibleColumns.value[editing.colIdx];
+          if (col) { validateCell(props.rows[fullRowIdx], col, editValue.value); updateCell(fullRowIdx, col.key, editValue.value); }
         }
       }
       editing.rowId = null; editing.colIdx = -1;
@@ -544,11 +746,28 @@ export default defineComponent({
       if (row) { const fullIdx = props.rows.findIndex(r => r.id === row.id); updateCell(fullIdx, key, !row[key]); }
     };
 
-    const updateCell = (fullIdx: number, key: string, val: any) => {
-      const row = props.rows[fullIdx];
-      if (row) emit('update:cell', { rowIdx: fullIdx, row, colKey: key, value: val });
+    // ── 15. 키보드 ─────────────────────────────────────────────────────
+    const pagedDataRows = computed(() => pagedItems.value.filter((i): i is DataItem => i.type === 'data').map(i => i.row));
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (editing.rowId !== null) return;
+      const dirs: any = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+      if (dirs[e.key]) {
+        e.preventDefault();
+        moveSelection(dirs[e.key], e.shiftKey, pagedDataRows.value.length, visibleColumns.value.length);
+      } else if (e.key === 'Enter') {
+        e.preventDefault(); startEditing(selection.startRow, selection.startCol);
+      } else if (e.key === 'Escape') {
+        clearSelection();
+      } else if (e.key === 'Backspace' || e.key === 'Delete') {
+        const colKey = visibleColumns.value[selection.startCol]?.key;
+        if (colKey) updateCellFromItem(selection.startRow, colKey, '');
+      } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (selection.startRow !== -1) { e.preventDefault(); startEditing(selection.startRow, selection.startCol, e.key); }
+      }
     };
 
+    // ── 16. 표시 헬퍼 ──────────────────────────────────────────────────
     const onButtonClick = (pagedIdx: number, key: string) => {
       const row = getRow(pagedIdx);
       if (row) { const fullIdx = props.rows.findIndex(r => r.id === row.id); emit('click:button', { rowIdx: fullIdx, row, colKey: key }); }
@@ -558,44 +777,68 @@ export default defineComponent({
       const r = getRow(idx); const v = r?.[col.key];
       return col.options?.find(o => o.value === v)?.label || v || '';
     };
-
     const getBadgeColor = (idx: number, col: Column) => {
       const r = getRow(idx); const v = r?.[col.key];
-      const opt = col.options?.find(o => o.value === v);
-      return opt?.color || 'bg-blue-100 text-blue-600';
+      return col.options?.find(o => o.value === v)?.color || 'bg-blue-100 text-blue-600';
     };
-
     const getTooltipValue = (rowIdx: number, col: Column): string => {
-      const row = getRow(rowIdx);
-      if (!row) return '';
+      const row = getRow(rowIdx); if (!row) return '';
       const val = row[col.key];
       if (col.type === 'select' || col.type === 'badge') return col.options?.find(o => o.value === val)?.label || String(val ?? '');
       if (col.type === 'number') return Number(val || 0).toLocaleString();
       return String(val ?? '');
     };
 
-    const handleDelete = () => {
-      const checked = props.rows.filter(r => checkedIds.value.has(r.id));
-      emit('click:delete', checked);
+    // ── 17. 클립보드 ───────────────────────────────────────────────────
+    const updateCellByDataIdx = (dataIdx: number, key: string, val: any) => {
+      const row = pagedDataRows.value[dataIdx];
+      if (!row) return;
+      const fullIdx = props.rows.findIndex(r => r.id === row.id);
+      updateCell(fullIdx, key, val);
     };
 
-    const { onCopy, onPaste } = useClipboard(selection, props.columns, pagedRows, updateCell);
+    const { onCopy, onPaste } = useClipboard(
+      selection,
+      () => visibleColumns.value as Column[],
+      () => pagedDataRows.value as any[],
+      updateCellByDataIdx
+    );
 
     return {
-      CHECKBOX_WIDTH,
-      topPadding, bottomPadding, onScroll, visibleRowsRange,
+      CHECKBOX_WIDTH, ROW_DRAG_WIDTH,
+      // toolbar
+      hasToolbarSlot, hiddenColKeys, visibleColumns, toggleColVisibility,
+      colSettingsOpen, activeFilterCount, clearAllFilters, handleDelete,
+      // filter
+      filters, isFilterActive, clearFilter,
+      // sort
+      sortConfigs, toggleSort, getSortEntry, getSortIndex,
+      // column drag
+      dragSourceColIdx, dragOverColIdx, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
+      // grouping
+      collapsedGroups, toggleGroup, groupColTitle, getItem, asGroupHeader, asSubtotal,
+      // merge
+      getMerge,
+      // context menu
+      ctxMenu, openContextMenu, ctxClearCell, ctxInsert, ctxDeleteRow,
+      // row drag
+      rowDragSrcIdx, rowDragOverIdx, rowDragOverPos,
+      onRowDragStart, onRowDragOver, onRowDrop, onRowDragEnd,
+      // grid
+      topPadding, bottomPadding, onScroll, visibleRowsRange, filteredRows,
       isSelected, startSelection, updateSelection, endSelection,
       onCopy, onPaste,
+      // editing
       isEditing, startEditing, stopEditing, editValue, editInput,
-      toggleBoolean, getOptionLabel, getBadgeColor, getTooltipValue, getRow,
-      startResize, toggleSort, sortConfig, handleKeyDown, getColumnStyle, getAlignClass,
-      onButtonClick, hasError, getError, handleInput,
-      totalPages, setPage, onPageSizeChange, onPageInput, updateCell,
+      toggleBoolean, handleInput, updateCell, updateCellFromItem,
+      // display
+      onButtonClick, getOptionLabel, getBadgeColor, getTooltipValue, getRow,
+      startResize, handleKeyDown, getColumnStyle, getAlignClass,
+      hasError, getError,
+      // paging
+      totalPages, setPage,
       // checkbox
-      headerCheckboxEl, isAllChecked, isIndeterminate, checkedCount,
-      isRowChecked, toggleAll, toggleRow,
-      // toolbar
-      hasToolbarSlot, handleDelete,
+      headerCheckboxEl, isAllChecked, checkedCount, isRowChecked, toggleAll, toggleRow,
     };
   }
 });
@@ -608,4 +851,21 @@ export default defineComponent({
 .z-40 { z-index: 40; }
 .z-30 { z-index: 30; }
 .z-10 { z-index: 10; }
+
+.filter-input {
+  width: 100%;
+  font-size: 11px;
+  padding: 2px 16px 2px 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  outline: none;
+  background: white;
+  color: #374151;
+  min-width: 0;
+}
+.filter-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
+.filter-input::placeholder { color: #9ca3af; }
+
+.row-drag-over-top    td { box-shadow: 0 -2px 0 0 #3b82f6 inset; }
+.row-drag-over-bottom td { box-shadow: 0 2px 0 0 #3b82f6; }
 </style>

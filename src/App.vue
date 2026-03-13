@@ -7,6 +7,13 @@
       </div>
       <div class="flex gap-2">
         <button
+          @click="toggleMerge"
+          :class="mergeEnabled ? 'bg-purple-500 hover:bg-purple-600' : 'bg-gray-600 hover:bg-gray-700'"
+          class="px-4 py-2 text-white rounded shadow-sm text-sm transition-colors"
+        >
+          셀 병합 {{ mergeEnabled ? '끄기' : '켜기' }}
+        </button>
+        <button
           @click="pagingEnabled = !pagingEnabled"
           :class="pagingEnabled ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-600 hover:bg-gray-700'"
           class="px-4 py-2 text-white rounded shadow-sm text-sm transition-colors"
@@ -26,14 +33,30 @@
     </div>
 
     <main class="flex-grow bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
-      <div class="p-4 border-b bg-gray-50 flex justify-between items-center text-sm text-gray-600">
+      <div class="p-4 border-b bg-gray-50 flex justify-between items-center text-sm text-gray-600 flex-wrap gap-2">
         <div class="flex items-center gap-4">
           <span>전체 데이터: <strong>{{ rows.length.toLocaleString() }}</strong>건</span>
           <span v-if="checkedRows.length > 0" class="text-blue-600 font-semibold">
             {{ checkedRows.length.toLocaleString() }}건 선택됨
           </span>
         </div>
-        <div v-if="pagingEnabled" class="text-orange-600 font-semibold">페이징 모드가 활성화되었습니다.</div>
+        <div class="flex items-center gap-3">
+          <div v-if="pagingEnabled" class="text-orange-600 font-semibold">페이징 모드 활성</div>
+          <!-- 그룹 기준 선택 -->
+          <label class="flex items-center gap-1.5 text-xs text-gray-600">
+            <span class="font-semibold">그룹 기준:</span>
+            <select
+              v-model="groupByKey"
+              class="bg-white border border-gray-300 rounded px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-blue-400"
+            >
+              <option value="">없음</option>
+              <option value="status">상태</option>
+              <option value="dept">부서</option>
+              <option value="gender">성별</option>
+              <option value="active">재직 여부</option>
+            </select>
+          </label>
+        </div>
       </div>
 
       <div class="flex-grow p-4 overflow-hidden">
@@ -43,8 +66,14 @@
           :height="650"
           :usePaging="pagingEnabled"
           :useCheckbox="true"
+          :useFilter="true"
           :showAdd="true"
           :showDelete="true"
+          :showColumnSettings="true"
+          :useContextMenu="true"
+          :useRowDrag="true"
+          :groupBy="mergeEnabled ? '' : groupByKey"
+          :autoMergeCols="mergeEnabled ? ['status', 'dept'] : []"
           v-model:currentPage="currentPage"
           v-model:pageSize="pageSize"
           @update:cell="handleUpdate"
@@ -53,6 +82,9 @@
           @click:delete="handleDelete"
           @resize:column="handleResize"
           @sort="handleSort"
+          @reorder:columns="handleReorderColumns"
+          @click:insert="handleInsert"
+          @reorder:rows="handleReorderRows"
           @click:button="handleButtonClick"
         >
           <!-- 커스텀 툴바 슬롯 -->
@@ -100,11 +132,24 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import WZGrid from './components/WZGrid.vue';
-import { Column } from './types/grid';
+import type { Column, SortConfig } from './types/grid';
 import { downloadCSV } from './utils/tsv';
 import { printGrid } from './utils/print';
 
 const pagingEnabled = ref(true);
+const groupByKey    = ref('');
+const mergeEnabled  = ref(false);
+
+// 셀 병합 켜면 상태+부서 기준으로 정렬 후 활성화
+const toggleMerge = () => {
+  if (!mergeEnabled.value) {
+    rows.value = [...rows.value].sort((a, b) =>
+      a.status !== b.status ? a.status.localeCompare(b.status) : a.dept.localeCompare(b.dept)
+    );
+    pagingEnabled.value = false; // 병합은 전체 렌더 모드에서 의미 있음
+  }
+  mergeEnabled.value = !mergeEnabled.value;
+};
 const currentPage = ref(1);
 const pageSize = ref(20);
 const checkedRows = ref<any[]>([]);
@@ -237,17 +282,34 @@ const handleUpdate = ({ row, colKey, value }: any) => {
   if (target) (target as any)[colKey] = value;
 };
 
-const handleResize = ({ colIdx, width }: any) => {
-  columns.value[colIdx].width = width;
+const handleResize = ({ colKey, width }: any) => {
+  const col = columns.value.find(c => c.key === colKey);
+  if (col) col.width = width;
 };
 
 type Row = ReturnType<typeof generateData>[number];
 
-const handleSort = ({ key, order }: { key: keyof Row; order: 'asc' | 'desc' }) => {
-  rows.value.sort((a, b) => {
-    const modifier = order === 'asc' ? 1 : -1;
-    return (a[key] > b[key] ? 1 : -1) * modifier;
+const handleSort = (configs: SortConfig[]) => {
+  if (configs.length === 0) return;
+  rows.value = [...rows.value].sort((a, b) => {
+    for (const { key, order } of configs) {
+      const modifier = order === 'asc' ? 1 : -1;
+      const av = a[key as keyof Row];
+      const bv = b[key as keyof Row];
+      if (av !== bv) return (av > bv ? 1 : -1) * modifier;
+    }
+    return 0;
   });
+};
+
+const handleReorderColumns = ({ srcKey, targetKey }: { srcKey: string; targetKey: string }) => {
+  const cols = [...columns.value];
+  const srcIdx    = cols.findIndex(c => c.key === srcKey);
+  const targetIdx = cols.findIndex(c => c.key === targetKey);
+  if (srcIdx === -1 || targetIdx === -1) return;
+  const [moved] = cols.splice(srcIdx, 1);
+  cols.splice(targetIdx, 0, moved);
+  columns.value = cols;
 };
 
 const handleButtonClick = ({ row }: any) => { alert(`${row.name} 상세 보기`); };
@@ -281,6 +343,30 @@ const handleAdd = () => {
   };
   rows.value = [newRow, ...rows.value];
   currentPage.value = 1;
+};
+
+const handleReorderRows = ({ from, to, position }: { from: any; to: any; position: 'above' | 'below' }) => {
+  const arr = [...rows.value];
+  const fromIdx = arr.findIndex(r => r.id === from.id);
+  if (fromIdx === -1) return;
+  const [moved] = arr.splice(fromIdx, 1);
+  const toIdx = arr.findIndex(r => r.id === to.id);
+  if (toIdx === -1) return;
+  arr.splice(position === 'above' ? toIdx : toIdx + 1, 0, moved);
+  rows.value = arr;
+};
+
+const handleInsert = ({ position, row }: { position: 'above' | 'below'; row: any }) => {
+  const idx = rows.value.findIndex(r => r.id === row?.id);
+  if (idx === -1) return;
+  const newRow = {
+    id: _nextId++, avatar: `https://i.pravatar.cc/150?u=${_nextId}`,
+    name: '', gender: 'M', phone: '', address: '', status: 'Pending',
+    dept: 'dev', salary: 0, joinDate: new Date().toISOString().slice(0, 10),
+    active: true, completion: 0, profile: '',
+  };
+  const insertAt = position === 'above' ? idx : idx + 1;
+  rows.value = [...rows.value.slice(0, insertAt), newRow, ...rows.value.slice(insertAt)];
 };
 
 const handleDelete = (checkedList: any[]) => {

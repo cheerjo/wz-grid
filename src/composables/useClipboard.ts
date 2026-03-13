@@ -1,18 +1,16 @@
 // src/composables/useClipboard.ts
-import { Ref, unref } from 'vue-demi';
-import { Selection, Column, GridData } from '../types/grid';
+import { Selection, Column } from '../types/grid';
 import { parseTSV, stringifyTSV } from '../utils/tsv';
 
 export function useClipboard(
   selection: Selection,
-  columns: Column[],
-  // ComputedRef<any[]>도 받을 수 있도록 Ref 계열을 허용합니다.
-  // unref()를 사용하면 Ref든 일반 값이든 모두 꺼낼 수 있습니다.
-  rows: any[] | Ref<any[]>,
+  getColumns: () => Column[],
+  getRows: () => any[],
   updateCell: (rowIdx: number, colKey: string, value: any) => void
 ) {
-  // 실제 사용 시점마다 최신 배열 값을 가져오는 헬퍼 함수
-  const getRows = () => unref(rows);
+  const getCols = getColumns;
+  const getRows_ = getRows;
+
   const onCopy = (e: ClipboardEvent) => {
     const minRow = Math.min(selection.startRow, selection.endRow);
     const maxRow = Math.max(selection.startRow, selection.endRow);
@@ -23,14 +21,13 @@ export function useClipboard(
     for (let r = minRow; r <= maxRow; r++) {
       const rowData: string[] = [];
       for (let c = minCol; c <= maxCol; c++) {
-        const colKey = columns[c].key;
-        rowData.push(getRows()[r][colKey] || '');
+        const col = getCols()[c];
+        rowData.push(col ? String(getRows_()[r]?.[col.key] ?? '') : '');
       }
       selectedData.push(rowData);
     }
 
-    const tsvString = stringifyTSV(selectedData);
-    e.clipboardData?.setData('text/plain', tsvString);
+    e.clipboardData?.setData('text/plain', stringifyTSV(selectedData));
     e.preventDefault();
   };
 
@@ -46,9 +43,9 @@ export function useClipboard(
       rowData.forEach((cellData, cIdx) => {
         const targetRow = startRow + rIdx;
         const targetCol = startCol + cIdx;
-
-        if (targetRow < getRows().length && targetCol < columns.length) {
-          updateCell(targetRow, columns[targetCol].key, cellData);
+        const col = getCols()[targetCol];
+        if (targetRow < getRows_().length && col) {
+          updateCell(targetRow, col.key, cellData);
         }
       });
     });

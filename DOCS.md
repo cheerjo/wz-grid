@@ -15,14 +15,25 @@
 6. [페이징](#6-페이징)
 7. [가상 스크롤](#7-가상-스크롤)
 8. [정렬 (Sort)](#8-정렬-sort)
-9. [셀 선택 & 키보드 단축키](#9-셀-선택--키보드-단축키)
-10. [복사 / 붙여넣기 (Excel 연동)](#10-복사--붙여넣기-excel-연동)
-11. [데이터 검증 (Validation)](#11-데이터-검증-validation)
-12. [컬럼 고정 (Pinned)](#12-컬럼-고정-pinned)
-13. [컬럼 리사이즈](#13-컬럼-리사이즈)
-14. [CSV 내보내기](#14-csv-내보내기)
-15. [종합 예제](#15-종합-예제)
-16. [내부 구조 (Architecture)](#16-내부-구조-architecture)
+9. [필터 (Filter)](#9-필터-filter)
+10. [컬럼 표시/숨기기](#10-컬럼-표시숨기기)
+11. [컬럼 드래그 재배치](#11-컬럼-드래그-재배치)
+12. [행 드래그 재배치](#12-행-드래그-재배치)
+13. [그룹핑 & 소계](#13-그룹핑--소계)
+14. [셀 병합](#14-셀-병합)
+15. [컨텍스트 메뉴](#15-컨텍스트-메뉴)
+16. [셀 선택 & 키보드 단축키](#16-셀-선택--키보드-단축키)
+17. [복사 / 붙여넣기 (Excel 연동)](#17-복사--붙여넣기-excel-연동)
+18. [데이터 검증 (Validation)](#18-데이터-검증-validation)
+19. [컬럼 고정 (Pinned)](#19-컬럼-고정-pinned)
+20. [컬럼 리사이즈](#20-컬럼-리사이즈)
+21. [툴바 (Toolbar)](#21-툴바-toolbar)
+22. [체크박스](#22-체크박스)
+23. [말줄임 & 툴팁](#23-말줄임--툴팁)
+24. [인쇄 (Print)](#24-인쇄-print)
+25. [CSV 내보내기](#25-csv-내보내기)
+26. [종합 예제](#26-종합-예제)
+27. [내부 구조 (Architecture)](#27-내부-구조-architecture)
 
 ---
 
@@ -74,11 +85,18 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 | `height` | `number` | `500` | 그리드 전체 높이(px) |
 | `rowHeight` | `number` | `40` | 각 행의 높이(px). 가상 스크롤 계산에 사용 |
 | `usePaging` | `boolean` | `false` | 페이징 활성화 여부 |
+| `pageSize` | `number` | `20` | 페이지당 표시 행 수 (`v-model:pageSize` 지원) |
+| `currentPage` | `number` | `1` | 현재 페이지 번호 (`v-model:currentPage` 지원) |
 | `useCheckbox` | `boolean` | `false` | 첫 번째 컬럼에 체크박스 활성화 여부 |
 | `showAdd` | `boolean` | `false` | 툴바에 기본 추가 버튼 표시 여부 |
 | `showDelete` | `boolean` | `false` | 툴바에 기본 삭제 버튼 표시 여부 |
-| `pageSize` | `number` | `20` | 페이지당 표시 행 수 (`v-model:pageSize` 지원) |
-| `currentPage` | `number` | `1` | 현재 페이지 번호 (`v-model:currentPage` 지원) |
+| `useFilter` | `boolean` | `false` | 컬럼별 필터 입력 행 표시 여부 |
+| `showColumnSettings` | `boolean` | `false` | 헤더 우측 컬럼 표시/숨기기 설정 버튼 표시 |
+| `groupBy` | `string` | `''` | 그룹핑 기준 컬럼 key. 빈 문자열이면 그룹핑 없음 |
+| `useContextMenu` | `boolean` | `false` | 우클릭 컨텍스트 메뉴 사용 여부 |
+| `useRowDrag` | `boolean` | `false` | 행 드래그 핸들 표시 및 재배치 기능 활성화 |
+| `autoMergeCols` | `string[]` | `[]` | 인접한 동일 값 셀을 자동 병합할 컬럼 key 목록 |
+| `mergeCells` | `MergeCell[]` | `[]` | 수동으로 정의한 셀 병합 규칙 목록 |
 
 ---
 
@@ -99,13 +117,13 @@ interface Column {
   options?: Option[];    // select/badge/radio/button 타입에서 사용
   validator?: (value: any, row: any) => string | null; // 커스텀 유효성 검사
   onInput?: (value: any) => any; // 입력 중 실시간 값 가공
-  truncate?: boolean;  // 내용이 길 때 말줄임표(...) 처리 (기본: true)
-  tooltip?: boolean;   // hover 시 전체 내용을 툴팁으로 표시
+  truncate?: boolean;    // 내용이 길 때 말줄임표(...) 처리 (기본: true)
+  tooltip?: boolean;     // hover 시 전체 내용을 툴팁으로 표시
 }
 
 interface Option {
   label: string;
-  value?: any;   // button 타입 등 value가 필요 없는 경우 생략 가능
+  value?: any;    // button 타입 등 value가 필요 없는 경우 생략 가능
   color?: string; // badge 타입에서 Tailwind 클래스 지정
 }
 
@@ -242,40 +260,49 @@ URL 값을 클릭 가능한 하이퍼링크로 표시. `target="_blank"`로 새 
 | 이벤트 | 페이로드 | 설명 |
 | :--- | :--- | :--- |
 | `@update:cell` | `{ rowIdx, row, colKey, value }` | 셀 값이 변경될 때 발생 |
-| `@update:currentPage` | `number` | 페이지가 변경될 때 발생 (`v-model` 사용 권장) |
-| `@update:pageSize` | `number` | 페이지 크기가 변경될 때 발생 (`v-model` 사용 권장) |
-| `@sort` | `{ key: string, order: 'asc' \| 'desc' }` | 헤더 클릭으로 정렬 요청 시 발생 |
-| `@resize:column` | `{ colIdx: number, width: number }` | 컬럼 너비 드래그 조절 시 발생 |
+| `@update:currentPage` | `number` | 페이지 변경 (`v-model` 사용 권장) |
+| `@update:pageSize` | `number` | 페이지 크기 변경 (`v-model` 사용 권장) |
+| `@update:checked` | `any[]` | 체크된 행 배열 변경 |
+| `@update:sort` | `SortConfig[]` | 헤더 클릭으로 정렬 변경 시 발생. 다중 정렬 배열 |
+| `@update:resize` | `{ key: string, width: number }` | 컬럼 너비 드래그 조절 완료 시 발생 |
+| `@update:reorder-columns` | `Column[]` | 컬럼 드래그 재배치 후 새 컬럼 순서 배열 |
+| `@update:reorder-rows` | `any[]` | 행 드래그 재배치 후 새 행 순서 배열 |
+| `@insert:row` | — | 행 추가 요청 (showAdd 또는 컨텍스트 메뉴) |
+| `@delete:rows` | `number[]` | 행 삭제 요청 (선택된 행 인덱스 배열) |
 | `@click:button` | `{ rowIdx, row, colKey }` | `button` 타입 셀 클릭 시 발생 |
 
 ### `@update:cell` 처리 예제
 
 ```ts
 const handleUpdate = ({ row, colKey, value }: any) => {
-  // row.id로 원본 배열에서 찾아 갱신
   const target = rows.value.find(r => r.id === row.id);
   if (target) (target as any)[colKey] = value;
 };
 ```
 
-### `@sort` 처리 예제
+### `@update:sort` 처리 예제
 
 ```ts
-type Row = { id: number; name: string; salary: number };
+import type { SortConfig } from './types/grid';
 
-const handleSort = ({ key, order }: { key: keyof Row; order: 'asc' | 'desc' }) => {
-  rows.value.sort((a, b) => {
-    const modifier = order === 'asc' ? 1 : -1;
-    return (a[key] > b[key] ? 1 : -1) * modifier;
+const handleSort = (configs: SortConfig[]) => {
+  if (configs.length === 0) return;
+  rows.value = [...rows.value].sort((a, b) => {
+    for (const { key, order } of configs) {
+      const modifier = order === 'asc' ? 1 : -1;
+      if (a[key] !== b[key]) return (a[key] > b[key] ? 1 : -1) * modifier;
+    }
+    return 0;
   });
 };
 ```
 
-### `@resize:column` 처리 예제
+### `@update:resize` 처리 예제
 
 ```ts
-const handleResize = ({ colIdx, width }: { colIdx: number; width: number }) => {
-  columns.value[colIdx].width = width;
+const handleResize = ({ key, width }: { key: string; width: number }) => {
+  const col = columns.value.find(c => c.key === key);
+  if (col) col.width = width;
 };
 ```
 
@@ -310,7 +337,7 @@ const pageSize = ref(20);
 | Page Size 셀렉트 | 10, 20, 50, 100 중 선택. 변경 시 1페이지로 자동 리셋 |
 | Total 표시 | 전체 `rows` 배열 길이 표시 |
 
-**페이징 + 가상 스크롤**: 페이징 활성화 시 현재 페이지 내 행에 대해서만 가상 스크롤이 동작합니다. 두 기능이 동시에 작동하여 최적 성능을 유지합니다.
+**페이징 + 가상 스크롤**: 페이징 활성화 시 현재 페이지 내 행에 대해서만 가상 스크롤이 동작합니다.
 
 ---
 
@@ -323,12 +350,9 @@ const pageSize = ref(20);
 - 기본 버퍼: 상하 각 5행 (보이는 범위 밖 미리 렌더링)
 - 10만 건 이상도 끊김 없이 스크롤 가능
 
-`rowHeight` prop이 실제 행 높이와 일치해야 스크롤 계산이 정확합니다.
+> `rowHeight` prop이 실제 행 높이와 일치해야 스크롤 계산이 정확합니다.
 
-```vue
-<!-- rowHeight는 CSS 높이와 동일하게 맞춰야 함 -->
-<WZGrid :rows="rows" :row-height="40" />
-```
+> **셀 병합 활성화 시**: `autoMergeCols` 또는 `mergeCells`를 사용하면 rowspan 처리로 인해 가상 스크롤이 자동으로 비활성화되고 전체 행을 렌더링합니다.
 
 ---
 
@@ -336,22 +360,177 @@ const pageSize = ref(20);
 
 헤더 셀 클릭으로 정렬 이벤트를 발생시킵니다. **실제 정렬 로직은 부모 컴포넌트에서 처리합니다.**
 
-- 같은 컬럼 재클릭 시 오름차순(▲) ↔ 내림차순(▼) 토글
-- 현재 정렬 중인 컬럼 헤더에 화살표 표시
+### 단일 정렬
+
+헤더 클릭 시 오름차순(▲) ↔ 내림차순(▼) 토글. 다시 클릭하면 정렬 해제.
+
+### 다중 정렬 (Multi-Sort)
+
+`Shift + 헤더 클릭`으로 여러 컬럼을 동시에 정렬합니다.
+
+- 정렬된 컬럼 헤더에 순서 번호(①②③…)와 방향 화살표 표시
+- 이미 정렬 중인 컬럼을 Shift+클릭하면 방향 토글 → 해제 순으로 변경
 
 ```ts
-// 정렬 처리 예제
-const handleSort = ({ key, order }: { key: string; order: 'asc' | 'desc' }) => {
-  rows.value.sort((a, b) => {
-    const mod = order === 'asc' ? 1 : -1;
-    return (a[key] > b[key] ? 1 : -1) * mod;
+import type { SortConfig } from './types/grid';
+
+const handleSort = (configs: SortConfig[]) => {
+  if (configs.length === 0) return;
+  rows.value = [...rows.value].sort((a, b) => {
+    for (const { key, order } of configs) {
+      const modifier = order === 'asc' ? 1 : -1;
+      if (a[key] !== b[key]) return (a[key] > b[key] ? 1 : -1) * modifier;
+    }
+    return 0;
   });
 };
 ```
 
+```vue
+<WZGrid ... @update:sort="handleSort" />
+```
+
 ---
 
-## 9. 셀 선택 & 키보드 단축키
+## 9. 필터 (Filter)
+
+`useFilter` prop을 `true`로 설정하면 헤더 아래에 컬럼별 텍스트 입력 필터 행이 나타납니다.
+
+```vue
+<WZGrid :useFilter="true" ... />
+```
+
+- 각 컬럼 입력창에 텍스트를 입력하면 해당 컬럼 값에 대해 부분 일치 필터링 적용
+- 여러 컬럼에 동시에 필터 적용 가능 (AND 조건)
+- 필터 결과는 페이징과 연동되며, 필터 변경 시 1페이지로 자동 이동
+
+---
+
+## 10. 컬럼 표시/숨기기
+
+`showColumnSettings` prop을 `true`로 설정하면 헤더 영역 우측에 설정 아이콘이 나타납니다.
+
+```vue
+<WZGrid :showColumnSettings="true" ... />
+```
+
+- 아이콘 클릭 시 컬럼 목록 드롭다운 표시
+- 각 컬럼의 눈 아이콘 토글로 표시/숨기기 전환
+- 숨겨진 컬럼은 그리드에서 렌더링되지 않으며 복사/필터에서도 제외
+
+---
+
+## 11. 컬럼 드래그 재배치
+
+헤더 셀을 드래그하여 컬럼 순서를 변경할 수 있습니다. 별도 prop 없이 기본 활성화됩니다.
+
+- 헤더를 드래그하면 드롭 위치에 파란 인디케이터 선 표시
+- 드롭 완료 시 `@update:reorder-columns` 이벤트로 새 컬럼 배열 전달
+
+```ts
+const handleReorderColumns = (newColumns: Column[]) => {
+  columns.value = newColumns;
+};
+```
+
+```vue
+<WZGrid ... @update:reorder-columns="handleReorderColumns" />
+```
+
+---
+
+## 12. 행 드래그 재배치
+
+`useRowDrag` prop을 `true`로 설정하면 각 행 좌측에 드래그 핸들(⠿)이 나타납니다.
+
+```vue
+<WZGrid :useRowDrag="true" @update:reorder-rows="handleReorderRows" />
+```
+
+```ts
+const handleReorderRows = (newRows: any[]) => {
+  rows.value = newRows;
+};
+```
+
+- 드래그 중 드롭 위치에 파란 `box-shadow` 인디케이터 표시
+- 그룹핑(`groupBy`) 활성화 시에도 드래그 핸들 컬럼은 유지됨
+
+---
+
+## 13. 그룹핑 & 소계
+
+`groupBy` prop에 컬럼 key를 지정하면 해당 컬럼 값 기준으로 행을 그룹화합니다.
+
+```vue
+<WZGrid :groupBy="'dept'" ... />
+```
+
+- 그룹 헤더 행: 컬럼명, 그룹 값, 행 수 표시
+- 그룹 헤더 클릭으로 해당 그룹 접기/펼치기 토글
+- 소계 행: 각 그룹 하단에 표시. `type: 'number'` 컬럼의 합계 자동 계산
+- 그룹핑 활성화 시 페이징은 그룹 구조를 포함한 아이템 기준으로 동작
+
+---
+
+## 14. 셀 병합
+
+### 자동 병합 (`autoMergeCols`)
+
+지정한 컬럼에서 인접한 동일 값 셀을 위아래로 자동 병합(rowspan)합니다.
+
+```vue
+<WZGrid :autoMergeCols="['dept', 'team']" ... />
+```
+
+### 수동 병합 (`mergeCells`)
+
+특정 위치의 셀을 직접 지정하여 병합합니다.
+
+```ts
+type MergeCell = {
+  row: number;    // 시작 행 인덱스
+  col: number;    // 시작 열 인덱스
+  rowspan?: number; // 세로 병합 수
+  colspan?: number; // 가로 병합 수
+};
+```
+
+```vue
+<WZGrid :mergeCells="[{ row: 0, col: 1, rowspan: 3, colspan: 2 }]" ... />
+```
+
+> 셀 병합이 활성화되면 가상 스크롤은 자동으로 비활성화됩니다.
+
+---
+
+## 15. 컨텍스트 메뉴
+
+`useContextMenu` prop을 `true`로 설정하면 행을 우클릭 시 컨텍스트 메뉴가 나타납니다.
+
+```vue
+<WZGrid
+  :useContextMenu="true"
+  @insert:row="handleInsert"
+  @delete:rows="handleDelete"
+  ...
+/>
+```
+
+**메뉴 항목:**
+
+| 항목 | 이벤트 | 설명 |
+| :--- | :--- | :--- |
+| 위에 행 추가 | `@insert:row` | 우클릭한 행 위에 추가 |
+| 아래에 행 추가 | `@insert:row` | 우클릭한 행 아래에 추가 |
+| 행 삭제 | `@delete:rows` | 우클릭한 행 삭제 |
+
+- `<Teleport to="body">`를 사용하여 overflow 클리핑 없이 렌더링
+- 메뉴 외부 클릭 시 자동으로 닫힘
+
+---
+
+## 16. 셀 선택 & 키보드 단축키
 
 ### 마우스 선택
 
@@ -373,12 +552,13 @@ const handleSort = ({ key, order }: { key: string; order: 'asc' | 'desc' }) => {
 | 알파벳/숫자 키 | 즉시 편집 시작 (입력한 문자로 값 덮어쓰기) |
 | `Ctrl+C` / `Cmd+C` | 선택 범위 복사 (TSV 형식) |
 | `Ctrl+V` / `Cmd+V` | 클립보드 내용 붙여넣기 |
+| `Shift + 헤더 클릭` | 다중 정렬 컬럼 추가 |
 
 > 그리드가 포커스를 받아야 키보드 단축키가 동작합니다. 셀 클릭 또는 그리드 영역 클릭 후 사용하세요.
 
 ---
 
-## 10. 복사 / 붙여넣기 (Excel 연동)
+## 17. 복사 / 붙여넣기 (Excel 연동)
 
 `Ctrl+C` / `Ctrl+V`로 엑셀과 데이터를 주고받을 수 있습니다.
 
@@ -398,7 +578,7 @@ const handleSort = ({ key, order }: { key: string; order: 'asc' | 'desc' }) => {
 
 ---
 
-## 11. 데이터 검증 (Validation)
+## 18. 데이터 검증 (Validation)
 
 ### `required` — 필수 입력
 
@@ -425,16 +605,6 @@ const handleSort = ({ key, order }: { key: string; order: 'asc' | 'desc' }) => {
 }
 ```
 
-```ts
-{
-  key: 'email', title: '이메일',
-  validator: (value) => {
-    if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return '올바른 이메일 형식이 아닙니다.';
-    return null;
-  }
-}
-```
-
 ### `onInput` — 실시간 입력 가공
 
 타이핑 중 값을 실시간으로 변환합니다.
@@ -445,21 +615,53 @@ const handleSort = ({ key, order }: { key: string; order: 'asc' | 'desc' }) => {
 
 // 숫자만 허용
 { key: 'phone', title: '전화번호', onInput: (v) => v.replace(/\D/g, '') }
-
-// 휴대전화 자동 하이픈 (010-XXXX-XXXX)
-const formatPhone = (v: any): string => {
-  const digits = String(v).replace(/\D/g, '').slice(0, 11);
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
-};
-
-{ key: 'phone', title: '휴대전화', type: 'text', onInput: formatPhone }
 ```
+
+**검증 동작 시점:**
+- 컴포넌트 마운트 시 전체 rows에 대해 즉시 실행
+- `rows` prop 변경 시 자동 재검증
+- 셀 편집 후 저장(Enter/blur) 시 해당 셀 재검증
 
 ---
 
-## 툴바 (Toolbar)
+## 19. 컬럼 고정 (Pinned)
+
+`pinned: true`를 설정하면 해당 컬럼이 좌측에 고정(sticky)됩니다.
+수평 스크롤 시에도 항상 화면에 표시됩니다.
+
+```ts
+const columns = [
+  { key: 'id',   title: 'ID',   width: 60,  pinned: true },
+  { key: 'name', title: '이름', width: 120, pinned: true },
+  { key: 'dept', title: '부서', width: 100 }, // 스크롤됨
+];
+```
+
+- 여러 컬럼에 `pinned: true` 지정 가능
+- 고정 컬럼들은 순서대로 좌측에 누적 배치됨 (`left` 오프셋 자동 계산)
+- `useCheckbox`, `useRowDrag` 사용 시 해당 너비(체크박스 40px, 드래그 핸들 28px)가 `left` 오프셋에 자동 반영됨
+- 헤더와 바디 모두 동일하게 고정 (z-index 처리)
+
+---
+
+## 20. 컬럼 리사이즈
+
+헤더 셀 오른쪽 경계에 마우스를 올리면 리사이즈 커서가 표시됩니다.
+드래그하여 너비를 조절하고, `@update:resize` 이벤트로 결과를 받아 컬럼 정의를 업데이트합니다.
+
+```ts
+const handleResize = ({ key, width }: { key: string; width: number }) => {
+  const col = columns.value.find(c => c.key === key);
+  if (col) col.width = width;
+};
+```
+
+- 최소 너비: 50px
+- 실시간으로 너비 변경 반영
+
+---
+
+## 21. 툴바 (Toolbar)
 
 그리드 우측 상단에 버튼 영역을 제공합니다. 기본 제공 버튼과 커스텀 슬롯을 자유롭게 조합할 수 있습니다.
 
@@ -467,13 +669,11 @@ const formatPhone = (v: any): string => {
 <WZGrid
   :showAdd="true"
   :showDelete="true"
-  @click:add="handleAdd"
-  @click:delete="handleDelete"
+  @insert:row="handleInsert"
+  @delete:rows="handleDelete"
 >
-  <!-- 개발자 커스텀 버튼 (슬롯으로 자유롭게 추가) -->
   <template #toolbar>
     <button @click="exportCSV">CSV 내보내기</button>
-    <button @click="openFilter">필터</button>
   </template>
 </WZGrid>
 ```
@@ -482,38 +682,68 @@ const formatPhone = (v: any): string => {
 
 | 버튼 | prop | 이벤트 | 비고 |
 | :--- | :--- | :--- | :--- |
-| 추가 | `showAdd` | `@click:add` | 항상 활성 |
-| 삭제 | `showDelete` | `@click:delete` | 체크된 행이 없으면 비활성. 페이로드: 체크된 row 배열 |
+| 추가 | `showAdd` | `@insert:row` | 항상 활성 |
+| 삭제 | `showDelete` | `@delete:rows` | 체크된 행이 없으면 비활성 |
 
 **커스텀 슬롯 (`#toolbar`):**
 - `<template #toolbar>` 안에 임의의 HTML/컴포넌트 삽입 가능
 - 커스텀 슬롯 버튼은 기본 버튼(추가/삭제) 왼쪽에 배치됨
-- 슬롯과 기본 버튼 사이에 구분선 자동 표시
-
-**`@click:delete` 처리 예제:**
-
-```ts
-const handleDelete = (checkedList: any[]) => {
-  if (!confirm(`${checkedList.length}건을 삭제하시겠습니까?`)) return;
-  const ids = new Set(checkedList.map(r => r.id));
-  rows.value = rows.value.filter(r => !ids.has(r.id));
-};
-```
-
-**`@click:add` 처리 예제:**
-
-```ts
-const handleAdd = () => {
-  rows.value = [{ id: Date.now(), name: '', ... }, ...rows.value];
-};
-```
 
 ---
 
-## 인쇄 (Print)
+## 22. 체크박스
+
+`useCheckbox` prop을 `true`로 설정하면 그리드 첫 번째 컬럼에 체크박스가 추가됩니다.
+
+```vue
+<WZGrid
+  :useCheckbox="true"
+  @update:checked="checkedRows = $event"
+  ...
+/>
+```
+
+| 요소 | 동작 |
+| :--- | :--- |
+| 헤더 체크박스 | 전체 선택 / 전체 해제 토글 |
+| 헤더 (일부 선택 시) | indeterminate(—) 상태 표시 |
+| 행 체크박스 | 해당 행 선택 / 해제 |
+
+- 체크 기준은 **전체 rows** (페이지 관계없이 유지)
+- `rows` prop이 교체되면 체크 상태 자동 초기화
+
+---
+
+## 23. 말줄임 & 툴팁
+
+### `truncate` — 말줄임표 처리
+
+셀 내용이 컬럼 너비를 초과할 때 `...`으로 자르는 여부를 지정합니다. **기본값은 `true`**.
+
+```ts
+// 명시적 비활성화
+{ key: 'memo', title: '메모', width: 200, truncate: false }
+```
+
+### `tooltip` — 호버 툴팁
+
+`tooltip: true`를 설정하면 셀에 마우스를 올렸을 때 전체 내용을 툴팁으로 표시합니다.
+
+```ts
+{
+  key: 'address', title: '주소', width: 200,
+  truncate: true,
+  tooltip: true,
+}
+```
+
+> 에러가 있는 셀은 에러 툴팁이 우선 표시됩니다.
+
+---
+
+## 24. 인쇄 (Print)
 
 `src/utils/print.ts`의 `printGrid` 유틸 함수로 새 탭에 인쇄 레이아웃을 생성합니다.
-가상 스크롤 특성상 DOM에 렌더링되지 않은 행도 **전체 rows 배열 기준**으로 출력합니다.
 
 ```ts
 import { printGrid } from './utils/print';
@@ -539,120 +769,11 @@ printGrid(columns.value, rows.value, {
 
 - `image`, `button` 타입 컬럼은 출력에서 자동 제외
 - `boolean` → `✓` / `✗`, `progress` → `N%`, `select/badge/radio` → label로 변환
-- 용지 방향: A4 가로 (CSS `@page` 설정)
-- 팝업 차단 시 안내 메시지 표시
+- 용지 방향: A4 가로
 
 ---
 
-## 체크박스 (Checkbox)
-
-`useCheckbox` prop을 `true`로 설정하면 그리드 첫 번째 컬럼에 체크박스가 추가됩니다.
-
-```vue
-<WZGrid
-  :useCheckbox="true"
-  @update:checked="checkedRows = $event"
-  ...
-/>
-```
-
-| 요소 | 동작 |
-| :--- | :--- |
-| 헤더 체크박스 | 전체 선택 / 전체 해제 토글 |
-| 헤더 (일부 선택 시) | indeterminate(—) 상태 표시 |
-| 행 체크박스 | 해당 행 선택 / 해제 |
-| 선택된 행 | 연한 파란 배경으로 하이라이트 |
-| 페이징 바 | `N건 선택됨` 카운트 표시 |
-
-**`@update:checked`** 이벤트 페이로드: 현재 체크된 전체 row 객체 배열.
-
-```ts
-const checkedRows = ref<any[]>([]);
-// 체크 변경마다 전체 체크된 rows 배열로 업데이트
-```
-
-- 체크 기준은 **전체 rows** (페이지 관계없이 유지)
-- `rows` prop이 교체되면 체크 상태 자동 초기화
-- 체크박스 컬럼은 선택/편집/복사에서 제외됨
-- pinned 컬럼이 있을 경우 left 오프셋에 체크박스 너비(40px)가 자동으로 반영됨
-
----
-
-## 말줄임 & 툴팁 (Truncate & Tooltip)
-
-### `truncate` — 말줄임표 처리
-
-셀 내용이 컬럼 너비를 초과할 때 `...`으로 자르는 여부를 지정합니다. **기본값은 `true`** (생략 시 항상 말줄임 적용).
-
-```ts
-// 기본 동작 (생략 == truncate: true)
-{ key: 'name', title: '이름', width: 120 }
-
-// 명시적 비활성화 (내용 잘리지 않고 셀 밖으로 숨겨짐)
-{ key: 'memo', title: '메모', width: 200, truncate: false }
-```
-
-### `tooltip` — 호버 툴팁
-
-`tooltip: true`를 설정하면 셀에 마우스를 올렸을 때 전체 내용을 툴팁으로 표시합니다.
-`select` / `badge` 타입은 value 대신 **label**을 표시하고, `number` 타입은 천 단위 포맷으로 표시합니다.
-
-```ts
-{
-  key: 'address', title: '주소', width: 200, type: 'text',
-  truncate: true,  // 셀에서는 말줄임
-  tooltip: true,   // hover 시 전체 주소 표시
-}
-```
-
-> 에러가 있는 셀은 에러 툴팁이 우선 표시됩니다.
-
----
-
-**검증 동작 시점:**
-- 컴포넌트 마운트 시 전체 rows에 대해 즉시 실행
-- `rows` prop 변경 시 자동 재검증
-- 셀 편집 후 저장(Enter/blur) 시 해당 셀 재검증
-
----
-
-## 12. 컬럼 고정 (Pinned)
-
-`pinned: true`를 설정하면 해당 컬럼이 좌측에 고정(sticky)됩니다.
-수평 스크롤 시에도 항상 화면에 표시됩니다.
-
-```ts
-const columns = [
-  { key: 'id',   title: 'ID',   width: 60,  pinned: true },
-  { key: 'name', title: '이름', width: 120, pinned: true },
-  // 이후 컬럼들은 고정 없이 스크롤
-  { key: 'dept', title: '부서', width: 100 },
-];
-```
-
-- 여러 컬럼에 `pinned: true` 지정 가능
-- 고정 컬럼들은 순서대로 좌측에 누적 배치됨 (`left` 오프셋 자동 계산)
-- 헤더와 바디 모두 동일하게 고정 (z-index 처리)
-
----
-
-## 13. 컬럼 리사이즈
-
-헤더 셀 오른쪽 경계에 마우스를 올리면 리사이즈 커서가 표시됩니다.
-드래그하여 너비를 조절하고, `@resize:column` 이벤트로 결과를 받아 컬럼 정의를 업데이트합니다.
-
-```ts
-const handleResize = ({ colIdx, width }: { colIdx: number; width: number }) => {
-  columns.value[colIdx].width = width;
-};
-```
-
-- 최소 너비: 50px
-- 실시간으로 너비 변경 반영
-
----
-
-## 14. CSV 내보내기
+## 25. CSV 내보내기
 
 `src/utils/tsv.ts`의 `downloadCSV` 유틸 함수를 사용합니다.
 
@@ -664,74 +785,41 @@ const exportCSV = () => {
 };
 ```
 
-```vue
-<button @click="exportCSV">CSV 내보내기</button>
-```
-
 ---
 
-## 15. 종합 예제
-
-아래는 WZ-Grid의 주요 기능을 모두 활용하는 예제입니다.
+## 26. 종합 예제
 
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
 import WZGrid from './components/WZGrid.vue';
 import { downloadCSV } from './utils/tsv';
-import type { Column } from './types/grid';
+import type { Column, SortConfig } from './types/grid';
 
 const currentPage = ref(1);
 const pageSize = ref(20);
+const checkedRows = ref<any[]>([]);
+const groupByKey = ref('');
 
 const columns = ref<Column[]>([
-  // 고정 컬럼
   { key: 'id',     title: 'ID',     width: 60,  pinned: true, align: 'center' },
-  { key: 'avatar', title: '사진',   width: 60,  pinned: true, type: 'image' },
   { key: 'name',   title: '이름',   width: 120, pinned: true, required: true },
-
-  // 라디오
-  {
-    key: 'gender', title: '성별', width: 120, type: 'radio', align: 'center',
-    options: [{ label: '남', value: 'M' }, { label: '여', value: 'F' }]
-  },
-
-  // 배지
   {
     key: 'status', title: '상태', width: 100, type: 'badge', align: 'center',
     options: [
       { value: 'Active',   label: '활성', color: 'bg-green-100 text-green-700' },
-      { value: 'Pending',  label: '대기', color: 'bg-yellow-100 text-yellow-700' },
       { value: 'Inactive', label: '중단', color: 'bg-red-100 text-red-700' },
     ]
   },
-
-  // 숫자 + 커스텀 검증
-  {
-    key: 'salary', title: '급여', width: 130, type: 'number', align: 'right',
-    validator: (v) => v < 0 ? '급여는 0 이상이어야 합니다.' : null
-  },
-
-  // 셀렉트
+  { key: 'salary', title: '급여', width: 130, type: 'number', align: 'right' },
   {
     key: 'dept', title: '부서', width: 120, type: 'select',
     options: [
       { value: 'dev', label: '개발팀' },
       { value: 'biz', label: '사업팀' },
-      { value: 'hr',  label: '인사팀' },
     ]
   },
-
-  // 프로그레스
   { key: 'completion', title: '완료율', width: 150, type: 'progress' },
-
-  // 체크박스
-  { key: 'active', title: '활성', width: 80, type: 'boolean', align: 'center' },
-
-  // 링크
-  { key: 'profile', title: '프로필', width: 200, type: 'link' },
-
-  // 버튼
   {
     key: 'action', title: '관리', width: 100, type: 'button', align: 'center',
     options: [{ label: '상세보기' }]
@@ -739,17 +827,13 @@ const columns = ref<Column[]>([
 ]);
 
 const rows = ref(
-  Array.from({ length: 500 }, (_, i) => ({
+  Array.from({ length: 200 }, (_, i) => ({
     id: i + 1,
-    avatar: `https://i.pravatar.cc/150?u=${i + 1}`,
     name: `User ${i + 1}`,
-    gender: i % 2 === 0 ? 'M' : 'F',
-    status: ['Active', 'Pending', 'Inactive'][i % 3],
+    status: i % 3 === 0 ? 'Inactive' : 'Active',
     salary: Math.floor(Math.random() * 100000) + 30000,
-    dept: ['dev', 'biz', 'hr'][i % 3],
+    dept: ['dev', 'biz'][i % 2],
     completion: Math.floor(Math.random() * 100),
-    active: i % 3 !== 2,
-    profile: `https://example.com/user/${i + 1}`,
   }))
 );
 
@@ -758,15 +842,37 @@ const handleUpdate = ({ row, colKey, value }: any) => {
   if (target) (target as any)[colKey] = value;
 };
 
-const handleResize = ({ colIdx, width }: any) => {
-  columns.value[colIdx].width = width;
+const handleSort = (configs: SortConfig[]) => {
+  if (configs.length === 0) return;
+  rows.value = [...rows.value].sort((a, b) => {
+    for (const { key, order } of configs) {
+      const mod = order === 'asc' ? 1 : -1;
+      if (a[key] !== b[key]) return (a[key] > b[key] ? 1 : -1) * mod;
+    }
+    return 0;
+  });
 };
 
-const handleSort = ({ key, order }: any) => {
-  rows.value.sort((a, b) => {
-    const mod = order === 'asc' ? 1 : -1;
-    return (a[key] > b[key] ? 1 : -1) * mod;
-  });
+const handleResize = ({ key, width }: any) => {
+  const col = columns.value.find(c => c.key === key);
+  if (col) col.width = width;
+};
+
+const handleReorderColumns = (newCols: Column[]) => {
+  columns.value = newCols;
+};
+
+const handleReorderRows = (newRows: any[]) => {
+  rows.value = newRows;
+};
+
+const handleInsert = () => {
+  rows.value = [{ id: Date.now(), name: '', status: 'Active', salary: 0, dept: 'dev', completion: 0 }, ...rows.value];
+};
+
+const handleDelete = (indices: number[]) => {
+  const ids = new Set(indices.map(i => rows.value[i]?.id));
+  rows.value = rows.value.filter(r => !ids.has(r.id));
 };
 
 const handleButtonClick = ({ row }: any) => {
@@ -782,20 +888,37 @@ const exportCSV = () => downloadCSV(rows.value, columns.value, 'export.csv');
     :rows="rows"
     :height="600"
     :usePaging="true"
+    :useCheckbox="true"
+    :useFilter="true"
+    :showColumnSettings="true"
+    :showAdd="true"
+    :showDelete="true"
+    :useContextMenu="true"
+    :useRowDrag="true"
+    :groupBy="groupByKey"
     v-model:currentPage="currentPage"
     v-model:pageSize="pageSize"
     @update:cell="handleUpdate"
-    @resize:column="handleResize"
-    @sort="handleSort"
+    @update:sort="handleSort"
+    @update:resize="handleResize"
+    @update:reorder-columns="handleReorderColumns"
+    @update:reorder-rows="handleReorderRows"
+    @update:checked="checkedRows = $event"
+    @insert:row="handleInsert"
+    @delete:rows="handleDelete"
     @click:button="handleButtonClick"
-  />
-  <button @click="exportCSV">CSV 내보내기</button>
+  >
+    <template #toolbar>
+      <button @click="exportCSV">CSV 내보내기</button>
+      <button @click="groupByKey = groupByKey ? '' : 'dept'">그룹핑 토글</button>
+    </template>
+  </WZGrid>
 </template>
 ```
 
 ---
 
-## 16. 내부 구조 (Architecture)
+## 27. 내부 구조 (Architecture)
 
 ```
 src/
@@ -806,20 +929,39 @@ src/
 │   ├── useClipboard.ts     # 복사/붙여넣기 (TSV 기반)
 │   └── useVirtualScroll.ts # 가상 스크롤 엔진
 ├── types/
-│   └── grid.ts             # Column, GridData, Selection 타입 정의
+│   └── grid.ts             # Column, SortConfig, Selection 등 타입 정의
 ├── utils/
-│   └── tsv.ts              # TSV 파싱/직렬화, CSV 다운로드
+│   ├── tsv.ts              # TSV 파싱/직렬화, CSV 다운로드
+│   └── print.ts            # 인쇄 유틸
 └── index.ts                # 컴포넌트 및 타입 export
+```
+
+### WZGrid 내부 데이터 흐름
+
+```
+props.rows
+  → filteredRows      (useFilter 적용)
+  → flatGroupedItems  (groupBy 적용: DataItem | GroupHeader | SubtotalItem)
+  → pagedItems        (usePaging 적용)
+  → visibleRowsRange  (가상 스크롤 적용, 셀 병합 시 전체 렌더링)
+```
+
+### GridItem 타입
+
+그룹핑 활성화 시 내부 아이템은 세 가지 타입의 union으로 구성됩니다:
+
+```ts
+type DataItem     = { type: 'data'; row: any };
+type GroupHeader  = { type: 'group-header'; key: string; label: string; count: number; collapsed: boolean };
+type SubtotalItem = { type: 'subtotal'; key: string; count: number; sums: Record<string, number> };
+type GridItem     = DataItem | GroupHeader | SubtotalItem;
 ```
 
 ### useSelection
 
 - `selection`: `{ startRow, startCol, endRow, endCol }` 반응형 객체
-- `startSelection(row, col)`: 마우스다운 시 선택 시작
-- `updateSelection(row, col)`: 마우스무브 시 범위 확장
-- `endSelection()`: 마우스업 시 드래그 종료
+- `startSelection / updateSelection / endSelection`: 마우스 드래그 범위 선택
 - `isSelected(row, col)`: 특정 셀이 선택 범위 내인지 확인
-- `clearSelection()`: 선택 해제
 - `moveSelection(dir, shift, maxRow, maxCol)`: 키보드 방향키 이동
 
 ### useVirtualScroll
@@ -827,13 +969,13 @@ src/
 - 파라미터: `totalRows (Ref<number>)`, `rowHeight`, `viewportHeight`, `buffer (기본 5)`
 - `visibleRange`: 렌더링할 행 인덱스 범위 `{ startIdx, endIdx }`
 - `topPadding` / `bottomPadding`: 보이지 않는 행의 공간을 padding으로 대체
-- `onScroll`: 스크롤 이벤트 핸들러
 
 ### useClipboard
 
+- 파라미터: `selection`, `getColumns: () => Column[]`, `getRows: () => any[]`, `updateCell`
 - `onCopy(e)`: 선택 범위의 셀 값을 TSV 문자열로 클립보드에 복사
-- `onPaste(e)`: 클립보드의 TSV 데이터를 파싱하여 시작 셀부터 순서대로 `updateCell` 호출
+- `onPaste(e)`: 클립보드의 TSV 데이터를 파싱하여 시작 셀부터 `updateCell` 호출
 
 ---
 
-*최종 업데이트: 2026-03-13 — 인쇄(printGrid), 툴바(showAdd/showDelete/#toolbar 슬롯), 체크박스, truncate/tooltip, 주소 컬럼, onInput 포맷터, date 달력 UI*
+*최종 업데이트: 2026-03-13 — 다중 정렬, 필터, 컬럼 표시/숨기기, 컬럼/행 드래그 재배치, 그룹핑&소계, 셀 병합, 컨텍스트 메뉴 추가*
