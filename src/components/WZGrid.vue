@@ -702,7 +702,7 @@ export default defineComponent({
       exportExcel(props.columns as Column[], props.rows, {
         filename: props.excelFilename,
         checkedOnly: props.useCheckbox,
-        checkedRows: props.rows.filter(r => checkedIds.has(r.id)),
+        checkedRows: props.rows.filter(r => checkedIds.value.has(r.id)),
       });
     };
 
