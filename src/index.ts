@@ -1,4 +1,5 @@
 // src/index.ts
+import './lib.css';
 export { default as WZGrid } from './components/WZGrid.vue';
 export * from './types/grid';
 export * from './utils/tsv';

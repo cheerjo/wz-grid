@@ -499,6 +499,20 @@ const ROW_DRAG_WIDTH = 28;
 export default defineComponent({
   name: 'WZGrid',
   components: { WZGridPagination, WZContextMenu },
+  emits: [
+    'update:cell',
+    'update:currentPage',
+    'update:pageSize',
+    'update:checked',
+    'click:add',
+    'click:delete',
+    'click:insert',
+    'click:button',
+    'resize:column',
+    'reorder:columns',
+    'reorder:rows',
+    'sort',
+  ],
   props: {
     columns:            { type: Array as PropType<Column[]>, required: true },
     rows:               { type: Array as PropType<any[]>, required: true },

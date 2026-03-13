@@ -1,0 +1,77 @@
+import { defineConfig } from 'vitepress';
+
+export default defineConfig({
+  title: 'WZ-Grid',
+  description: 'Vue 2/3 엔터프라이즈급 고성능 그리드 컴포넌트',
+  lang: 'ko-KR',
+  base: '/wz-grid/',
+
+  themeConfig: {
+    logo: '/logo.svg',
+    siteTitle: 'WZ-Grid',
+
+    nav: [
+      { text: '가이드', link: '/guide/getting-started' },
+      { text: 'API', link: '/api/props' },
+      { text: '데모', link: '/demo' },
+      {
+        text: '구매',
+        items: [
+          { text: 'Community (무료)', link: '/pricing' },
+          { text: 'Pro 라이선스', link: '/pricing' },
+          { text: 'Enterprise 문의', link: '/pricing' },
+        ],
+      },
+    ],
+
+    sidebar: {
+      '/guide/': [
+        {
+          text: '시작하기',
+          items: [
+            { text: '소개', link: '/guide/introduction' },
+            { text: '빠른 시작', link: '/guide/getting-started' },
+            { text: '설치', link: '/guide/installation' },
+          ],
+        },
+        {
+          text: '기능',
+          items: [
+            { text: '컬럼 설정', link: '/guide/columns' },
+            { text: '정렬 & 필터', link: '/guide/sort-filter' },
+            { text: '페이징 & 가상스크롤', link: '/guide/paging' },
+            { text: '편집 & 검증', link: '/guide/editing' },
+            { text: '선택 & 클립보드', link: '/guide/selection' },
+            { text: '그룹핑 & 소계', link: '/guide/grouping' },
+            { text: '셀 병합', link: '/guide/merge' },
+            { text: '컨텍스트 메뉴', link: '/guide/context-menu' },
+            { text: '인쇄 & CSV', link: '/guide/export' },
+          ],
+        },
+      ],
+      '/api/': [
+        {
+          text: 'API 레퍼런스',
+          items: [
+            { text: 'Props', link: '/api/props' },
+            { text: 'Events', link: '/api/events' },
+            { text: 'Column 타입', link: '/api/column-types' },
+          ],
+        },
+      ],
+    },
+
+    socialLinks: [
+      { icon: 'github', link: 'https://github.com/' },
+    ],
+
+    footer: {
+      message: 'Released under the Commercial License.',
+      copyright: 'Copyright © 2024 WZ-Grid',
+    },
+
+    search: {
+      provider: 'local',
+    },
+  },
+});
