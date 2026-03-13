@@ -26,3 +26,11 @@
 | `useRowDrag` | `boolean` | `false` | 행 드래그 재배치 활성화 |
 | `autoMergeCols` | `string[]` | `[]` | 인접한 동일 값 셀을 자동 병합할 컬럼 key 목록 |
 | `mergeCells` | `MergeCell[]` | `[]` | 수동 셀 병합 규칙 목록 |
+
+## Pro / Enterprise Props <Badge type="warning" text="Pro" />
+
+| Prop | 타입 | 기본값 | 설명 |
+| :--- | :--- | :---: | :--- |
+| `licenseKey` | `string` | `''` | 라이선스 키. Pro/Enterprise 기능 활성화에 필요 |
+| `showExcelExport` | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시 |
+| `excelFilename` | `string` | `'export.xlsx'` | Excel 저장 파일명 |
