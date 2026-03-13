@@ -1,10 +1,20 @@
 import { defineConfig } from 'vitepress';
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
 
 export default defineConfig({
   title: 'WZ-Grid',
   description: 'Vue 2/3 엔터프라이즈급 고성능 그리드 컴포넌트',
   lang: 'ko-KR',
   base: '/wz-grid/',
+
+  vite: {
+    css: {
+      postcss: {
+        plugins: [tailwindcss, autoprefixer],
+      },
+    },
+  },
 
   themeConfig: {
     logo: '/logo.svg',
