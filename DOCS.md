@@ -263,12 +263,13 @@ URL 값을 클릭 가능한 하이퍼링크로 표시. `target="_blank"`로 새 
 | `@update:currentPage` | `number` | 페이지 변경 (`v-model` 사용 권장) |
 | `@update:pageSize` | `number` | 페이지 크기 변경 (`v-model` 사용 권장) |
 | `@update:checked` | `any[]` | 체크된 행 배열 변경 |
-| `@update:sort` | `SortConfig[]` | 헤더 클릭으로 정렬 변경 시 발생. 다중 정렬 배열 |
-| `@update:resize` | `{ key: string, width: number }` | 컬럼 너비 드래그 조절 완료 시 발생 |
-| `@update:reorder-columns` | `Column[]` | 컬럼 드래그 재배치 후 새 컬럼 순서 배열 |
-| `@update:reorder-rows` | `any[]` | 행 드래그 재배치 후 새 행 순서 배열 |
-| `@insert:row` | — | 행 추가 요청 (showAdd 또는 컨텍스트 메뉴) |
-| `@delete:rows` | `number[]` | 행 삭제 요청 (선택된 행 인덱스 배열) |
+| `@sort` | `SortConfig[]` | 헤더 클릭으로 정렬 변경 시 발생. 다중 정렬 배열 |
+| `@resize:column` | `{ colIdx, colKey, width }` | 컬럼 너비 드래그 조절 시 실시간 발생 |
+| `@reorder:columns` | `{ srcKey, targetKey }` | 컬럼 드래그 재배치 완료 시 발생 |
+| `@reorder:rows` | `{ from, to, position }` | 행 드래그 재배치 완료 시 발생. `position`은 `'above'` \| `'below'` |
+| `@click:add` | — | 툴바 추가 버튼 클릭 시 발생 (`showAdd`) |
+| `@click:insert` | `{ position, row }` | 컨텍스트 메뉴 행 추가 시 발생. `position`은 `'above'` \| `'below'` |
+| `@click:delete` | `any[]` | 툴바 삭제 버튼 또는 컨텍스트 메뉴 행 삭제 시 발생. 행 객체 배열 |
 | `@click:button` | `{ rowIdx, row, colKey }` | `button` 타입 셀 클릭 시 발생 |
 
 ### `@update:cell` 처리 예제
@@ -280,7 +281,7 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 };
 ```
 
-### `@update:sort` 처리 예제
+### `@sort` 처리 예제
 
 ```ts
 import type { SortConfig } from './types/grid';
@@ -297,11 +298,11 @@ const handleSort = (configs: SortConfig[]) => {
 };
 ```
 
-### `@update:resize` 처리 예제
+### `@resize:column` 처리 예제
 
 ```ts
-const handleResize = ({ key, width }: { key: string; width: number }) => {
-  const col = columns.value.find(c => c.key === key);
+const handleResize = ({ colKey, width }: { colKey: string; width: number }) => {
+  const col = columns.value.find(c => c.key === colKey);
   if (col) col.width = width;
 };
 ```
@@ -387,7 +388,7 @@ const handleSort = (configs: SortConfig[]) => {
 ```
 
 ```vue
-<WZGrid ... @update:sort="handleSort" />
+<WZGrid ... @sort="handleSort" />
 ```
 
 ---
@@ -425,16 +426,23 @@ const handleSort = (configs: SortConfig[]) => {
 헤더 셀을 드래그하여 컬럼 순서를 변경할 수 있습니다. 별도 prop 없이 기본 활성화됩니다.
 
 - 헤더를 드래그하면 드롭 위치에 파란 인디케이터 선 표시
-- 드롭 완료 시 `@update:reorder-columns` 이벤트로 새 컬럼 배열 전달
+- 드롭 완료 시 `@reorder:columns` 이벤트로 `{ srcKey, targetKey }` 전달
+- 리사이즈 핸들 드래그 중에는 컬럼 재배치가 차단됨
 
 ```ts
-const handleReorderColumns = (newColumns: Column[]) => {
-  columns.value = newColumns;
+const handleReorderColumns = ({ srcKey, targetKey }: { srcKey: string; targetKey: string }) => {
+  const cols = [...columns.value];
+  const srcIdx    = cols.findIndex(c => c.key === srcKey);
+  const targetIdx = cols.findIndex(c => c.key === targetKey);
+  if (srcIdx === -1 || targetIdx === -1) return;
+  const [moved] = cols.splice(srcIdx, 1);
+  cols.splice(targetIdx, 0, moved);
+  columns.value = cols;
 };
 ```
 
 ```vue
-<WZGrid ... @update:reorder-columns="handleReorderColumns" />
+<WZGrid ... @reorder:columns="handleReorderColumns" />
 ```
 
 ---
@@ -444,15 +452,23 @@ const handleReorderColumns = (newColumns: Column[]) => {
 `useRowDrag` prop을 `true`로 설정하면 각 행 좌측에 드래그 핸들(⠿)이 나타납니다.
 
 ```vue
-<WZGrid :useRowDrag="true" @update:reorder-rows="handleReorderRows" />
+<WZGrid :useRowDrag="true" @reorder:rows="handleReorderRows" />
 ```
 
 ```ts
-const handleReorderRows = (newRows: any[]) => {
-  rows.value = newRows;
+const handleReorderRows = ({ from, to, position }: { from: any; to: any; position: 'above' | 'below' }) => {
+  const arr = [...rows.value];
+  const fromIdx = arr.findIndex(r => r.id === from.id);
+  if (fromIdx === -1) return;
+  const [moved] = arr.splice(fromIdx, 1);
+  const toIdx = arr.findIndex(r => r.id === to.id);
+  if (toIdx === -1) return;
+  arr.splice(position === 'above' ? toIdx : toIdx + 1, 0, moved);
+  rows.value = arr;
 };
 ```
 
+- `from` / `to` 는 행 객체 (row), `position`은 드롭 위치 (`'above'` | `'below'`)
 - 드래그 중 드롭 위치에 파란 `box-shadow` 인디케이터 표시
 - 그룹핑(`groupBy`) 활성화 시에도 드래그 핸들 컬럼은 유지됨
 
@@ -511,19 +527,20 @@ type MergeCell = {
 ```vue
 <WZGrid
   :useContextMenu="true"
-  @insert:row="handleInsert"
-  @delete:rows="handleDelete"
+  @click:insert="handleInsert"
+  @click:delete="handleDelete"
   ...
 />
 ```
 
 **메뉴 항목:**
 
-| 항목 | 이벤트 | 설명 |
+| 항목 | 이벤트 | 페이로드 |
 | :--- | :--- | :--- |
-| 위에 행 추가 | `@insert:row` | 우클릭한 행 위에 추가 |
-| 아래에 행 추가 | `@insert:row` | 우클릭한 행 아래에 추가 |
-| 행 삭제 | `@delete:rows` | 우클릭한 행 삭제 |
+| 위에 행 추가 | `@click:insert` | `{ position: 'above', row }` |
+| 아래에 행 추가 | `@click:insert` | `{ position: 'below', row }` |
+| 셀 지우기 | — | 선택 셀 내용 삭제 (내부 처리) |
+| 행 삭제 | `@click:delete` | `[row]` (행 객체 1개짜리 배열) |
 
 - `<Teleport to="body">`를 사용하여 overflow 클리핑 없이 렌더링
 - 메뉴 외부 클릭 시 자동으로 닫힘
@@ -647,17 +664,22 @@ const columns = [
 ## 20. 컬럼 리사이즈
 
 헤더 셀 오른쪽 경계에 마우스를 올리면 리사이즈 커서가 표시됩니다.
-드래그하여 너비를 조절하고, `@update:resize` 이벤트로 결과를 받아 컬럼 정의를 업데이트합니다.
+드래그하여 너비를 조절하고, `@resize:column` 이벤트로 결과를 받아 컬럼 정의를 업데이트합니다.
 
 ```ts
-const handleResize = ({ key, width }: { key: string; width: number }) => {
-  const col = columns.value.find(c => c.key === key);
+const handleResize = ({ colKey, width }: { colKey: string; width: number }) => {
+  const col = columns.value.find(c => c.key === colKey);
   if (col) col.width = width;
 };
 ```
 
+```vue
+<WZGrid ... @resize:column="handleResize" />
+```
+
 - 최소 너비: 50px
-- 실시간으로 너비 변경 반영
+- 드래그 중 실시간으로 너비 변경 반영
+- 리사이즈 중에는 헤더 정렬 및 컬럼 드래그 재배치가 차단됨
 
 ---
 
@@ -669,8 +691,8 @@ const handleResize = ({ key, width }: { key: string; width: number }) => {
 <WZGrid
   :showAdd="true"
   :showDelete="true"
-  @insert:row="handleInsert"
-  @delete:rows="handleDelete"
+  @click:add="handleAdd"
+  @click:delete="handleDelete"
 >
   <template #toolbar>
     <button @click="exportCSV">CSV 내보내기</button>
@@ -680,10 +702,10 @@ const handleResize = ({ key, width }: { key: string; width: number }) => {
 
 **기본 제공 버튼:**
 
-| 버튼 | prop | 이벤트 | 비고 |
-| :--- | :--- | :--- | :--- |
-| 추가 | `showAdd` | `@insert:row` | 항상 활성 |
-| 삭제 | `showDelete` | `@delete:rows` | 체크된 행이 없으면 비활성 |
+| 버튼 | prop | 이벤트 | 페이로드 | 비고 |
+| :--- | :--- | :--- | :--- | :--- |
+| 추가 | `showAdd` | `@click:add` | — | 항상 활성 |
+| 삭제 | `showDelete` | `@click:delete` | `any[]` (체크된 행 객체 배열) | 체크된 행이 없으면 비활성 |
 
 **커스텀 슬롯 (`#toolbar`):**
 - `<template #toolbar>` 안에 임의의 HTML/컴포넌트 삽입 가능
@@ -853,25 +875,47 @@ const handleSort = (configs: SortConfig[]) => {
   });
 };
 
-const handleResize = ({ key, width }: any) => {
-  const col = columns.value.find(c => c.key === key);
+const handleResize = ({ colKey, width }: any) => {
+  const col = columns.value.find(c => c.key === colKey);
   if (col) col.width = width;
 };
 
-const handleReorderColumns = (newCols: Column[]) => {
-  columns.value = newCols;
+const handleReorderColumns = ({ srcKey, targetKey }: { srcKey: string; targetKey: string }) => {
+  const cols = [...columns.value];
+  const srcIdx    = cols.findIndex(c => c.key === srcKey);
+  const targetIdx = cols.findIndex(c => c.key === targetKey);
+  if (srcIdx === -1 || targetIdx === -1) return;
+  const [moved] = cols.splice(srcIdx, 1);
+  cols.splice(targetIdx, 0, moved);
+  columns.value = cols;
 };
 
-const handleReorderRows = (newRows: any[]) => {
-  rows.value = newRows;
+const handleReorderRows = ({ from, to, position }: { from: any; to: any; position: 'above' | 'below' }) => {
+  const arr = [...rows.value];
+  const fromIdx = arr.findIndex(r => r.id === from.id);
+  if (fromIdx === -1) return;
+  const [moved] = arr.splice(fromIdx, 1);
+  const toIdx = arr.findIndex(r => r.id === to.id);
+  if (toIdx === -1) return;
+  arr.splice(position === 'above' ? toIdx : toIdx + 1, 0, moved);
+  rows.value = arr;
 };
 
-const handleInsert = () => {
-  rows.value = [{ id: Date.now(), name: '', status: 'Active', salary: 0, dept: 'dev', completion: 0 }, ...rows.value];
+let _nextId = 1000;
+const handleAdd = () => {
+  rows.value = [{ id: _nextId++, name: '', status: 'Active', salary: 0, dept: 'dev', completion: 0 }, ...rows.value];
 };
 
-const handleDelete = (indices: number[]) => {
-  const ids = new Set(indices.map(i => rows.value[i]?.id));
+const handleInsert = ({ position, row }: { position: 'above' | 'below'; row: any }) => {
+  const idx = rows.value.findIndex(r => r.id === row?.id);
+  if (idx === -1) return;
+  const newRow = { id: _nextId++, name: '', status: 'Active', salary: 0, dept: 'dev', completion: 0 };
+  const insertAt = position === 'above' ? idx : idx + 1;
+  rows.value = [...rows.value.slice(0, insertAt), newRow, ...rows.value.slice(insertAt)];
+};
+
+const handleDelete = (checkedList: any[]) => {
+  const ids = new Set(checkedList.map(r => r.id));
   rows.value = rows.value.filter(r => !ids.has(r.id));
 };
 
@@ -899,13 +943,14 @@ const exportCSV = () => downloadCSV(rows.value, columns.value, 'export.csv');
     v-model:currentPage="currentPage"
     v-model:pageSize="pageSize"
     @update:cell="handleUpdate"
-    @update:sort="handleSort"
-    @update:resize="handleResize"
-    @update:reorder-columns="handleReorderColumns"
-    @update:reorder-rows="handleReorderRows"
     @update:checked="checkedRows = $event"
-    @insert:row="handleInsert"
-    @delete:rows="handleDelete"
+    @sort="handleSort"
+    @resize:column="handleResize"
+    @reorder:columns="handleReorderColumns"
+    @reorder:rows="handleReorderRows"
+    @click:add="handleAdd"
+    @click:insert="handleInsert"
+    @click:delete="handleDelete"
     @click:button="handleButtonClick"
   >
     <template #toolbar>
@@ -923,27 +968,38 @@ const exportCSV = () => downloadCSV(rows.value, columns.value, 'export.csv');
 ```
 src/
 ├── components/
-│   └── WZGrid.vue          # 메인 그리드 컴포넌트
+│   ├── WZGrid.vue              # 메인 그리드 컴포넌트 (템플릿 + setup 조립)
+│   ├── WZGridPagination.vue    # 페이징 UI 컴포넌트
+│   └── WZContextMenu.vue       # 우클릭 컨텍스트 메뉴 컴포넌트
 ├── composables/
-│   ├── useSelection.ts     # 셀 선택 및 범위 선택 로직
-│   ├── useClipboard.ts     # 복사/붙여넣기 (TSV 기반)
-│   └── useVirtualScroll.ts # 가상 스크롤 엔진
+│   ├── useSelection.ts         # 셀 선택 및 범위 선택 로직
+│   ├── useClipboard.ts         # 복사/붙여넣기 (TSV 기반)
+│   ├── useVirtualScroll.ts     # 가상 스크롤 엔진
+│   ├── useFilter.ts            # 컬럼별 텍스트 필터링
+│   ├── useSort.ts              # 단일/다중 정렬 상태 관리
+│   ├── useGrouping.ts          # 그룹핑 & 소계 아이템 생성
+│   ├── useMerge.ts             # 자동/수동 셀 병합 맵 계산
+│   ├── useCheckbox.ts          # 행 체크박스 상태 관리
+│   ├── useValidation.ts        # required / validator 검증
+│   ├── useColumnSettings.ts    # 컬럼 표시/숨기기
+│   ├── useColumnDrag.ts        # 헤더 드래그로 컬럼 순서 변경
+│   └── useRowDragDrop.ts       # 행 드래그 핸들로 행 순서 변경
 ├── types/
-│   └── grid.ts             # Column, SortConfig, Selection 등 타입 정의
+│   └── grid.ts                 # Column, SortConfig, GridItem 등 타입 정의
 ├── utils/
-│   ├── tsv.ts              # TSV 파싱/직렬화, CSV 다운로드
-│   └── print.ts            # 인쇄 유틸
-└── index.ts                # 컴포넌트 및 타입 export
+│   ├── tsv.ts                  # TSV 파싱/직렬화, CSV 다운로드
+│   └── print.ts                # 인쇄 유틸
+└── index.ts                    # 컴포넌트 및 타입 export
 ```
 
 ### WZGrid 내부 데이터 흐름
 
 ```
 props.rows
-  → filteredRows      (useFilter 적용)
-  → flatGroupedItems  (groupBy 적용: DataItem | GroupHeader | SubtotalItem)
-  → pagedItems        (usePaging 적용)
-  → visibleRowsRange  (가상 스크롤 적용, 셀 병합 시 전체 렌더링)
+  → filteredRows      (useFilter — 컬럼별 텍스트 필터)
+  → flatGroupedItems  (useGrouping — DataItem | GroupHeader | SubtotalItem)
+  → pagedItems        (페이징 슬라이싱)
+  → visibleRowsRange  (useVirtualScroll — 셀 병합 활성 시 전체 렌더링)
 ```
 
 ### GridItem 타입
@@ -976,6 +1032,61 @@ type GridItem     = DataItem | GroupHeader | SubtotalItem;
 - `onCopy(e)`: 선택 범위의 셀 값을 TSV 문자열로 클립보드에 복사
 - `onPaste(e)`: 클립보드의 TSV 데이터를 파싱하여 시작 셀부터 `updateCell` 호출
 
+### useFilter
+
+- 파라미터: `getRows`, `getColumns`, `isEnabled`
+- `filters`: 컬럼 key별 필터 문자열 reactive 맵
+- `filteredRows`: 모든 필터를 AND 조건으로 적용한 결과 배열
+- `activeFilterCount`: 활성 필터 수, `clearAllFilters()`: 전체 초기화
+
+### useGrouping
+
+- 파라미터: `getFilteredRows`, `getGroupBy`, `getVisibleColumns`, `getColumns`
+- `flatGroupedItems`: `GridItem[]` — 그룹 헤더 + 데이터 + 소계 행이 평탄화된 배열
+- `collapsedGroups`: 접힌 그룹 key Set, `toggleGroup(key)`: 접기/펼치기
+
+### useMerge
+
+- 파라미터: `getPagedItems`, `getVisibleColumns`, `getAutoMergeCols`, `getMergeCellsFn`
+- `hasActiveMerge`: 병합이 하나라도 있으면 `true` (가상 스크롤 비활성화 트리거)
+- `getMerge(rowIdx, colIdx)`: 해당 셀의 `{ rowspan, colspan, hidden }` 반환
+
+### useSort
+
+- 파라미터: `onSort: (configs: SortConfig[]) => void`
+- `sortConfigs`: 현재 정렬 설정 배열 (다중 정렬)
+- `toggleSort(key, event)`: Shift 키 여부에 따라 단일/다중 정렬 토글
+
+### useCheckbox
+
+- 파라미터: `getFilteredRows`, `getAllRows`, `onCheckedChange`
+- `checkedIds`: 체크된 row id Set, `isAllChecked`, `isRowChecked(id)`
+- `toggleAll()` / `toggleRow(id)`: 전체/개별 토글
+
+### useValidation
+
+- 파라미터: `getRows`, `getColumns`
+- `errors`: `Record<"rowId_colKey", errorMsg>` reactive 맵
+- `validateCell(row, col, value)`: 단일 셀 검증 후 errors 갱신
+
+### useColumnSettings
+
+- 파라미터: `getColumns`
+- `hiddenColKeys`: 숨긴 컬럼 key 배열, `visibleColumns`: 표시 컬럼 computed
+- `toggleColVisibility(key)`, `colSettingsOpen`: 드롭다운 열림 상태
+
+### useColumnDrag
+
+- 파라미터: `getVisibleColumns`, `onReorder`, `getIsResizing?`
+- `onDragStart(colIdx, e)`: 리사이즈 중이면 `e.preventDefault()`로 차단
+- `dragSourceColIdx` / `dragOverColIdx`: 드래그 UI 표시용 인덱스
+
+### useRowDragDrop
+
+- 파라미터: `getRow`, `onReorder`
+- `rowDragSrcIdx` / `rowDragOverIdx` / `rowDragOverPos`: 드래그 UI 상태
+- `onRowDrop`: 드롭 시 `onReorder(from, to, position)` 호출
+
 ---
 
-*최종 업데이트: 2026-03-13 — 다중 정렬, 필터, 컬럼 표시/숨기기, 컬럼/행 드래그 재배치, 그룹핑&소계, 셀 병합, 컨텍스트 메뉴 추가*
+*최종 업데이트: 2026-03-14 — 이벤트명/페이로드 현행화, 내부 구조(composables × 12, 하위 컴포넌트 × 2) 반영*

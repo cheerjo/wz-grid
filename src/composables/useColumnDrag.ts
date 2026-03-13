@@ -4,12 +4,16 @@ import { Column } from '../types/grid';
 
 export function useColumnDrag(
   getVisibleColumns: () => Column[],
-  onReorder: (srcKey: string, targetKey: string) => void
+  onReorder: (srcKey: string, targetKey: string) => void,
+  getIsResizing?: () => boolean
 ) {
   const dragSourceColIdx = ref(-1);
   const dragOverColIdx   = ref(-1);
 
-  const onDragStart = (colIdx: number) => { dragSourceColIdx.value = colIdx; };
+  const onDragStart = (colIdx: number, e: DragEvent) => {
+    if (getIsResizing?.()) { e.preventDefault(); return; }
+    dragSourceColIdx.value = colIdx;
+  };
   const onDragOver  = (colIdx: number) => { if (colIdx !== dragSourceColIdx.value) dragOverColIdx.value = colIdx; };
   const onDragLeave = () => { dragOverColIdx.value = -1; };
   const onDragEnd   = () => { dragSourceColIdx.value = -1; dragOverColIdx.value = -1; };

@@ -145,12 +145,12 @@
                   'cursor-default': col.pinned,
                 }"
                 :draggable="!col.pinned"
-                @dragstart="!col.pinned && onDragStart(colIdx)"
+                @dragstart="!col.pinned && onDragStart(colIdx, $event)"
                 @dragover.prevent="!col.pinned && onDragOver(colIdx)"
                 @dragleave="onDragLeave"
                 @drop.prevent="!col.pinned && onDrop(colIdx)"
                 @dragend="onDragEnd"
-                @click="toggleSort(col.key, $event)"
+                @click="onHeaderClick(col.key, $event)"
               >
                 <div class="flex items-center w-full" :class="getAlignClass(col.headerAlign || 'center')">
                   <!-- 드래그 핸들 (pinned 아닌 컬럼) -->
@@ -673,20 +673,36 @@ export default defineComponent({
       'justify-end':    align === 'right',
     });
 
+    const isResizing = ref(false);
+    let resizedRecently = false;
     const startResize = (e: MouseEvent, colIdx: number) => {
+      isResizing.value = true;
+      resizedRecently = false;
       const startX = e.pageX;
       const startWidth = visibleColumns.value[colIdx]?.width || 150;
       const colKey = visibleColumns.value[colIdx]?.key;
-      const onMouseMove = (ev: MouseEvent) => emit('resize:column', { colIdx, colKey, width: Math.max(50, startWidth + (ev.pageX - startX)) });
-      const onMouseUp = () => { document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); };
+      const onMouseMove = (ev: MouseEvent) => {
+        resizedRecently = true;
+        emit('resize:column', { colIdx, colKey, width: Math.max(50, startWidth + (ev.pageX - startX)) });
+      };
+      const onMouseUp = () => {
+        isResizing.value = false;
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      };
       document.addEventListener('mousemove', onMouseMove);
       document.addEventListener('mouseup', onMouseUp);
+    };
+    const onHeaderClick = (key: string, e: MouseEvent) => {
+      if (resizedRecently) { resizedRecently = false; return; }
+      toggleSort(key, e);
     };
 
     // ── 12. 컬럼 드래그 앤 드롭 순서 변경 ─────────────────────────────
     const { dragSourceColIdx, dragOverColIdx, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd } = useColumnDrag(
       () => visibleColumns.value,
-      (srcKey, targetKey) => emit('reorder:columns', { srcKey, targetKey })
+      (srcKey, targetKey) => emit('reorder:columns', { srcKey, targetKey }),
+      () => isResizing.value
     );
 
     // ── 13. 다중 정렬 ──────────────────────────────────────────────────
@@ -812,7 +828,7 @@ export default defineComponent({
       // filter
       filters, isFilterActive, clearFilter,
       // sort
-      sortConfigs, toggleSort, getSortEntry, getSortIndex,
+      sortConfigs, toggleSort, getSortEntry, getSortIndex, onHeaderClick,
       // column drag
       dragSourceColIdx, dragOverColIdx, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd,
       // grouping
