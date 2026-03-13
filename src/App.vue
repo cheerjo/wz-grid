@@ -1,48 +1,94 @@
 <template>
   <div class="min-h-screen p-8 bg-gray-50 flex flex-col gap-6">
-    <header class="flex justify-between items-center flex-wrap gap-3">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-800">WZ-Grid Demo</h1>
-        <p class="text-sm text-gray-500 mt-1">10,000개 데이터 · 전체 컬럼 타입 예제</p>
+    <header class="flex flex-col gap-3">
+      <!-- 상단: 제목 + 라이선스 입력 -->
+      <div class="flex justify-between items-center flex-wrap gap-3">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">WZ-Grid Demo</h1>
+          <p class="text-sm text-gray-500 mt-1">10,000개 데이터 · 전체 컬럼 타입 예제</p>
+        </div>
+
+        <!-- 라이선스 키 입력 -->
+        <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+          <span class="text-xs font-semibold text-gray-500 whitespace-nowrap">라이선스 키</span>
+          <input
+            v-model="licenseKey"
+            type="text"
+            placeholder="WZGRID-PRO-XXXXXXXX-XXXXXXX"
+            class="text-xs font-mono border border-gray-300 rounded px-2 py-1 w-64 outline-none focus:ring-1 focus:ring-blue-400"
+          />
+          <span
+            :class="licenseTierLabel.class"
+            class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
+          >{{ licenseTierLabel.text }}</span>
+          <button
+            @click="applyDemoKey"
+            class="text-[10px] font-semibold px-2 py-1 bg-amber-400 hover:bg-amber-500 text-white rounded transition-colors whitespace-nowrap"
+          >
+            데모키 입력
+          </button>
+        </div>
       </div>
 
-      <!-- 라이선스 키 입력 영역 -->
-      <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
-        <span class="text-xs font-semibold text-gray-500 whitespace-nowrap">라이선스 키</span>
-        <input
-          v-model="licenseKey"
-          type="text"
-          placeholder="WZGRID-PRO-XXXXXXXX-XXXXXXX"
-          class="text-xs font-mono border border-gray-300 rounded px-2 py-1 w-64 outline-none focus:ring-1 focus:ring-blue-400"
-        />
-        <span
-          :class="licenseTierLabel.class"
-          class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
-        >{{ licenseTierLabel.text }}</span>
-        <button
-          @click="applyDemoKey"
-          class="text-[10px] font-semibold px-2 py-1 bg-amber-400 hover:bg-amber-500 text-white rounded transition-colors whitespace-nowrap"
-        >
-          데모키 입력
-        </button>
-      </div>
+      <!-- 하단: 기능 토글 컨트롤 패널 -->
+      <div class="flex flex-wrap items-center gap-2">
 
-      <div class="flex gap-2">
-        <button
-          @click="toggleMerge"
-          :class="mergeEnabled ? 'bg-purple-500 hover:bg-purple-600' : 'bg-gray-600 hover:bg-gray-700'"
-          class="px-4 py-2 text-white rounded shadow-sm text-sm transition-colors"
-        >
-          셀 병합 {{ mergeEnabled ? '끄기' : '켜기' }}
-        </button>
+        <!-- Community 기능 -->
+        <div class="flex items-center gap-1.5 mr-1">
+          <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Community</span>
+        </div>
         <button
           @click="pagingEnabled = !pagingEnabled"
-          :class="pagingEnabled ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-600 hover:bg-gray-700'"
-          class="px-4 py-2 text-white rounded shadow-sm text-sm transition-colors"
+          :class="pagingEnabled ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300'"
+          class="px-3 py-1.5 rounded border shadow-sm text-xs font-semibold transition-colors"
         >
-          페이징 {{ pagingEnabled ? '끄기' : '켜기' }}
+          페이징 {{ pagingEnabled ? 'ON' : 'OFF' }}
         </button>
-        <button @click="resetData" class="px-4 py-2 bg-white border border-gray-300 rounded shadow-sm text-sm hover:bg-gray-100">데이터 초기화</button>
+        <button @click="resetData" class="px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm text-xs font-semibold hover:bg-gray-50 text-gray-600">
+          데이터 초기화
+        </button>
+
+        <div class="w-px h-5 bg-gray-300 mx-1" />
+
+        <!-- Pro 기능 -->
+        <div class="flex items-center gap-1.5 mr-1">
+          <span class="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Pro</span>
+          <span v-if="!isProUser" class="text-[10px] text-gray-400">(잠김 🔒)</span>
+        </div>
+
+        <!-- 그룹핑 선택 -->
+        <div class="relative">
+          <select
+            v-model="groupByKey"
+            :disabled="!isProUser || mergeEnabled"
+            class="bg-white border rounded px-2 py-1.5 text-xs outline-none transition-colors"
+            :class="isProUser ? 'border-gray-300 focus:ring-1 focus:ring-blue-400 text-gray-700' : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'"
+          >
+            <option value="">그룹 없음</option>
+            <option value="status">그룹: 상태</option>
+            <option value="dept">그룹: 부서</option>
+            <option value="gender">그룹: 성별</option>
+            <option value="active">그룹: 재직</option>
+          </select>
+          <span v-if="!isProUser" class="absolute -top-1.5 -right-1.5 text-[10px]">🔒</span>
+        </div>
+
+        <!-- 셀 병합 -->
+        <div class="relative">
+          <button
+            @click="isProUser && toggleMerge()"
+            :disabled="!isProUser"
+            :class="[
+              isProUser
+                ? mergeEnabled ? 'bg-purple-500 hover:bg-purple-600 text-white border-purple-500' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300'
+                : 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
+            ]"
+            class="px-3 py-1.5 rounded border shadow-sm text-xs font-semibold transition-colors"
+          >
+            셀 병합 {{ mergeEnabled ? 'ON' : 'OFF' }}
+          </button>
+          <span v-if="!isProUser" class="absolute -top-1.5 -right-1.5 text-[10px]">🔒</span>
+        </div>
       </div>
     </header>
 
@@ -62,22 +108,34 @@
             {{ checkedRows.length.toLocaleString() }}건 선택됨
           </span>
         </div>
-        <div class="flex items-center gap-3">
-          <div v-if="pagingEnabled" class="text-orange-600 font-semibold">페이징 모드 활성</div>
-          <!-- 그룹 기준 선택 -->
-          <label class="flex items-center gap-1.5 text-xs text-gray-600">
-            <span class="font-semibold">그룹 기준:</span>
-            <select
-              v-model="groupByKey"
-              class="bg-white border border-gray-300 rounded px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-blue-400"
-            >
-              <option value="">없음</option>
-              <option value="status">상태</option>
-              <option value="dept">부서</option>
-              <option value="gender">성별</option>
-              <option value="active">재직 여부</option>
-            </select>
-          </label>
+        <!-- 활성 기능 배지 -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-semibold">정렬/필터 ✓</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-semibold">인쇄/CSV ✓</span>
+          <span
+            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
+            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+          >그룹핑 {{ isProUser ? '✓' : '🔒' }}</span>
+          <span
+            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
+            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+          >셀 병합 {{ isProUser ? '✓' : '🔒' }}</span>
+          <span
+            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
+            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+          >행 드래그 {{ isProUser ? '✓' : '🔒' }}</span>
+          <span
+            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
+            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+          >컬럼 설정 {{ isProUser ? '✓' : '🔒' }}</span>
+          <span
+            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
+            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+          >컨텍스트 메뉴 {{ isProUser ? '✓' : '🔒' }}</span>
+          <span
+            :class="isProUser ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400 line-through'"
+            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+          >Excel {{ isProUser ? '✓' : '🔒' }}</span>
         </div>
       </div>
 
@@ -91,14 +149,14 @@
           :useFilter="true"
           :showAdd="true"
           :showDelete="true"
-          :showColumnSettings="true"
+          :showColumnSettings="isProUser"
           :showExcelExport="true"
           :licenseKey="licenseKey"
           excelFilename="wz-grid-demo.xlsx"
-          :useContextMenu="true"
-          :useRowDrag="true"
-          :groupBy="mergeEnabled ? '' : groupByKey"
-          :autoMergeCols="mergeEnabled ? ['status', 'dept'] : []"
+          :useContextMenu="isProUser"
+          :useRowDrag="isProUser"
+          :groupBy="isProUser && !mergeEnabled ? groupByKey : ''"
+          :autoMergeCols="isProUser && mergeEnabled ? ['status', 'dept'] : []"
           v-model:currentPage="currentPage"
           v-model:pageSize="pageSize"
           @update:cell="handleUpdate"
@@ -160,11 +218,12 @@ import WZGrid from './components/WZGrid.vue';
 import type { Column, SortConfig } from './types/grid';
 import { downloadCSV } from './utils/tsv';
 import { printGrid } from './utils/print';
-import { validateLicense, generateKey } from './license';
+import { validateLicense, isPro, generateKey } from './license';
 
 // ── 라이선스 ────────────────────────────────────────────────────────────────
 const licenseKey = ref('');
 const licenseTier = computed(() => validateLicense(licenseKey.value));
+const isProUser   = computed(() => isPro(licenseTier.value));
 const licenseTierLabel = computed(() => {
   const t = licenseTier.value;
   if (t === 'enterprise') return { text: 'Enterprise ✓', class: 'bg-purple-100 text-purple-700' };
