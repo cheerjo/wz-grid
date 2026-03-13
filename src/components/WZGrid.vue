@@ -96,6 +96,7 @@
     <!-- ── 그리드 컨테이너 ─────────────────────────────────────────────── -->
     <div
       :class="(showAdd || showDelete || hasToolbarSlot || showColumnSettings) ? 'rounded-b border-t-0' : 'rounded'"
+      ref="containerEl"
       class="wz-grid-container relative border border-gray-300 overflow-auto bg-white select-none focus:ring-2 focus:ring-blue-400 outline-none flex-grow"
       @scroll="onScroll"
       @copy="onCopy"
@@ -535,6 +536,7 @@ export default defineComponent({
 
   setup(props, { emit, slots }) {
     const hasToolbarSlot = computed(() => !!slots.toolbar);
+    const containerEl = ref<HTMLElement | null>(null);
     const { selection, startSelection, updateSelection, endSelection, isSelected, clearSelection, moveSelection } = useSelection();
 
     // ── 1. 컬럼 표시/숨기기 ────────────────────────────────────────────
@@ -779,12 +781,55 @@ export default defineComponent({
     // ── 15. 키보드 ─────────────────────────────────────────────────────
     const pagedDataRows = computed(() => pagedItems.value.filter((i): i is DataItem => i.type === 'data').map(i => i.row));
 
+    const scrollToCell = (rowIdx: number, colIdx: number) => {
+      const el = containerEl.value;
+      if (!el) return;
+
+      // 수직 스크롤 — sticky 헤더 높이 고려
+      const headerHeight = el.querySelector('thead')?.clientHeight ?? 0;
+      const rowTop    = rowIdx * props.rowHeight;
+      const rowBottom = rowTop + props.rowHeight;
+      if (rowTop < el.scrollTop) {
+        el.scrollTop = rowTop;
+      } else if (headerHeight + rowBottom > el.scrollTop + el.clientHeight) {
+        el.scrollTop = headerHeight + rowBottom - el.clientHeight;
+      }
+
+      // 수평 스크롤 — 실제 DOM TH 위치 기반으로 정확하게 계산
+      const cols = visibleColumns.value;
+      const col  = cols[colIdx];
+      if (!col || col.pinned) return;
+
+      const extraCols  = (props.useRowDrag ? 1 : 0) + (props.useCheckbox ? 1 : 0);
+      const ths        = el.querySelectorAll<HTMLElement>('thead tr:first-child th');
+      const th         = ths[extraCols + colIdx];
+      if (!th) return;
+
+      const thRect  = th.getBoundingClientRect();
+      const elRect  = el.getBoundingClientRect();
+      const pinnedWidth = (props.useCheckbox ? CHECKBOX_WIDTH : 0)
+                        + (props.useRowDrag  ? ROW_DRAG_WIDTH  : 0)
+                        + cols.filter(c => c.pinned).reduce((s, c) => s + (c.width || 150), 0);
+
+      const leftBound  = elRect.left + pinnedWidth;
+      const rightBound = elRect.right - 2; // 컨테이너 우측 border 1px + 여유 1px
+
+      if (thRect.right > rightBound) {
+        el.scrollLeft += thRect.right - rightBound;
+      } else if (thRect.left < leftBound) {
+        el.scrollLeft -= leftBound - thRect.left;
+      }
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (editing.rowId !== null) return;
       const dirs: any = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
       if (dirs[e.key]) {
         e.preventDefault();
         moveSelection(dirs[e.key], e.shiftKey, pagedDataRows.value.length, visibleColumns.value.length);
+        const focusRow = e.shiftKey ? selection.endRow : selection.startRow;
+        const focusCol = e.shiftKey ? selection.endCol : selection.startCol;
+        scrollToCell(focusRow, focusCol);
       } else if (e.key === 'Enter') {
         e.preventDefault(); startEditing(selection.startRow, selection.startCol);
       } else if (e.key === 'Escape') {
@@ -835,6 +880,7 @@ export default defineComponent({
     );
 
     return {
+      containerEl,
       CHECKBOX_WIDTH, ROW_DRAG_WIDTH,
       // toolbar
       hasToolbarSlot, hiddenColKeys, visibleColumns, toggleColVisibility,
