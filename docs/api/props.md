@@ -7,7 +7,9 @@
 | `columns` | `Column[]` | 컬럼 정의 배열 |
 | `rows` | `any[]` | 행 데이터 배열. 각 객체는 `id` 필드 필요 |
 
-## 선택 Props
+## Community Props
+
+모든 티어에서 사용 가능한 Props입니다.
 
 | Prop | 타입 | 기본값 | 설명 |
 | :--- | :--- | :---: | :--- |
@@ -20,17 +22,24 @@
 | `showAdd` | `boolean` | `false` | 툴바에 추가 버튼 표시 |
 | `showDelete` | `boolean` | `false` | 툴바에 삭제 버튼 표시 |
 | `useFilter` | `boolean` | `false` | 컬럼별 필터 입력 행 표시 |
-| `showColumnSettings` | `boolean` | `false` | 컬럼 표시/숨기기 설정 버튼 표시 |
-| `groupBy` | `string` | `''` | 그룹핑 기준 컬럼 key |
-| `useContextMenu` | `boolean` | `false` | 우클릭 컨텍스트 메뉴 사용 |
-| `useRowDrag` | `boolean` | `false` | 행 드래그 재배치 활성화 |
-| `autoMergeCols` | `string[]` | `[]` | 인접한 동일 값 셀을 자동 병합할 컬럼 key 목록 |
-| `mergeCells` | `MergeCell[]` | `[]` | 수동 셀 병합 규칙 목록 |
 
-## Pro / Enterprise Props <Badge type="warning" text="Pro" />
+## Pro Props <Badge type="warning" text="Pro" />
+
+`licenseKey`에 유효한 Pro/Enterprise 키를 전달해야 동작합니다.
 
 | Prop | 타입 | 기본값 | 설명 |
 | :--- | :--- | :---: | :--- |
-| `licenseKey` | `string` | `''` | 라이선스 키. Pro/Enterprise 기능 활성화에 필요 |
+| `licenseKey` | `string` | `''` | Pro/Enterprise 라이선스 키 |
+| `showColumnSettings` | `boolean` | `false` | 컬럼 표시/숨기기 설정 버튼 표시 |
+| `useContextMenu` | `boolean` | `false` | 우클릭 컨텍스트 메뉴 사용 |
+| `useRowDrag` | `boolean` | `false` | 행 드래그 재배치 활성화 |
+| `groupBy` | `string` | `''` | 그룹핑 기준 컬럼 key |
+| `autoMergeCols` | `string[]` | `[]` | 인접한 동일 값 셀을 자동 병합할 컬럼 key 목록 |
+| `mergeCells` | `MergeCell[]` | `[]` | 수동 셀 병합 규칙 목록 |
 | `showExcelExport` | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시 |
 | `excelFilename` | `string` | `'export.xlsx'` | Excel 저장 파일명 |
+
+::: tip
+Pro Props는 `licenseKey` 없이 전달해도 오류는 나지 않지만, 해당 기능이 비활성화됩니다.
+Excel 버튼 클릭 시에는 업그레이드 안내 모달이 표시됩니다.
+:::
