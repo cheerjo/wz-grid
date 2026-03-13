@@ -1,8 +1,16 @@
 {
   "name": "wz-grid",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Vue 2/3 Universal High-Quality Grid Component",
-  "keywords": ["vue", "grid", "datagrid", "table", "vue3", "vue2", "virtual-scroll"],
+  "keywords": [
+    "vue",
+    "grid",
+    "datagrid",
+    "table",
+    "vue3",
+    "vue2",
+    "virtual-scroll"
+  ],
   "license": "SEE LICENSE IN LICENSE.md",
   "author": "cheerjo",
   "repository": {
@@ -36,7 +44,9 @@
     "README.md"
   ],
   "type": "module",
-  "sideEffects": ["*.css"],
+  "sideEffects": [
+    "*.css"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
