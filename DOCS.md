@@ -32,8 +32,10 @@
 23. [말줄임 & 툴팁](#23-말줄임--툴팁)
 24. [인쇄 (Print)](#24-인쇄-print)
 25. [CSV 내보내기](#25-csv-내보내기)
-26. [종합 예제](#26-종합-예제)
-27. [내부 구조 (Architecture)](#27-내부-구조-architecture)
+26. [Excel 내보내기 (Pro)](#26-excel-내보내기-pro)
+27. [라이선스 키](#27-라이선스-키)
+28. [종합 예제](#28-종합-예제)
+29. [내부 구조 (Architecture)](#29-내부-구조-architecture)
 
 ---
 
@@ -97,6 +99,9 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 | `useRowDrag` | `boolean` | `false` | 행 드래그 핸들 표시 및 재배치 기능 활성화 |
 | `autoMergeCols` | `string[]` | `[]` | 인접한 동일 값 셀을 자동 병합할 컬럼 key 목록 |
 | `mergeCells` | `MergeCell[]` | `[]` | 수동으로 정의한 셀 병합 규칙 목록 |
+| `licenseKey` | `string` | `''` | WZ-Grid 라이선스 키. Pro/Enterprise 기능 활성화에 필요 |
+| `showExcelExport` | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시 (Pro 기능) |
+| `excelFilename` | `string` | `'export.xlsx'` | Excel 내보내기 시 저장 파일명 |
 
 ---
 
@@ -809,7 +814,7 @@ const exportCSV = () => {
 
 ---
 
-## 26. 종합 예제
+## 28. 종합 예제
 
 ```vue
 <script setup lang="ts">
@@ -963,7 +968,7 @@ const exportCSV = () => downloadCSV(rows.value, columns.value, 'export.csv');
 
 ---
 
-## 27. 내부 구조 (Architecture)
+## 29. 내부 구조 (Architecture)
 
 ```
 src/
@@ -1089,4 +1094,51 @@ type GridItem     = DataItem | GroupHeader | SubtotalItem;
 
 ---
 
-*최종 업데이트: 2026-03-14 — 이벤트명/페이로드 현행화, 내부 구조(composables × 12, 하위 컴포넌트 × 2) 반영*
+## 26. Excel 내보내기 (Pro)
+
+> **Pro 라이선스** 전용 기능입니다.
+
+툴바에 Excel 내보내기 버튼을 추가합니다. 버튼 클릭 시 현재 그리드 데이터를 `.xlsx` 파일로 저장합니다.
+
+```vue
+<WZGrid
+  :columns="columns"
+  :rows="rows"
+  :license-key="myLicenseKey"
+  :show-excel-export="true"
+  excel-filename="report.xlsx"
+  :use-checkbox="true"
+/>
+```
+
+| Prop | 설명 |
+|------|------|
+| `showExcelExport` | `true` 시 툴바에 Excel 버튼 표시 |
+| `excelFilename` | 저장 파일명 (기본: `export.xlsx`) |
+
+- 유효한 Pro 라이선스가 없으면 클릭 시 업그레이드 모달이 표시됩니다.
+- `useCheckbox: true` + 체크된 행이 있을 경우 → 체크된 행만 내보냅니다.
+- `image`, `button` 타입 컬럼은 자동으로 제외됩니다.
+- `select`, `badge`, `radio` 타입은 `options`의 `label` 값으로 변환됩니다.
+
+---
+
+## 27. 라이선스 키
+
+WZ-Grid는 Community / Pro / Enterprise 3가지 티어를 제공합니다.
+
+```vue
+<WZGrid :license-key="'WZGRID-PRO-A1B2C3D4-XXXXXXX'" ... />
+```
+
+| 티어 | 가격 | Pro 기능 |
+|------|------|---------|
+| Community | 무료 | 기본 기능 전체 |
+| Pro | 유료 | Excel 내보내기, 기술 지원 |
+| Enterprise | 문의 | Pro 기능 + 소스코드 접근 |
+
+라이선스 키는 오프라인 검증(FNV-1a 해시)으로 동작하며 외부 서버 통신이 없습니다.
+
+---
+
+*최종 업데이트: 2026-03-14 — 라이선스 키 검증, Excel 내보내기(Pro), README 배지 추가*

@@ -3,7 +3,10 @@
 > Vue 2 & 3를 동시에 지원하는 엔터프라이즈급 고성능 데이터 그리드 컴포넌트
 
 [![npm version](https://img.shields.io/npm/v/wz-grid.svg)](https://www.npmjs.com/package/wz-grid)
+[![npm downloads](https://img.shields.io/npm/dm/wz-grid.svg)](https://www.npmjs.com/package/wz-grid)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/wz-grid.svg)](https://bundlephobia.com/package/wz-grid)
 [![Vue 2 & 3](https://img.shields.io/badge/Vue-2%20%26%203-42b883.svg)](https://vuejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6.svg)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/license-Commercial-blue.svg)](./LICENSE.md)
 
 ---

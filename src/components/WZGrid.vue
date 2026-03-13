@@ -4,7 +4,7 @@
 
     <!-- ── 툴바 ──────────────────────────────────────────────────────────── -->
     <div
-      v-if="showAdd || showDelete || hasToolbarSlot || showColumnSettings"
+      v-if="showAdd || showDelete || hasToolbarSlot || showColumnSettings || showExcelExport"
       class="wz-grid-toolbar flex items-center justify-between gap-2 px-3 py-2 bg-gray-50 border border-gray-300 border-b-0 rounded-t"
     >
       <!-- 왼쪽: 컬럼 설정 + 필터 초기화 -->
@@ -89,6 +89,19 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
           추가
+        </button>
+
+        <!-- Excel 내보내기 (Pro) -->
+        <button
+          v-if="showExcelExport"
+          @click="handleExcelExport"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-green-300 text-green-700 hover:bg-green-600 hover:text-white hover:border-green-600"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Excel
+          <span v-if="!isProLicense" class="text-[9px] bg-amber-400 text-white px-1 rounded">PRO</span>
         </button>
       </div>
     </div>
@@ -474,11 +487,68 @@
     @delete-row="ctxDeleteRow"
   />
 
+  <!-- ── Pro 업그레이드 모달 ────────────────────────────────────────── -->
+  <teleport to="body">
+    <div
+      v-if="showProModal"
+      class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      @click.self="showProModal = false"
+    >
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+        <!-- 헤더 -->
+        <div class="bg-gradient-to-r from-amber-400 to-orange-500 px-6 py-5 text-white text-center">
+          <div class="text-3xl mb-1">⭐</div>
+          <h2 class="text-lg font-bold">Pro 기능</h2>
+          <p class="text-sm opacity-90 mt-1">이 기능은 Pro 라이선스가 필요합니다</p>
+        </div>
+        <!-- 본문 -->
+        <div class="px-6 py-5">
+          <ul class="space-y-2 mb-5">
+            <li class="flex items-center gap-2 text-sm text-gray-700">
+              <span class="text-green-500 font-bold">✓</span> Excel(.xlsx) 내보내기
+            </li>
+            <li class="flex items-center gap-2 text-sm text-gray-700">
+              <span class="text-green-500 font-bold">✓</span> 고급 그룹핑 & 소계
+            </li>
+            <li class="flex items-center gap-2 text-sm text-gray-700">
+              <span class="text-green-500 font-bold">✓</span> 셀 병합
+            </li>
+            <li class="flex items-center gap-2 text-sm text-gray-700">
+              <span class="text-green-500 font-bold">✓</span> 우선순위 기술 지원
+            </li>
+          </ul>
+          <p class="text-xs text-gray-500 mb-4">
+            라이선스 키를 <code class="bg-gray-100 px-1 rounded">licenseKey</code> prop으로 전달하세요.
+          </p>
+          <div class="flex gap-2">
+            <button
+              @click="showProModal = false"
+              class="flex-1 px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              닫기
+            </button>
+            <a
+              href="https://cheerjo.github.io/wz-grid/pricing"
+              target="_blank"
+              rel="noopener"
+              class="flex-1 px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 text-white text-center hover:opacity-90 transition-opacity"
+              @click="showProModal = false"
+            >
+              라이선스 구매 →
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </teleport>
+
 </template>
 
 <script lang="ts">
 import { defineComponent, computed, PropType, ref, reactive, nextTick, watch, onMounted, onBeforeUnmount } from 'vue-demi';
 import type { Column, SortConfig, GridItem, DataItem, GroupHeader, SubtotalItem } from '../types/grid';
+import { validateLicense, isPro } from '../license';
+import { exportExcel } from '../utils/excel';
 import { useSelection }      from '../composables/useSelection';
 import { useClipboard }      from '../composables/useClipboard';
 import { useVirtualScroll }  from '../composables/useVirtualScroll';
@@ -532,11 +602,19 @@ export default defineComponent({
     useRowDrag:         { type: Boolean, default: false },
     autoMergeCols:      { type: Array as PropType<string[]>, default: () => [] },
     mergeCells:         { type: Function as PropType<(row: any, colKey: string) => { rowspan?: number; colspan?: number } | null | void>, default: null },
+    licenseKey:         { type: String,  default: '' },
+    showExcelExport:    { type: Boolean, default: false },
+    excelFilename:      { type: String,  default: 'export.xlsx' },
   },
 
   setup(props, { emit, slots }) {
     const hasToolbarSlot = computed(() => !!slots.toolbar);
     const containerEl = ref<HTMLElement | null>(null);
+
+    // ── 라이선스 ───────────────────────────────────────────────────────
+    const licenseTier  = computed(() => validateLicense(props.licenseKey));
+    const isProLicense = computed(() => isPro(licenseTier.value));
+    const showProModal = ref(false);
     const { selection, startSelection, updateSelection, endSelection, isSelected, clearSelection, moveSelection } = useSelection();
 
     // ── 1. 컬럼 표시/숨기기 ────────────────────────────────────────────
@@ -617,6 +695,15 @@ export default defineComponent({
     const handleDelete = () => {
       const checked = props.rows.filter(r => checkedIds.value.has(r.id));
       emit('click:delete', checked);
+    };
+
+    const handleExcelExport = () => {
+      if (!isProLicense.value) { showProModal.value = true; return; }
+      exportExcel(props.columns as Column[], props.rows, {
+        filename: props.excelFilename,
+        checkedOnly: props.useCheckbox,
+        checkedRows: props.rows.filter(r => checkedIds.has(r.id)),
+      });
     };
 
     // ── 7. 셀 병합 ─────────────────────────────────────────────────────
@@ -882,6 +969,8 @@ export default defineComponent({
     return {
       containerEl,
       CHECKBOX_WIDTH, ROW_DRAG_WIDTH,
+      // license
+      isProLicense, showProModal, handleExcelExport,
       // toolbar
       hasToolbarSlot, hiddenColKeys, visibleColumns, toggleColVisibility,
       colSettingsOpen, activeFilterCount, clearAllFilters, handleDelete,
