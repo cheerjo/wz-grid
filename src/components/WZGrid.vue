@@ -406,11 +406,15 @@
                   </div>
 
                   <!-- 읽기 모드 -->
-                  <div v-else class="px-2 py-1 text-sm w-full h-full flex items-center overflow-hidden" :class="[getAlignClass(col.align), col.truncate !== false ? 'truncate' : '']">
+                  <div v-else class="px-2 py-1 text-sm w-full h-full flex items-center overflow-hidden" :class="getAlignClass(col.align)">
                     <template v-if="!col.type || col.type === 'text' || col.type === 'number' || col.type === 'date'">
-                      {{ col.type === 'number' ? Number(getRow(itemIdx)?.[col.key] || 0).toLocaleString() : (getRow(itemIdx)?.[col.key] || '') }}
+                      <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">
+                        {{ col.type === 'number' ? Number(getRow(itemIdx)?.[col.key] || 0).toLocaleString() : (getRow(itemIdx)?.[col.key] || '') }}
+                      </span>
                     </template>
-                    <template v-else-if="col.type === 'select'">{{ getOptionLabel(itemIdx, col) }}</template>
+                    <template v-else-if="col.type === 'select'">
+                      <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">{{ getOptionLabel(itemIdx, col) }}</span>
+                    </template>
                     <template v-else-if="col.type === 'boolean'">
                       <div class="flex items-center justify-center w-full h-full" @mousedown.stop>
                         <input type="checkbox" :checked="!!getRow(itemIdx)?.[col.key]" @change="toggleBoolean(itemIdx, col.key)" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer" />

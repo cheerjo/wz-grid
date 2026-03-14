@@ -44,6 +44,15 @@
         >
           페이징 {{ pagingEnabled ? 'ON' : 'OFF' }}
         </button>
+        <!-- truncate 토글 -->
+        <button
+          @click="truncateEnabled = !truncateEnabled"
+          :class="truncateEnabled ? 'bg-teal-500 hover:bg-teal-600 text-white border-teal-500' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300'"
+          class="px-3 py-1.5 rounded border shadow-sm text-xs font-semibold transition-colors"
+        >
+          말줄임 {{ truncateEnabled ? 'ON' : 'OFF' }}
+        </button>
+
         <button @click="resetData" class="px-3 py-1.5 bg-white border border-gray-300 rounded shadow-sm text-xs font-semibold hover:bg-gray-50 text-gray-600">
           데이터 초기화
         </button>
@@ -232,9 +241,10 @@ const licenseTierLabel = computed(() => {
 });
 const applyDemoKey = () => { licenseKey.value = generateKey('PRO', 'DEMO0001'); };
 
-const pagingEnabled = ref(true);
-const groupByKey    = ref('');
-const mergeEnabled  = ref(false);
+const pagingEnabled  = ref(true);
+const groupByKey     = ref('');
+const mergeEnabled   = ref(false);
+const truncateEnabled = ref(true);
 
 // 셀 병합 켜면 상태+부서 기준으로 정렬 후 활성화
 const toggleMerge = () => {
@@ -259,29 +269,35 @@ const formatPhone = (v: any): string => {
   return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
 };
 
+// ── 컬럼 너비 오버라이드 (리사이즈 반영) ──────────────────────────────────
+const columnWidths = ref<Record<string, number>>({});
+const w = (key: string, def: number) => columnWidths.value[key] ?? def;
+
 // ── 컬럼 정의 (11종 타입 전부 포함) ──────────────────────────────────────
-const columns = ref<Column[]>([
+const columns = computed<Column[]>(() => [
   // ── pinned / text ─────────────────────────────────────────────────────
-  { key: 'id',     title: 'ID',   width: 60,  align: 'center', pinned: true },
-  { key: 'avatar', title: '사진', width: 60,  type: 'image',   pinned: true },
-  { key: 'name',   title: '이름', width: 120, type: 'text',    pinned: true, required: true },
+  { key: 'id',     title: 'ID',   width: w('id', 60),     align: 'center', pinned: true },
+  { key: 'avatar', title: '사진', width: w('avatar', 60), type: 'image',   pinned: true },
+  { key: 'name',   title: '이름', width: w('name', 120),  type: 'text',    pinned: true, required: true,
+    truncate: truncateEnabled.value, tooltip: truncateEnabled.value },
 
   // ── radio ─────────────────────────────────────────────────────────────
   {
-    key: 'gender', title: '성별 [radio]', width: 130, type: 'radio', align: 'center',
+    key: 'gender', title: '성별 [radio]', width: w('gender', 130), type: 'radio', align: 'center',
     options: [{ label: '남', value: 'M' }, { label: '여', value: 'F' }]
   },
 
   // ── text + onInput (휴대전화 자동 하이픈) ─────────────────────────────
   {
-    key: 'phone', title: '휴대전화 [text+onInput]', width: 185, type: 'text',
+    key: 'phone', title: '휴대전화 [text+onInput]', width: w('phone', 150), type: 'text',
     onInput: formatPhone,
+    truncate: truncateEnabled.value,
   },
 
   // ── text + truncate + tooltip (주소) ──────────────────────────────────
   {
-    key: 'address', title: '주소 [truncate+tooltip]', width: 200, type: 'text',
-    truncate: true, tooltip: true,
+    key: 'address', title: `주소 [truncate ${truncateEnabled.value ? 'ON' : 'OFF'}]`, width: w('address', 160), type: 'text',
+    truncate: truncateEnabled.value, tooltip: true,
   },
 
   // ── badge ─────────────────────────────────────────────────────────────
@@ -296,7 +312,8 @@ const columns = ref<Column[]>([
 
   // ── select ────────────────────────────────────────────────────────────
   {
-    key: 'dept', title: '부서 [select]', width: 140, type: 'select',
+    key: 'dept', title: '부서 [select]', width: w('dept', 140), type: 'select',
+    truncate: truncateEnabled.value,
     options: [
       { value: 'dev',     label: '개발팀' },
       { value: 'design',  label: '디자인팀' },
@@ -307,23 +324,23 @@ const columns = ref<Column[]>([
   },
 
   // ── number ────────────────────────────────────────────────────────────
-  { key: 'salary', title: '급여 [number]', width: 140, type: 'number', align: 'right' },
+  { key: 'salary', title: '급여 [number]', width: w('salary', 140), type: 'number', align: 'right' },
 
   // ── date ──────────────────────────────────────────────────────────────
-  { key: 'joinDate', title: '입사일 [date]', width: 130, type: 'date', align: 'center' },
+  { key: 'joinDate', title: '입사일 [date]', width: w('joinDate', 130), type: 'date', align: 'center' },
 
   // ── boolean ───────────────────────────────────────────────────────────
-  { key: 'active', title: '재직 [boolean]', width: 110, type: 'boolean', align: 'center' },
+  { key: 'active', title: '재직 [boolean]', width: w('active', 110), type: 'boolean', align: 'center' },
 
   // ── progress ──────────────────────────────────────────────────────────
-  { key: 'completion', title: '완료율 [progress]', width: 160, type: 'progress' },
+  { key: 'completion', title: '완료율 [progress]', width: w('completion', 160), type: 'progress' },
 
   // ── link ──────────────────────────────────────────────────────────────
-  { key: 'profile', title: '프로필 [link]', width: 200, type: 'link' },
+  { key: 'profile', title: '프로필 [link]', width: w('profile', 180), type: 'link' },
 
   // ── button ────────────────────────────────────────────────────────────
   {
-    key: 'action', title: '관리 [button]', width: 110, type: 'button', align: 'center',
+    key: 'action', title: '관리 [button]', width: w('action', 110), type: 'button', align: 'center',
     options: [{ label: '상세보기' }]
   },
 ]);
@@ -379,8 +396,7 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 };
 
 const handleResize = ({ colKey, width }: any) => {
-  const col = columns.value.find(c => c.key === colKey);
-  if (col) col.width = width;
+  columnWidths.value[colKey] = width;
 };
 
 type Row = ReturnType<typeof generateData>[number];
