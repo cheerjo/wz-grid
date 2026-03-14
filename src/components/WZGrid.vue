@@ -356,7 +356,7 @@
                   :rowspan="getMerge(itemIdx, col.key)?.rowspan ?? 1"
                   :colspan="getMerge(itemIdx, col.key)?.colspan ?? 1"
                   :style="getColumnStyle(col, colIdx)"
-                  class="border-b border-r border-gray-200 p-0 relative group overflow-hidden"
+                  class="border-b border-r border-gray-200 p-0 relative group"
                   :class="{
                     'bg-blue-50/50': isSelected(itemIdx, colIdx),
                     'sticky left-0 z-10 bg-white group-hover:bg-gray-50': col.pinned,
@@ -406,7 +406,7 @@
                   </div>
 
                   <!-- 읽기 모드 -->
-                  <div v-else class="px-2 py-1 text-sm w-full h-full flex items-center overflow-hidden" :class="getAlignClass(col.align)">
+                  <div v-else class="px-2 py-1 text-sm w-full h-full flex items-center overflow-hidden min-w-0" :class="getAlignClass(col.align)">
                     <template v-if="!col.type || col.type === 'text' || col.type === 'number' || col.type === 'date'">
                       <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">
                         {{ col.type === 'number' ? Number(getRow(itemIdx)?.[col.key] || 0).toLocaleString() : (getRow(itemIdx)?.[col.key] || '') }}
