@@ -29,7 +29,7 @@ A Pro License grants a single developer or team the right to use WZ-Grid in
 - You may not create a competing grid component library based on this software.
 - The license is non-transferable.
 
-To obtain a Pro License, contact: **contact@wz-grid.com**
+To obtain a Pro License, contact: **jmcho@wezon.com**
 
 ---
 
@@ -39,7 +39,7 @@ An Enterprise License grants an organization the right to use WZ-Grid across
 all internal and commercial projects, including access to the full source code,
 subject to a separately signed agreement.
 
-To obtain an Enterprise License, contact: **contact@wz-grid.com**
+To obtain an Enterprise License, contact: **jmcho@wezon.com**
 
 ---
 
