@@ -16,12 +16,12 @@
 7. [가상 스크롤](#7-가상-스크롤)
 8. [정렬 (Sort)](#8-정렬-sort)
 9. [필터 (Filter)](#9-필터-filter)
-10. [컬럼 표시/숨기기](#10-컬럼-표시숨기기)
+10. [컬럼 표시/숨기기 ★Pro](#10-컬럼-표시숨기기-pro)
 11. [컬럼 드래그 재배치](#11-컬럼-드래그-재배치)
-12. [행 드래그 재배치](#12-행-드래그-재배치)
-13. [그룹핑 & 소계](#13-그룹핑--소계)
-14. [셀 병합](#14-셀-병합)
-15. [컨텍스트 메뉴](#15-컨텍스트-메뉴)
+12. [행 드래그 재배치 ★Pro](#12-행-드래그-재배치-pro)
+13. [그룹핑 & 소계 ★Pro](#13-그룹핑--소계-pro)
+14. [셀 병합 ★Pro](#14-셀-병합-pro)
+15. [컨텍스트 메뉴 ★Pro](#15-컨텍스트-메뉴-pro)
 16. [셀 선택 & 키보드 단축키](#16-셀-선택--키보드-단축키)
 17. [복사 / 붙여넣기 (Excel 연동)](#17-복사--붙여넣기-excel-연동)
 18. [데이터 검증 (Validation)](#18-데이터-검증-validation)
@@ -36,6 +36,8 @@
 27. [라이선스 키](#27-라이선스-키)
 28. [종합 예제](#28-종합-예제)
 29. [내부 구조 (Architecture)](#29-내부-구조-architecture)
+30. [트리 구조 (Tree Grid)](#30-트리-구조-tree-grid)
+31. [푸터 집계 행](#31-푸터-집계-행)
 
 ---
 
@@ -93,12 +95,12 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 | `showAdd` | `boolean` | `false` | 툴바에 기본 추가 버튼 표시 여부 |
 | `showDelete` | `boolean` | `false` | 툴바에 기본 삭제 버튼 표시 여부 |
 | `useFilter` | `boolean` | `false` | 컬럼별 필터 입력 행 표시 여부 |
-| `showColumnSettings` | `boolean` | `false` | 헤더 우측 컬럼 표시/숨기기 설정 버튼 표시 |
-| `groupBy` | `string` | `''` | 그룹핑 기준 컬럼 key. 빈 문자열이면 그룹핑 없음 |
-| `useContextMenu` | `boolean` | `false` | 우클릭 컨텍스트 메뉴 사용 여부 |
-| `useRowDrag` | `boolean` | `false` | 행 드래그 핸들 표시 및 재배치 기능 활성화 |
-| `autoMergeCols` | `string[]` | `[]` | 인접한 동일 값 셀을 자동 병합할 컬럼 key 목록 |
-| `mergeCells` | `MergeCell[]` | `[]` | 수동으로 정의한 셀 병합 규칙 목록 |
+| `showColumnSettings` | `boolean` | `false` | ★Pro — 헤더 우측 컬럼 표시/숨기기 설정 버튼 표시 |
+| `groupBy` | `string` | `''` | ★Pro — 그룹핑 기준 컬럼 key. 빈 문자열이면 그룹핑 없음 |
+| `useContextMenu` | `boolean` | `false` | ★Pro — 우클릭 컨텍스트 메뉴 사용 여부 |
+| `useRowDrag` | `boolean` | `false` | ★Pro — 행 드래그 핸들 표시 및 재배치 기능 활성화 |
+| `autoMergeCols` | `string[]` | `[]` | ★Pro — 인접한 동일 값 셀을 자동 병합할 컬럼 key 목록 |
+| `mergeCells` | `MergeCell[]` | `[]` | ★Pro — 수동으로 정의한 셀 병합 규칙 목록 |
 | `licenseKey` | `string` | `''` | WZ-Grid 라이선스 키. Pro/Enterprise 기능 활성화에 필요 |
 | `showExcelExport` | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시 (Pro 기능) |
 | `excelFilename` | `string` | `'export.xlsx'` | Excel 내보내기 시 저장 파일명 |
@@ -418,7 +420,9 @@ const handleSort = (configs: SortConfig[]) => {
 
 ---
 
-## 10. 컬럼 표시/숨기기
+## 10. 컬럼 표시/숨기기 (Pro)
+
+> **Pro 라이선스** 전용 기능입니다. 유효한 `licenseKey` 없이 `showColumnSettings="true"`를 설정하면 기능이 비활성화되고 콘솔 경고가 출력됩니다.
 
 `showColumnSettings` prop을 `true`로 설정하면 헤더 영역 우측에 설정 아이콘이 나타납니다.
 
@@ -458,7 +462,9 @@ const handleReorderColumns = ({ srcKey, targetKey }: { srcKey: string; targetKey
 
 ---
 
-## 12. 행 드래그 재배치
+## 12. 행 드래그 재배치 (Pro)
+
+> **Pro 라이선스** 전용 기능입니다.
 
 `useRowDrag` prop을 `true`로 설정하면 각 행 좌측에 드래그 핸들(⠿)이 나타납니다.
 
@@ -485,7 +491,9 @@ const handleReorderRows = ({ from, to, position }: { from: any; to: any; positio
 
 ---
 
-## 13. 그룹핑 & 소계
+## 13. 그룹핑 & 소계 (Pro)
+
+> **Pro 라이선스** 전용 기능입니다.
 
 `groupBy` prop에 컬럼 key를 지정하면 해당 컬럼 값 기준으로 행을 그룹화합니다.
 
@@ -500,7 +508,9 @@ const handleReorderRows = ({ from, to, position }: { from: any; to: any; positio
 
 ---
 
-## 14. 셀 병합
+## 14. 셀 병합 (Pro)
+
+> **Pro 라이선스** 전용 기능입니다.
 
 ### 자동 병합 (`autoMergeCols`)
 
@@ -531,7 +541,9 @@ type MergeCell = {
 
 ---
 
-## 15. 컨텍스트 메뉴
+## 15. 컨텍스트 메뉴 (Pro)
+
+> **Pro 라이선스** 전용 기능입니다.
 
 `useContextMenu` prop을 `true`로 설정하면 행을 우클릭 시 컨텍스트 메뉴가 나타납니다.
 
@@ -994,7 +1006,8 @@ src/
 │   ├── useValidation.ts        # required / validator 검증
 │   ├── useColumnSettings.ts    # 컬럼 표시/숨기기
 │   ├── useColumnDrag.ts        # 헤더 드래그로 컬럼 순서 변경
-│   └── useRowDragDrop.ts       # 행 드래그 핸들로 행 순서 변경
+│   ├── useRowDragDrop.ts       # 행 드래그 핸들로 행 순서 변경
+│   └── useTree.ts              # 트리 계층 구조 평탄화 & 토글
 ├── types/
 │   └── grid.ts                 # Column, SortConfig, GridItem 등 타입 정의
 ├── utils/
@@ -1008,7 +1021,11 @@ src/
 ```
 props.rows
   → filteredRows      (useFilter — 컬럼별 텍스트 필터)
-  → flatGroupedItems  (useGrouping — DataItem | GroupHeader | SubtotalItem)
+  ↓
+  [useTree 모드]      flatTreeItems  (useTree — 계층 평탄화, 토글 상태 반영)
+  [일반 모드]         flatGroupedItems (useGrouping — DataItem | GroupHeader | SubtotalItem)
+  ↓
+  activeItems         (트리/일반 통합 computed)
   → pagedItems        (페이징 슬라이싱)
   → visibleRowsRange  (useVirtualScroll — 셀 병합 활성 시 전체 렌더링)
 ```
@@ -1018,11 +1035,13 @@ props.rows
 그룹핑 활성화 시 내부 아이템은 세 가지 타입의 union으로 구성됩니다:
 
 ```ts
-type DataItem     = { type: 'data'; row: any };
+type DataItem     = { type: 'data'; row: any; level?: number; hasChildren?: boolean };
 type GroupHeader  = { type: 'group-header'; key: string; label: string; count: number; collapsed: boolean };
 type SubtotalItem = { type: 'subtotal'; key: string; count: number; sums: Record<string, number> };
 type GridItem     = DataItem | GroupHeader | SubtotalItem;
 ```
+
+트리 모드에서 `DataItem`의 `level`은 들여쓰기 깊이(0부터 시작), `hasChildren`은 토글 버튼 표시 여부를 나타냅니다.
 
 ### useSelection
 
@@ -1098,6 +1117,100 @@ type GridItem     = DataItem | GroupHeader | SubtotalItem;
 - `rowDragSrcIdx` / `rowDragOverIdx` / `rowDragOverPos`: 드래그 UI 상태
 - `onRowDrop`: 드롭 시 `onReorder(from, to, position)` 호출
 
+### useTree
+
+- 파라미터: `getRows`, `getEnabled`, `getChildrenKey`, `getFilteredIds`
+- `flatTreeItems`: 토글/필터 상태를 반영한 평탄화된 `DataItem[]`
+- `toggleNode(id)`: 노드 접기/펼치기 토글
+- `isExpanded(id)`: 해당 노드의 펼침 여부
+- `expandAll()` / `collapseAll()`: 전체 펼치기 / 전체 접기
+- `getFilteredIds`: `null`이면 필터 없음, `Set<any>`이면 표시할 노드 ID 집합 (일치 노드 + 모든 상위 노드)
+
+---
+
+## 30. 트리 구조 (Tree Grid)
+
+계층적 데이터를 인덴트 + 토글 버튼으로 표현합니다.
+
+```vue
+<WZGrid
+  :columns="columns"
+  :rows="treeRows"
+  :useTree="true"
+  treeKey="name"
+  :useFilter="true"
+  :showFooter="true"
+/>
+```
+
+**`rows` 데이터 구조:**
+
+```ts
+const treeRows = [
+  {
+    id: 1, name: 'CEO', dept: '경영', salary: 200000,
+    children: [
+      {
+        id: 2, name: '개발팀장', dept: '개발', salary: 120000,
+        children: [
+          { id: 3, name: '개발자A', dept: '개발', salary: 80000 },
+        ]
+      }
+    ]
+  }
+]
+```
+
+**주요 Props:**
+
+| Prop | 타입 | 기본값 | 설명 |
+|:-----|:-----|:------:|:-----|
+| `useTree` | `boolean` | `false` | 트리 모드 활성화 |
+| `treeKey` | `string` | `''` | 인덴트·토글 버튼 표시 컬럼 key (미지정 시 첫 번째 컬럼) |
+| `childrenKey` | `string` | `'children'` | 자식 행 배열 필드명 |
+
+- 툴바에 **전체 펼치기 / 전체 접기** 버튼이 자동으로 추가됩니다.
+- `useFilter`와 함께 사용 시 — 일치하는 노드 + 모든 상위 노드가 표시됩니다.
+- `useTree` 활성화 시 `groupBy`는 자동으로 무시됩니다.
+- 가상 스크롤, 푸터 집계, 페이징과 함께 사용 가능합니다.
+
+---
+
+## 31. 푸터 집계 행
+
+`showFooter="true"` 설정 시 그리드 하단에 집계 행이 고정 표시됩니다.
+각 컬럼의 `footer` 필드로 집계 방식을 지정합니다.
+
+```ts
+const columns = [
+  { key: 'name',   title: '이름' },
+  { key: 'salary', title: '급여', type: 'number', footer: 'sum', footerLabel: '합계' },
+  { key: 'active', title: '재직', type: 'boolean', footer: 'count', footerLabel: '재직' },
+  { key: 'score',  title: '점수', type: 'number', footer: 'avg', footerLabel: '평균' },
+  // 커스텀 집계 함수
+  { key: 'bonus',  title: '보너스', footer: (rows) => rows.reduce((s, r) => s + (r.bonus ?? 0), 0) },
+]
+```
+
+```vue
+<WZGrid :columns="columns" :rows="rows" :showFooter="true" />
+```
+
+**`FooterAggr` 타입:**
+
+| 값 | 설명 |
+|:---|:-----|
+| `'sum'` | 숫자 합계 |
+| `'avg'` | 숫자 평균 (소수점 2자리) |
+| `'count'` | `null` / `undefined` / `false` / `''` 가 아닌 값의 수 |
+| `'min'` | 최솟값 |
+| `'max'` | 최댓값 |
+| `(rows) => any` | 커스텀 집계 함수 |
+
+- `footerLabel`을 지정하면 집계값 앞에 레이블이 표시됩니다 (예: `합계 1,234,000`).
+- 푸터는 **필터링된 rows** 기준으로 계산됩니다 (전체 rows 아님).
+- 그리드 하단에 `sticky bottom-0`으로 고정됩니다.
+
 ---
 
 ## 26. Excel 내보내기 (Pro)
@@ -1143,6 +1256,8 @@ WZ-Grid는 Community / Pro / Enterprise 3가지 티어를 제공합니다.
 | 정렬, 필터, 페이징 | ✓ | ✓ | ✓ |
 | 체크박스, 셀 선택, 클립보드 | ✓ | ✓ | ✓ |
 | 인쇄, CSV 내보내기 | ✓ | ✓ | ✓ |
+| 트리 구조 (Tree Grid) | ✓ | ✓ | ✓ |
+| 푸터 집계 행 | ✓ | ✓ | ✓ |
 | 컬럼 설정 (표시/숨기기) | ✗ | ✓ | ✓ |
 | 컨텍스트 메뉴 | ✗ | ✓ | ✓ |
 | 행 드래그 재배치 | ✗ | ✓ | ✓ |
@@ -1154,6 +1269,19 @@ WZ-Grid는 Community / Pro / Enterprise 3가지 티어를 제공합니다.
 
 라이선스 키는 오프라인 검증(FNV-1a 해시)으로 동작하며 외부 서버 통신이 없습니다.
 
+### Pro 기능 내부 강제 적용
+
+Pro 기능 prop을 `true`로 설정하더라도 유효한 `licenseKey`가 없으면 **WZGrid 컴포넌트 내부에서 자동으로 비활성화**됩니다.
+
+- 기능은 조용히 꺼지며 UI에 표시되지 않습니다.
+- 개발 콘솔에 한 번만 경고 메시지가 출력됩니다:
+  ```
+  [WZ-Grid] "useRowDrag" is a Pro feature. A valid licenseKey is required.
+  ```
+- 같은 기능에 대한 경고는 중복 출력되지 않습니다 (세션당 1회).
+
+대상 기능: `showColumnSettings`, `useContextMenu`, `useRowDrag`, `groupBy`, `autoMergeCols`, `mergeCells`
+
 ---
 
-*최종 업데이트: 2026-03-14 — 라이선스 키 검증, Excel 내보내기(Pro), README 배지 추가*
+*최종 업데이트: 2026-03-14 — 트리 구조(섹션 30), 푸터 집계 행(섹션 31), Pro 기능 내부 강제 적용, 라이선스 비교 표 업데이트*

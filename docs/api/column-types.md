@@ -10,11 +10,9 @@ interface Column {
   type?: ColumnType     // 컬럼 타입 (기본 'text')
   align?: Align         // 셀 본문 정렬: 'left' | 'center' | 'right'
   headerAlign?: Align   // 헤더 텍스트 정렬 (기본 'center')
-  editable?: boolean    // 편집 가능 여부
   pinned?: boolean      // 좌측 고정 컬럼 여부
   required?: boolean    // 필수 입력 여부 (헤더에 * 표시)
   options?: Option[]    // select/badge/radio/button 타입에서 사용
-  rules?: ValidationRule[]         // 검증 규칙
   validator?: (value: any, row: any) => string | null  // 커스텀 검증
   onInput?: (value: any) => any    // 입력 중 실시간 값 가공
   truncate?: boolean    // 말줄임표 처리 (기본 true)
@@ -34,7 +32,7 @@ type FooterAggr = 'sum' | 'avg' | 'count' | 'min' | 'max' | ((rows: any[]) => an
 일반 텍스트. 더블 클릭 또는 즉시 타이핑으로 편집.
 
 ```ts
-{ key: 'name', title: '이름', type: 'text', editable: true }
+{ key: 'name', title: '이름', type: 'text' }
 ```
 
 ### `number`
@@ -42,7 +40,7 @@ type FooterAggr = 'sum' | 'avg' | 'count' | 'min' | 'max' | ((rows: any[]) => an
 숫자. 읽기 모드에서 천 단위 쉼표 포맷 표시.
 
 ```ts
-{ key: 'salary', title: '급여', type: 'number', align: 'right', editable: true }
+{ key: 'salary', title: '급여', type: 'number', align: 'right' }
 ```
 
 ### `date`

@@ -2,7 +2,8 @@
 
 ## 셀 편집
 
-컬럼에 `editable: true`를 설정하면 편집 가능합니다.
+`text`, `number`, `date`, `select` 타입 컬럼은 기본적으로 편집 가능합니다.
+`boolean`은 클릭 즉시 토글, `badge`/`progress`/`image`/`button`/`link`/`radio`는 편집 불가입니다.
 
 - 더블 클릭 또는 알파벳/숫자 키 입력으로 편집 모드 진입
 - `Enter` 또는 포커스 이탈로 저장 → `@update:cell` 이벤트 발생
