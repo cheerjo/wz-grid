@@ -38,9 +38,20 @@ export interface Selection {
 }
 
 // 그룹핑/가상 스크롤에서 사용하는 행 아이템 타입
-export type DataItem     = { type: 'data'; row: any };
-export type GroupHeader  = { type: 'group-header'; key: string; label: string; count: number; collapsed: boolean };
+export type DataItem = {
+  type: 'data';
+  row: any;
+  level?: number;
+  hasChildren?: boolean;
+};
+export type GroupHeader = {
+  type: 'group-header';
+  key: string;
+  label: string;
+  count: number;
+  collapsed: boolean;
+};
 export type SubtotalItem = { type: 'subtotal'; key: string; count: number; sums: Record<string, number> };
-export type GridItem     = DataItem | GroupHeader | SubtotalItem;
+export type GridItem = DataItem | GroupHeader | SubtotalItem;
 
 export type MergeState = { rowspan: number; colspan: number; hidden: boolean };

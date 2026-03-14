@@ -52,6 +52,8 @@ export default defineConfig({
             { text: '페이징 & 가상스크롤', link: '/guide/paging' },
             { text: '편집 & 검증', link: '/guide/editing' },
             { text: '선택 & 클립보드', link: '/guide/selection' },
+            { text: '트리 구조', link: '/guide/tree' },
+            { text: '푸터 집계 행', link: '/guide/footer' },
             { text: '그룹핑 & 소계', link: '/guide/grouping' },
             { text: '셀 병합', link: '/guide/merge' },
             { text: '컨텍스트 메뉴', link: '/guide/context-menu' },

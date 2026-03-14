@@ -19,7 +19,12 @@ interface Column {
   onInput?: (value: any) => any    // 입력 중 실시간 값 가공
   truncate?: boolean    // 말줄임표 처리 (기본 true)
   tooltip?: boolean     // hover 시 전체 내용 툴팁
+  footer?: FooterAggr   // 푸터 집계: 'sum' | 'avg' | 'count' | 'min' | 'max' | 함수
+  footerLabel?: string  // 집계값 앞 레이블 (예: '합계')
 }
+
+// FooterAggr 타입
+type FooterAggr = 'sum' | 'avg' | 'count' | 'min' | 'max' | ((rows: any[]) => any)
 ```
 
 ## 타입별 상세

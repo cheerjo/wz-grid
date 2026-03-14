@@ -4,14 +4,14 @@
 
     <!-- ── 툴바 ──────────────────────────────────────────────────────────── -->
     <div
-      v-if="showAdd || showDelete || hasToolbarSlot || showColumnSettings || showExcelExport"
+      v-if="showAdd || showDelete || hasToolbarSlot || effShowColumnSettings || showExcelExport || useTree"
       class="wz-grid-toolbar flex items-center justify-between gap-2 px-3 py-2 bg-gray-50 border border-gray-300 border-b-0 rounded-t"
     >
       <!-- 왼쪽: 컬럼 설정 + 필터 초기화 -->
       <div class="flex items-center gap-2">
 
         <!-- 컬럼 표시/숨기기 -->
-        <div v-if="showColumnSettings" class="relative" @click.stop>
+        <div v-if="effShowColumnSettings" class="relative" @click.stop>
           <button
             @click="colSettingsOpen = !colSettingsOpen"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-gray-300 text-gray-600 hover:bg-gray-600 hover:text-white hover:border-gray-600"
@@ -51,6 +51,24 @@
             </div>
           </div>
         </div>
+
+        <!-- 트리 모두 펼치기/접기 -->
+        <template v-if="useTree">
+          <button
+            @click="expandAll"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-gray-300 text-gray-600 hover:bg-teal-600 hover:text-white hover:border-teal-600"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            모두 펼치기
+          </button>
+          <button
+            @click="collapseAll"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-gray-300 text-gray-600 hover:bg-teal-600 hover:text-white hover:border-teal-600"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+            모두 접기
+          </button>
+        </template>
 
         <!-- 필터 초기화 -->
         <button
@@ -108,7 +126,7 @@
 
     <!-- ── 그리드 컨테이너 ─────────────────────────────────────────────── -->
     <div
-      :class="(showAdd || showDelete || hasToolbarSlot || showColumnSettings) ? 'rounded-b border-t-0' : 'rounded'"
+      :class="(showAdd || showDelete || hasToolbarSlot || effShowColumnSettings) ? 'rounded-b border-t-0' : 'rounded'"
       ref="containerEl"
       class="wz-grid-container relative border border-gray-300 overflow-auto bg-white select-none focus:ring-2 focus:ring-blue-400 outline-none flex-grow"
       @scroll="onScroll"
@@ -125,7 +143,7 @@
             <tr>
               <!-- 행 드래그 핸들 헤더 -->
               <th
-                v-if="useRowDrag"
+                v-if="effUseRowDrag"
                 class="sticky left-0 z-40 border-b border-r border-gray-300 bg-gray-100 h-[40px]"
                 :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }"
               ></th>
@@ -133,7 +151,7 @@
               <th
                 v-if="useCheckbox"
                 class="sticky z-40 border-b border-r border-gray-300 bg-gray-100 h-[40px]"
-                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (useRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
+                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
               >
                 <div class="flex items-center justify-center w-full h-full">
                   <input
@@ -186,11 +204,11 @@
 
             <!-- 필터 행 -->
             <tr v-if="useFilter">
-              <th v-if="useRowDrag" class="sticky left-0 z-40 border-b border-r border-gray-200 bg-gray-50 p-0" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }"></th>
+              <th v-if="effUseRowDrag" class="sticky left-0 z-40 border-b border-r border-gray-200 bg-gray-50 p-0" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }"></th>
               <th
                 v-if="useCheckbox"
                 class="sticky z-40 border-b border-r border-gray-200 bg-gray-50 p-0"
-                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (useRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
+                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
               ></th>
               <th
                 v-for="(col, colIdx) in visibleColumns"
@@ -266,8 +284,8 @@
                 @click="toggleGroup(asGroupHeader(itemIdx).key)"
                 @mousedown.prevent
               >
-                <td v-if="useRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-b border-r border-gray-200 p-0 sticky left-0 z-10 bg-blue-50"></td>
-                <td v-if="useCheckbox" :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (useRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-blue-50"></td>
+                <td v-if="effUseRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-b border-r border-gray-200 p-0 sticky left-0 z-10 bg-blue-50"></td>
+                <td v-if="useCheckbox" :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-blue-50"></td>
                 <td :colspan="visibleColumns.length" class="border-b border-gray-300 px-3 py-0">
                   <div class="flex items-center gap-2">
                     <span class="text-blue-500 w-3 text-center flex-shrink-0">{{ asGroupHeader(itemIdx).collapsed ? '▶' : '▼' }}</span>
@@ -284,8 +302,8 @@
                 :style="{ height: rowHeight + 'px' }"
                 class="bg-amber-50"
               >
-                <td v-if="useRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-b border-r border-gray-200 p-0 sticky left-0 z-10 bg-amber-50"></td>
-                <td v-if="useCheckbox" :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (useRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-amber-50"></td>
+                <td v-if="effUseRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-b border-r border-gray-200 p-0 sticky left-0 z-10 bg-amber-50"></td>
+                <td v-if="useCheckbox" :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-amber-50"></td>
                 <td
                   v-for="(col, colIdx) in visibleColumns"
                   :key="'sub-' + col.key"
@@ -308,17 +326,17 @@
                 v-else
                 :style="{ height: rowHeight + 'px' }"
                 :class="{
-                  'opacity-40': useRowDrag && rowDragSrcIdx === itemIdx,
-                  'row-drag-over-top':    useRowDrag && rowDragOverIdx === itemIdx && rowDragOverPos === 'above',
-                  'row-drag-over-bottom': useRowDrag && rowDragOverIdx === itemIdx && rowDragOverPos === 'below',
+                  'opacity-40': effUseRowDrag && rowDragSrcIdx === itemIdx,
+                  'row-drag-over-top':    effUseRowDrag && rowDragOverIdx === itemIdx && rowDragOverPos === 'above',
+                  'row-drag-over-bottom': effUseRowDrag && rowDragOverIdx === itemIdx && rowDragOverPos === 'below',
                 }"
-                @dragover="useRowDrag && onRowDragOver($event, itemIdx)"
-                @drop="useRowDrag && onRowDrop($event, itemIdx)"
-                @dragend="useRowDrag && onRowDragEnd()"
+                @dragover="effUseRowDrag && onRowDragOver($event, itemIdx)"
+                @drop="effUseRowDrag && onRowDrop($event, itemIdx)"
+                @dragend="effUseRowDrag && onRowDragEnd()"
               >
                 <!-- 행 드래그 핸들 셀 -->
                 <td
-                  v-if="useRowDrag"
+                  v-if="effUseRowDrag"
                   class="sticky left-0 z-10 border-b border-r border-gray-200 p-0 bg-white cursor-grab active:cursor-grabbing"
                   :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }"
                   draggable="true"
@@ -336,7 +354,7 @@
                 <td
                   v-if="useCheckbox"
                   class="sticky z-10 border-b border-r border-gray-200 p-0 transition-colors"
-                  :style="{ left: (useRowDrag ? ROW_DRAG_WIDTH : 0) + 'px', width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px' }"
+                  :style="{ left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px', width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px' }"
                   :class="isRowChecked(getRow(itemIdx)?.id) ? 'bg-blue-50' : 'bg-white'"
                   @mousedown.stop
                 >
@@ -367,7 +385,7 @@
                   @mouseenter="updateSelection(itemIdx, colIdx)"
                   @mouseup="endSelection"
                   @dblclick="startEditing(itemIdx, colIdx)"
-                  @contextmenu="useContextMenu && openContextMenu($event, itemIdx, colIdx)"
+                  @contextmenu="effUseContextMenu && openContextMenu($event, itemIdx, colIdx)"
                 >
                   <!-- 에러 툴팁 -->
                   <div v-if="hasError(itemIdx, col.key)" class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-red-600 text-white text-[10px] rounded shadow-lg z-50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
@@ -406,7 +424,33 @@
                   </div>
 
                   <!-- 읽기 모드 -->
-                  <div v-else class="px-2 py-1 text-sm w-full h-full flex items-center overflow-hidden min-w-0" :class="getAlignClass(col.align)">
+                  <div
+                    v-else
+                    class="text-sm w-full h-full flex items-center overflow-hidden min-w-0"
+                    :class="[getAlignClass(col.align), (useTree && col.key === effectiveTreeKey) ? '' : 'px-2 py-1']"
+                    :style="useTree && col.key === effectiveTreeKey ? { paddingLeft: (getTreeLevel(itemIdx) * 16 + 4) + 'px', paddingTop: '4px', paddingBottom: '4px', paddingRight: '8px' } : {}"
+                  >
+                    <!-- 트리 토글 버튼 (트리 컬럼에만 표시) -->
+                    <template v-if="useTree && col.key === effectiveTreeKey">
+                      <button
+                        v-if="getTreeHasChildren(itemIdx)"
+                        @click.stop="toggleNode(getRow(itemIdx)?.id)"
+                        @mousedown.stop
+                        @dblclick.stop
+                        class="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-teal-600 hover:bg-teal-50 rounded transition-colors mr-1"
+                      >
+                        <svg
+                          class="w-3 h-3 transition-transform duration-150"
+                          :class="isExpanded(getRow(itemIdx)?.id) ? 'rotate-90' : ''"
+                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        >
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                        </svg>
+                      </button>
+                      <span v-else class="w-5 h-5 flex-shrink-0 mr-1 flex items-center justify-center">
+                        <svg class="w-1.5 h-1.5 text-gray-300" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="2"/></svg>
+                      </span>
+                    </template>
                     <template v-if="!col.type || col.type === 'text' || col.type === 'number' || col.type === 'date'">
                       <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">
                         {{ col.type === 'number' ? Number(getRow(itemIdx)?.[col.key] || 0).toLocaleString() : (getRow(itemIdx)?.[col.key] || '') }}
@@ -468,10 +512,10 @@
         <table class="table-fixed border-separate border-spacing-0">
           <tbody>
             <tr>
-              <td v-if="useRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-r border-blue-200"></td>
+              <td v-if="effUseRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-r border-blue-200"></td>
               <td
                 v-if="useCheckbox"
-                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', position: 'sticky', left: (useRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
+                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', position: 'sticky', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
                 class="border-r border-blue-200 bg-blue-50 z-10"
               ></td>
               <td
@@ -510,7 +554,7 @@
 
   <!-- ── 컨텍스트 메뉴 ──────────────────────────────────────────────── -->
   <WZContextMenu
-    v-if="useContextMenu"
+    v-if="effUseContextMenu"
     :visible="ctxMenu.visible"
     :x="ctxMenu.x"
     :y="ctxMenu.y"
@@ -593,6 +637,7 @@ import { useColumnDrag }     from '../composables/useColumnDrag';
 import { useRowDragDrop }    from '../composables/useRowDragDrop';
 import { useValidation }     from '../composables/useValidation';
 import { useCheckbox }       from '../composables/useCheckbox';
+import { useTree }           from '../composables/useTree';
 import WZGridPagination      from './WZGridPagination.vue';
 import WZContextMenu         from './WZContextMenu.vue';
 
@@ -638,6 +683,9 @@ export default defineComponent({
     showExcelExport:    { type: Boolean, default: false },
     excelFilename:      { type: String,  default: 'export.xlsx' },
     showFooter:         { type: Boolean, default: false },
+    useTree:            { type: Boolean, default: false },
+    treeKey:            { type: String,  default: '' },
+    childrenKey:        { type: String,  default: 'children' },
   },
 
   setup(props, { emit, slots }) {
@@ -648,6 +696,40 @@ export default defineComponent({
     const licenseTier  = computed(() => validateLicense(props.licenseKey));
     const isProLicense = computed(() => isPro(licenseTier.value));
     const showProModal = ref(false);
+
+    // ── Pro 기능 게이팅 ────────────────────────────────────────────────
+    const _warnedPro = new Set<string>();
+    const warnPro = (feature: string) => {
+      if (_warnedPro.has(feature)) return;
+      _warnedPro.add(feature);
+      console.warn(`[WZ-Grid] "${feature}" is a Pro feature. A valid licenseKey is required. https://cheerjo.github.io/wz-grid/pricing`);
+    };
+
+    const effShowColumnSettings = computed(() => {
+      if (props.showColumnSettings && !isProLicense.value) { warnPro('showColumnSettings'); return false; }
+      return props.showColumnSettings;
+    });
+    const effUseContextMenu = computed(() => {
+      if (props.useContextMenu && !isProLicense.value) { warnPro('useContextMenu'); return false; }
+      return props.useContextMenu;
+    });
+    const effUseRowDrag = computed(() => {
+      if (props.useRowDrag && !isProLicense.value) { warnPro('useRowDrag'); return false; }
+      return props.useRowDrag;
+    });
+    const effGroupBy = computed(() => {
+      if (props.groupBy && !isProLicense.value) { warnPro('groupBy'); return ''; }
+      return props.groupBy;
+    });
+    const effAutoMergeCols = computed((): string[] => {
+      if ((props.autoMergeCols?.length ?? 0) > 0 && !isProLicense.value) { warnPro('autoMergeCols'); return []; }
+      return props.autoMergeCols || [];
+    });
+    const effMergeCells = computed(() => {
+      if (props.mergeCells !== null && !isProLicense.value) { warnPro('mergeCells'); return null; }
+      return props.mergeCells || null;
+    });
+
     const { selection, startSelection, updateSelection, endSelection, isSelected, clearSelection, moveSelection } = useSelection();
 
     // ── 1. 컬럼 표시/숨기기 ────────────────────────────────────────────
@@ -655,9 +737,25 @@ export default defineComponent({
       () => props.columns
     );
 
+    // ── 트리: 모든 노드 플래튼 (필터 입력에 사용) ─────────────────────
+    const treeAllFlat = computed(() => {
+      if (!props.useTree) return props.rows;
+      const childKey = props.childrenKey || 'children';
+      const result: any[] = [];
+      function flatten(rows: any[]) {
+        for (const row of rows) {
+          result.push(row);
+          const ch = row[childKey];
+          if (Array.isArray(ch)) flatten(ch);
+        }
+      }
+      flatten(props.rows);
+      return result;
+    });
+
     // ── 2. 필터링 ──────────────────────────────────────────────────────
     const { filters, isFilterActive, activeFilterCount, clearFilter, clearAllFilters, filteredRows } = useFilter(
-      () => props.rows,
+      () => treeAllFlat.value,
       () => props.columns,
       () => props.useFilter
     );
@@ -686,22 +784,51 @@ export default defineComponent({
       return result;
     });
 
-    // ── 3. 그룹핑 ──────────────────────────────────────────────────────
+    // ── 3. 트리 ────────────────────────────────────────────────────────
+    const treeFilteredIds = computed((): Set<any> | null => {
+      if (!props.useTree || activeFilterCount.value === 0) return null;
+      return new Set(filteredRows.value.map((r: any) => r.id));
+    });
+
+    const { flatTreeItems, toggleNode, isExpanded, expandAll, collapseAll } = useTree(
+      () => props.rows,
+      () => props.useTree,
+      () => props.childrenKey || 'children',
+      () => treeFilteredIds.value
+    );
+
+    const effectiveTreeKey = computed(() => {
+      if (!props.useTree) return '';
+      return props.treeKey || visibleColumns.value[0]?.key || '';
+    });
+
+    const getTreeLevel = (idx: number): number => {
+      const item = pagedItems.value[idx];
+      return item?.type === 'data' ? (item.level ?? 0) : 0;
+    };
+    const getTreeHasChildren = (idx: number): boolean => {
+      const item = pagedItems.value[idx];
+      return item?.type === 'data' ? (item as DataItem).hasChildren ?? false : false;
+    };
+
+    // ── 4. 그룹핑 ──────────────────────────────────────────────────────
     const { collapsedGroups, toggleGroup, flatGroupedItems, groupColTitle } = useGrouping(
-      () => filteredRows.value,
-      () => props.groupBy,
+      () => props.useTree ? [] : filteredRows.value,
+      () => props.useTree ? '' : effGroupBy.value,
       () => visibleColumns.value,
       () => props.columns
     );
 
-    // ── 4. 페이징 ──────────────────────────────────────────────────────
-    const totalPages = computed(() => Math.ceil(flatGroupedItems.value.length / props.pageSize) || 1);
+    // ── 5. 페이징 ──────────────────────────────────────────────────────
+    const activeItems = computed((): GridItem[] => props.useTree ? flatTreeItems.value : flatGroupedItems.value);
+
+    const totalPages = computed(() => Math.ceil(activeItems.value.length / props.pageSize) || 1);
 
     const setPage = (page: number) => {
       emit('update:currentPage', Math.max(1, Math.min(page, totalPages.value)));
     };
 
-    watch(() => flatGroupedItems.value.length, () => {
+    watch(() => activeItems.value.length, () => {
       if (props.currentPage > totalPages.value) setPage(totalPages.value);
     });
 
@@ -709,13 +836,13 @@ export default defineComponent({
     watch(filters, () => { if (props.usePaging) setPage(1); }, { deep: true });
 
     const pagedItems = computed((): GridItem[] => {
-      if (!props.usePaging) return flatGroupedItems.value;
+      if (!props.usePaging) return activeItems.value;
       const start = (props.currentPage - 1) * props.pageSize;
-      return flatGroupedItems.value.slice(start, start + props.pageSize);
+      return activeItems.value.slice(start, start + props.pageSize);
     });
 
     // ── 5. 가상 스크롤 ─────────────────────────────────────────────────
-    const hasActiveMerge = computed(() => (props.autoMergeCols?.length ?? 0) > 0 || !!props.mergeCells);
+    const hasActiveMerge = computed(() => effAutoMergeCols.value.length > 0 || !!effMergeCells.value);
 
     const _vs = useVirtualScroll(computed(() => pagedItems.value.length), props.rowHeight, props.height);
 
@@ -767,8 +894,8 @@ export default defineComponent({
     const { getMerge } = useMerge(
       () => pagedItems.value,
       () => visibleColumns.value,
-      () => props.autoMergeCols || [],
-      () => props.mergeCells || null
+      () => effAutoMergeCols.value,
+      () => effMergeCells.value
     );
 
     // ── 8. 컨텍스트 메뉴 ──────────────────────────────────────────────
@@ -818,7 +945,7 @@ export default defineComponent({
       const style: Record<string, any> = { width: px, minWidth: px, maxWidth: px };
       if (col.pinned) {
         let left = 0;
-        if (props.useRowDrag)  left += ROW_DRAG_WIDTH;
+        if (effUseRowDrag.value)  left += ROW_DRAG_WIDTH;
         if (props.useCheckbox) left += CHECKBOX_WIDTH;
         for (let i = 0; i < colIdx; i++) {
           if (visibleColumns.value[i]?.pinned) left += (visibleColumns.value[i].width || 150);
@@ -945,7 +1072,7 @@ export default defineComponent({
       const col  = cols[colIdx];
       if (!col || col.pinned) return;
 
-      const extraCols  = (props.useRowDrag ? 1 : 0) + (props.useCheckbox ? 1 : 0);
+      const extraCols  = (effUseRowDrag.value ? 1 : 0) + (props.useCheckbox ? 1 : 0);
       const ths        = el.querySelectorAll<HTMLElement>('thead tr:first-child th');
       const th         = ths[extraCols + colIdx];
       if (!th) return;
@@ -953,7 +1080,7 @@ export default defineComponent({
       const thRect  = th.getBoundingClientRect();
       const elRect  = el.getBoundingClientRect();
       const pinnedWidth = (props.useCheckbox ? CHECKBOX_WIDTH : 0)
-                        + (props.useRowDrag  ? ROW_DRAG_WIDTH  : 0)
+                        + (effUseRowDrag.value  ? ROW_DRAG_WIDTH  : 0)
                         + cols.filter(c => c.pinned).reduce((s, c) => s + (c.width || 150), 0);
 
       const leftBound  = elRect.left + pinnedWidth;
@@ -1029,6 +1156,8 @@ export default defineComponent({
       CHECKBOX_WIDTH, ROW_DRAG_WIDTH,
       // license
       isProLicense, showProModal, handleExcelExport,
+      // pro feature gates (template에서 사용)
+      effShowColumnSettings, effUseContextMenu, effUseRowDrag,
       // toolbar
       hasToolbarSlot, hiddenColKeys, visibleColumns, toggleColVisibility,
       colSettingsOpen, activeFilterCount, clearAllFilters, handleDelete,
@@ -1064,6 +1193,8 @@ export default defineComponent({
       headerCheckboxEl, isAllChecked, checkedCount, isRowChecked, toggleAll, toggleRow,
       // footer
       footerValues,
+      // tree
+      effectiveTreeKey, getTreeLevel, getTreeHasChildren, toggleNode, isExpanded, expandAll, collapseAll,
     };
   }
 });

@@ -103,6 +103,9 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 | `showExcelExport` | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시 (Pro 기능) |
 | `excelFilename` | `string` | `'export.xlsx'` | Excel 내보내기 시 저장 파일명 |
 | `showFooter` | `boolean` | `false` | 그리드 하단에 집계 행 표시 여부. 컬럼별 `footer` 속성으로 집계 방식 지정 |
+| `useTree` | `boolean` | `false` | 트리(계층) 구조 모드 활성화. `rows`에 `children` 배열을 중첩해 사용 |
+| `treeKey` | `string` | `''` | 트리 인덴트·토글 버튼을 표시할 컬럼 key. 미지정 시 첫 번째 컬럼 |
+| `childrenKey` | `string` | `'children'` | 자식 행 배열 필드명 |
 
 ---
 

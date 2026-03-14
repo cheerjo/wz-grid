@@ -30,7 +30,7 @@ export function validateLicense(key?: string): LicenseTier {
 
   if (checksum !== expected) return 'community';
 
-  if (tier === 'PRO') return 'enterprise' in parts ? 'enterprise' : 'pro';
+  if (tier === 'PRO') return 'pro';
   if (tier === 'ENT') return 'enterprise';
 
   return 'community';

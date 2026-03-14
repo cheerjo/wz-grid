@@ -22,6 +22,10 @@
 | `showAdd` | `boolean` | `false` | 툴바에 추가 버튼 표시 |
 | `showDelete` | `boolean` | `false` | 툴바에 삭제 버튼 표시 |
 | `useFilter` | `boolean` | `false` | 컬럼별 필터 입력 행 표시 |
+| `showFooter` | `boolean` | `false` | 하단 집계 행 표시. 컬럼 `footer` 속성으로 집계 방식 지정 |
+| `useTree` | `boolean` | `false` | 트리(계층) 구조 모드. `rows`에 `children` 배열을 중첩해 사용 |
+| `treeKey` | `string` | `''` | 트리 인덴트·토글을 표시할 컬럼 key. 미지정 시 첫 번째 컬럼 |
+| `childrenKey` | `string` | `'children'` | 자식 행 배열 필드명 |
 
 ## Pro Props <Badge type="warning" text="Pro" />
 
