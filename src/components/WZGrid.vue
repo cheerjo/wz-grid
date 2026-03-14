@@ -1102,14 +1102,16 @@ export default defineComponent({
       const el = containerEl.value;
       if (!el) return;
 
-      // 수직 스크롤 — sticky 헤더 높이 고려
+      // 수직 스크롤 — sticky 헤더 / sticky 푸터 높이 고려
       const headerHeight = el.querySelector('thead')?.clientHeight ?? 0;
+      const footerHeight = el.querySelector<HTMLElement>('.sticky.bottom-0')?.clientHeight ?? 0;
+      const visibleHeight = el.clientHeight - footerHeight;
       const rowTop    = rowIdx * props.rowHeight;
       const rowBottom = rowTop + props.rowHeight;
       if (rowTop < el.scrollTop) {
         el.scrollTop = rowTop;
-      } else if (headerHeight + rowBottom > el.scrollTop + el.clientHeight) {
-        el.scrollTop = headerHeight + rowBottom - el.clientHeight;
+      } else if (headerHeight + rowBottom > el.scrollTop + visibleHeight) {
+        el.scrollTop = headerHeight + rowBottom - visibleHeight;
       }
 
       // 수평 스크롤 — 실제 DOM TH 위치 기반으로 정확하게 계산
