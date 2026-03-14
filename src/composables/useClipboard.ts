@@ -12,6 +12,10 @@ export function useClipboard(
   const getRows_ = getRows;
 
   const onCopy = (e: ClipboardEvent) => {
+    // 편집 중인 input/select/textarea에서의 복사는 기본 동작에 위임
+    const tag = (e.target as HTMLElement)?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
     const minRow = Math.min(selection.startRow, selection.endRow);
     const maxRow = Math.max(selection.startRow, selection.endRow);
     const minCol = Math.min(selection.startCol, selection.endCol);
@@ -32,6 +36,10 @@ export function useClipboard(
   };
 
   const onPaste = (e: ClipboardEvent) => {
+    // 편집 중인 input/select/textarea에서의 붙여넣기는 기본 동작에 위임
+    const tag = (e.target as HTMLElement)?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
     const tsvData = e.clipboardData?.getData('text/plain');
     if (!tsvData) return;
 
