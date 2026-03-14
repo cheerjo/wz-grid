@@ -77,6 +77,26 @@ props.rows
 VitePress 기반. `docs/.vitepress/config.ts`에서 사이드바 구성.
 **DOCS.md도 코드 변경 시 함께 업데이트해야 한다** — props 추가/변경, 라이선스 티어 변경, 새 기능 추가 시 항상 반영.
 
+## 작업 완료 체크리스트
+
+모든 코드 변경 작업이 끝나면 반드시 아래 순서를 따른다.
+
+1. **문서 업데이트** — 변경된 기능에 해당하는 문서를 모두 반영한다.
+   - `DOCS.md` — props·이벤트·동작 방식 변경 시 해당 섹션 수정, 최종 업데이트 날짜 갱신
+   - `docs/guide/` — 관련 가이드 파일 수정 (기능 추가 시 새 파일 생성 + `docs/.vitepress/config.ts` 사이드바 등록)
+   - `docs/api/` — Column 타입·Props 변경 시 수정
+
+2. **커밋** — 변경된 소스와 문서를 함께 커밋한다.
+   ```bash
+   git add <변경된 파일들>
+   git commit -m "..."
+   ```
+
+3. **Push**
+   ```bash
+   git push
+   ```
+
 ### 컬럼 타입별 편집 가능 여부
 
 편집 가능(`text`, `number`, `date`, `select`), 클릭 즉시 반영(`boolean`, `radio`), 편집 불가(`badge`, `progress`, `image`, `button`, `link`).
