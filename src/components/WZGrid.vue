@@ -356,7 +356,7 @@
                   :rowspan="getMerge(itemIdx, col.key)?.rowspan ?? 1"
                   :colspan="getMerge(itemIdx, col.key)?.colspan ?? 1"
                   :style="getColumnStyle(col, colIdx)"
-                  class="border-b border-r border-gray-200 p-0 relative group"
+                  class="border-b border-r border-gray-200 p-0 relative group overflow-hidden"
                   :class="{
                     'bg-blue-50/50': isSelected(itemIdx, colIdx),
                     'sticky left-0 z-10 bg-white group-hover:bg-gray-50': col.pinned,
@@ -761,7 +761,8 @@ export default defineComponent({
 
     // ── 11. 스타일 & 리사이즈 ──────────────────────────────────────────
     const getColumnStyle = (col: Column, colIdx: number) => {
-      const style: Record<string, any> = { width: (col.width || 150) + 'px' };
+      const px = (col.width || 150) + 'px';
+      const style: Record<string, any> = { width: px, minWidth: px, maxWidth: px };
       if (col.pinned) {
         let left = 0;
         if (props.useRowDrag)  left += ROW_DRAG_WIDTH;
