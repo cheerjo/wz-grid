@@ -148,10 +148,70 @@
         </div>
       </div>
 
-      <!-- 로딩 -->
-      <div v-if="loading" class="flex-grow flex items-center justify-center text-gray-400 text-sm gap-2">
-        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-        데이터 불러오는 중...
+      <!-- 스켈레톤 로딩 -->
+      <div v-if="loading" class="flex-grow flex flex-col overflow-hidden">
+        <!-- 툴바 스켈레톤 -->
+        <div class="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200 gap-2">
+          <div class="flex items-center gap-2">
+            <div class="h-7 w-20 bg-gray-200 rounded animate-pulse"></div>
+            <div class="h-7 w-16 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="h-7 w-10 bg-gray-200 rounded animate-pulse"></div>
+            <div class="h-7 w-14 bg-gray-200 rounded animate-pulse"></div>
+            <div class="h-7 w-14 bg-gray-200 rounded animate-pulse"></div>
+            <div class="h-7 w-14 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+        <!-- 그리드 스켈레톤 -->
+        <div class="flex-grow overflow-hidden border border-gray-200 rounded-b mx-4 my-3">
+          <!-- 헤더 행 -->
+          <div class="flex border-b-2 border-gray-300 bg-gray-50">
+            <div class="w-10 flex-shrink-0 px-2 py-2.5 border-r border-gray-200">
+              <div class="h-3.5 w-3.5 bg-gray-300 rounded animate-pulse mx-auto"></div>
+            </div>
+            <div class="w-7 flex-shrink-0 border-r border-gray-200"></div>
+            <div v-for="(w, i) in skeletonCols" :key="i"
+              :style="{ width: w + 'px' }"
+              class="flex-shrink-0 px-2 py-2.5 border-r border-gray-200 last:border-r-0"
+            >
+              <div class="h-2.5 bg-gray-300 rounded animate-pulse" :style="{ width: Math.round(w * 0.55) + 'px' }"></div>
+            </div>
+          </div>
+          <!-- 필터 행 -->
+          <div class="flex border-b border-gray-200 bg-white">
+            <div class="w-10 flex-shrink-0 border-r border-gray-200"></div>
+            <div class="w-7 flex-shrink-0 border-r border-gray-200"></div>
+            <div v-for="(w, i) in skeletonCols" :key="i"
+              :style="{ width: w + 'px' }"
+              class="flex-shrink-0 px-2 py-1.5 border-r border-gray-200 last:border-r-0"
+            >
+              <div class="h-5 bg-gray-100 rounded border border-gray-200 animate-pulse"></div>
+            </div>
+          </div>
+          <!-- 데이터 행 -->
+          <div
+            v-for="row in 14" :key="row"
+            class="flex border-b border-gray-100 last:border-b-0"
+            :class="row % 2 === 0 ? 'bg-gray-50/50' : 'bg-white'"
+          >
+            <div class="w-10 flex-shrink-0 px-2 py-2.5 border-r border-gray-100 flex items-center justify-center">
+              <div class="h-3.5 w-3.5 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div class="w-7 flex-shrink-0 border-r border-gray-100"></div>
+            <div v-for="(w, i) in skeletonCols" :key="i"
+              :style="{ width: w + 'px' }"
+              class="flex-shrink-0 px-2 py-2.5 border-r border-gray-100 last:border-r-0 flex items-center"
+            >
+              <!-- 아바타 컬럼은 원형 -->
+              <div v-if="i === 1" class="h-7 w-7 bg-gray-200 rounded-full animate-pulse"></div>
+              <!-- 나머지는 텍스트 바 (컬럼마다 너비 변주) -->
+              <div v-else class="h-2.5 bg-gray-200 rounded animate-pulse"
+                :style="{ width: Math.round(w * skeletonRowRatio(row, i)) + 'px', animationDelay: (row * 40 + i * 20) + 'ms' }"
+              ></div>
+            </div>
+          </div>
+        </div>
       </div>
       <!-- 에러 -->
       <div v-else-if="error" class="flex-grow flex items-center justify-center text-red-500 text-sm gap-2">
@@ -559,6 +619,16 @@ const treeRows = ref([
     ],
   },
 ]);
+
+// ── 스켈레톤 로딩 헬퍼 ────────────────────────────────────────────────────
+// 실제 컬럼 배열과 같은 순서 · 너비로 헤더 뼈대를 그린다
+const skeletonCols = [60, 60, 120, 130, 150, 160, 120, 140, 140, 130, 110, 160, 180, 110];
+
+// 행 · 컬럼 인덱스 기반으로 셀 바 너비 비율을 결정적(deterministic)으로 변주
+const skeletonRowRatio = (row: number, col: number): number => {
+  const seed = (row * 7 + col * 13) % 10;
+  return 0.35 + seed * 0.045; // 0.35 ~ 0.755 사이
+};
 
 // ── 컬럼 타입 범례 태그 ────────────────────────────────────────────────────
 const columnTypeTags = [
