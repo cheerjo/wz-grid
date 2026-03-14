@@ -112,8 +112,8 @@
       ref="containerEl"
       class="wz-grid-container relative border border-gray-300 overflow-auto bg-white select-none focus:ring-2 focus:ring-blue-400 outline-none flex-grow"
       @scroll="onScroll"
-      @copy="onCopy"
-      @paste="onPaste"
+      @copy.self="onCopy"
+      @paste.self="onPaste"
       @keydown="handleKeyDown"
       tabindex="0"
     >
