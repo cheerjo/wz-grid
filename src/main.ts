@@ -3,4 +3,12 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import './style.css';
 
-createApp(App).mount('#app');
+async function bootstrap() {
+  if (import.meta.env.DEV) {
+    const { worker } = await import('./mocks/browser');
+    await worker.start({ onUnhandledRequest: 'bypass' });
+  }
+  createApp(App).mount('#app');
+}
+
+bootstrap();

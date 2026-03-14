@@ -148,7 +148,18 @@
         </div>
       </div>
 
-      <div class="flex-grow p-4 overflow-hidden">
+      <!-- 로딩 -->
+      <div v-if="loading" class="flex-grow flex items-center justify-center text-gray-400 text-sm gap-2">
+        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        데이터 불러오는 중...
+      </div>
+      <!-- 에러 -->
+      <div v-else-if="error" class="flex-grow flex items-center justify-center text-red-500 text-sm gap-2">
+        ⚠ {{ error }}
+        <button @click="fetchRows" class="ml-2 px-3 py-1 bg-red-50 border border-red-300 rounded text-xs hover:bg-red-100">다시 시도</button>
+      </div>
+
+      <div v-else class="flex-grow p-4 overflow-hidden">
         <WZGrid
           :columns="columns"
           :rows="rows"
@@ -216,13 +227,13 @@
             </button>
           </template>
         </WZGrid>
-      </div>
+      </div><!-- v-else -->
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import WZGrid from './components/WZGrid.vue';
 import type { Column, SortConfig } from './types/grid';
 import { downloadCSV } from './utils/tsv';
@@ -346,68 +357,51 @@ const columns = computed<Column[]>(() => [
 ]);
 
 // ── 데이터 생성 ───────────────────────────────────────────────────────────
-const CITIES = ['서울특별시', '부산광역시', '대구광역시', '인천광역시', '광주광역시', '대전광역시', '울산광역시', '세종특별자치시'];
-const DISTRICTS = [
-  '강남구 테헤란로', '마포구 월드컵북로', '송파구 올림픽로', '종로구 세종대로',
-  '해운대구 해운대해변로', '수성구 달구벌대로', '남구 문현금융로', '서구 둔산대로',
-  '동구 중앙대로', '북구 연암로',
-];
+// ── API ──────────────────────────────────────────────────────────────────────
+const API = '/api/employees';
 
-const generateData = (count: number) => {
-  const statuses  = ['Active', 'Pending', 'Inactive'];
-  const genders   = ['M', 'F'];
-  const depts     = ['dev', 'design', 'biz', 'hr', 'finance'];
-  const baseYear  = 2015;
+const rows    = ref<any[]>([]);
+const loading = ref(false);
+const error   = ref('');
 
-  return Array.from({ length: count }).map((_, i) => {
-    const year    = baseYear + (i % 10);
-    const month   = String((i % 12) + 1).padStart(2, '0');
-    const day     = String((i % 28) + 1).padStart(2, '0');
-    const phone4a = String(Math.floor(1000 + Math.random() * 9000));
-    const phone4b = String(Math.floor(1000 + Math.random() * 9000));
-    const city    = CITIES[i % CITIES.length];
-    const district = DISTRICTS[i % DISTRICTS.length];
-    const buildingNo = Math.floor(1 + Math.random() * 999);
-    const apt = i % 3 === 0 ? ` ${Math.floor(100 + Math.random() * 900)}동 ${Math.floor(100 + Math.random() * 900)}호` : '';
-    return {
-      id:         i + 1,
-      avatar:     `https://i.pravatar.cc/150?u=${i + 1}`,
-      name:       `User ${i + 1}`,
-      gender:     genders[i % 2],
-      phone:      `010-${phone4a}-${phone4b}`,
-      address:    `${city} ${district} ${buildingNo}${apt}`,
-      status:     statuses[i % 3],
-      dept:       depts[i % 5],
-      salary:     Math.floor(Math.random() * 100000) + 30000,
-      joinDate:   `${year}-${month}-${day}`,
-      active:     i % 3 !== 2,
-      completion: Math.floor(Math.random() * 100),
-      profile:    `https://github.com/user-${i + 1}`,
-    };
-  });
+const fetchRows = async () => {
+  loading.value = true; error.value = '';
+  try {
+    const res = await fetch(API);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    rows.value = await res.json();
+  } catch (e: any) {
+    error.value = e.message;
+  } finally {
+    loading.value = false;
+  }
 };
 
-const rows = ref(generateData(10000));
+onMounted(fetchRows);
 
 // ── 이벤트 핸들러 ──────────────────────────────────────────────────────────
-const handleUpdate = ({ row, colKey, value }: any) => {
+
+// 셀 편집 → PATCH /api/employees/:id
+const handleUpdate = async ({ row, colKey, value }: any) => {
   const target = rows.value.find(r => r.id === row.id);
-  if (target) (target as any)[colKey] = value;
+  if (target) target[colKey] = value; // 낙관적 업데이트
+  await fetch(`${API}/${row.id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ [colKey]: value }),
+  });
 };
 
 const handleResize = ({ colKey, width }: any) => {
   columnWidths.value[colKey] = width;
 };
 
-type Row = ReturnType<typeof generateData>[number];
-
 const handleSort = (configs: SortConfig[]) => {
   if (configs.length === 0) return;
   rows.value = [...rows.value].sort((a, b) => {
     for (const { key, order } of configs) {
       const modifier = order === 'asc' ? 1 : -1;
-      const av = a[key as keyof Row];
-      const bv = b[key as keyof Row];
+      const av = a[key]; const bv = b[key];
       if (av !== bv) return (av > bv ? 1 : -1) * modifier;
     }
     return 0;
@@ -421,7 +415,7 @@ const handleReorderColumns = ({ srcKey, targetKey }: { srcKey: string; targetKey
   if (srcIdx === -1 || targetIdx === -1) return;
   const [moved] = cols.splice(srcIdx, 1);
   cols.splice(targetIdx, 0, moved);
-  columns.value = cols;
+  columnWidths.value = { ...columnWidths.value }; // 컬럼 순서 변경 시 widths 유지
 };
 
 const handleButtonClick = ({ row }: any) => { alert(`${row.name} 상세 보기`); };
@@ -434,29 +428,31 @@ const handlePrint = (checkedOnly: boolean) => {
     checkedRows: checkedRows.value,
   });
 };
-const resetData  = () => { rows.value = generateData(10000); currentPage.value = 1; };
 
-let _nextId = 10001;
-const handleAdd = () => {
-  const newRow = {
-    id:         _nextId++,
-    avatar:     `https://i.pravatar.cc/150?u=${_nextId}`,
-    name:       '',
-    gender:     'M',
-    phone:      '',
-    address:    '',
-    status:     'Pending',
-    dept:       'dev',
-    salary:     0,
-    joinDate:   new Date().toISOString().slice(0, 10),
-    active:     true,
-    completion: 0,
-    profile:    '',
-  };
-  rows.value = [newRow, ...rows.value];
+// 데이터 새로고침 → GET /api/employees
+const resetData = async () => { currentPage.value = 1; await fetchRows(); };
+
+// 행 추가 → POST /api/employees
+const newRowTemplate = () => ({
+  avatar: '', name: '', gender: 'M', phone: '', address: '',
+  status: 'Pending', dept: 'dev', salary: 0,
+  joinDate: new Date().toISOString().slice(0, 10),
+  active: true, completion: 0, profile: '',
+});
+
+const handleAdd = async () => {
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newRowTemplate()),
+  });
+  const created = await res.json();
+  created.avatar = `https://i.pravatar.cc/150?u=${created.id}`;
+  rows.value = [created, ...rows.value];
   currentPage.value = 1;
 };
 
+// 행 위치 변경 (클라이언트 상태만)
 const handleReorderRows = ({ from, to, position }: { from: any; to: any; position: 'above' | 'below' }) => {
   const arr = [...rows.value];
   const fromIdx = arr.findIndex(r => r.id === from.id);
@@ -468,24 +464,33 @@ const handleReorderRows = ({ from, to, position }: { from: any; to: any; positio
   rows.value = arr;
 };
 
-const handleInsert = ({ position, row }: { position: 'above' | 'below'; row: any }) => {
+// 위/아래 삽입 → POST /api/employees
+const handleInsert = async ({ position, row }: { position: 'above' | 'below'; row: any }) => {
   const idx = rows.value.findIndex(r => r.id === row?.id);
   if (idx === -1) return;
-  const newRow = {
-    id: _nextId++, avatar: `https://i.pravatar.cc/150?u=${_nextId}`,
-    name: '', gender: 'M', phone: '', address: '', status: 'Pending',
-    dept: 'dev', salary: 0, joinDate: new Date().toISOString().slice(0, 10),
-    active: true, completion: 0, profile: '',
-  };
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newRowTemplate()),
+  });
+  const created = await res.json();
+  created.avatar = `https://i.pravatar.cc/150?u=${created.id}`;
   const insertAt = position === 'above' ? idx : idx + 1;
-  rows.value = [...rows.value.slice(0, insertAt), newRow, ...rows.value.slice(insertAt)];
+  rows.value = [...rows.value.slice(0, insertAt), created, ...rows.value.slice(insertAt)];
 };
 
-const handleDelete = (checkedList: any[]) => {
+// 행 삭제 → DELETE /api/employees
+const handleDelete = async (checkedList: any[]) => {
   if (checkedList.length === 0) return;
   if (!confirm(`선택한 ${checkedList.length}건을 삭제하시겠습니까?`)) return;
-  const ids = new Set(checkedList.map(r => r.id));
-  rows.value = rows.value.filter(r => !ids.has(r.id));
+  const ids = checkedList.map(r => r.id);
+  await fetch(API, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids }),
+  });
+  const idSet = new Set(ids);
+  rows.value = rows.value.filter(r => !idSet.has(r.id));
   checkedRows.value = [];
 };
 
