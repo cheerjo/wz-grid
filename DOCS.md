@@ -102,6 +102,7 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 | `licenseKey` | `string` | `''` | WZ-Grid 라이선스 키. Pro/Enterprise 기능 활성화에 필요 |
 | `showExcelExport` | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시 (Pro 기능) |
 | `excelFilename` | `string` | `'export.xlsx'` | Excel 내보내기 시 저장 파일명 |
+| `showFooter` | `boolean` | `false` | 그리드 하단에 집계 행 표시 여부. 컬럼별 `footer` 속성으로 집계 방식 지정 |
 
 ---
 
@@ -124,6 +125,8 @@ interface Column {
   onInput?: (value: any) => any; // 입력 중 실시간 값 가공
   truncate?: boolean;    // 내용이 길 때 말줄임표(...) 처리 (기본: true)
   tooltip?: boolean;     // hover 시 전체 내용을 툴팁으로 표시
+  footer?: FooterAggr;   // 푸터 집계 방식: 'sum' | 'avg' | 'count' | 'min' | 'max' | 함수
+  footerLabel?: string;  // 집계값 앞에 표시할 레이블 (예: '합계')
 }
 
 interface Option {

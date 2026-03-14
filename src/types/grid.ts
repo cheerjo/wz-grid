@@ -1,8 +1,9 @@
 // src/types/grid.ts
 export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'select' | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio';
 export type Align = 'left' | 'center' | 'right';
+export type FooterAggr = 'sum' | 'avg' | 'count' | 'min' | 'max' | ((rows: any[]) => any);
 
-export interface Column {
+export type Column = {
   key: string;
   title: string;
   width?: number;
@@ -14,8 +15,10 @@ export interface Column {
   required?: boolean;  // 필수값 여부
   validator?: (value: any, row: any) => string | null; // 커스텀 유효성 검사 함수
   onInput?: (value: any) => any; // 실시간 입력 가공 함수
-  truncate?: boolean;  // 내용이 길 때 말줄임표(...) 처리 (기본: true)
-  tooltip?: boolean;   // 호버 시 전체 내용을 툴팁으로 표시
+  truncate?: boolean;   // 내용이 길 때 말줄임표(...) 처리 (기본: true)
+  tooltip?: boolean;    // 호버 시 전체 내용을 툴팁으로 표시
+  footer?: FooterAggr;  // 푸터 집계 방식
+  footerLabel?: string; // 집계 값 앞에 표시할 레이블 (예: '합계')
 }
 
 export type SortConfig = {

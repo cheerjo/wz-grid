@@ -177,6 +177,7 @@
           :useRowDrag="isProUser"
           :groupBy="isProUser && !mergeEnabled ? groupByKey : ''"
           :autoMergeCols="isProUser && mergeEnabled ? ['status', 'dept'] : []"
+          :showFooter="true"
           v-model:currentPage="currentPage"
           v-model:pageSize="pageSize"
           @update:cell="handleUpdate"
@@ -335,16 +336,16 @@ const columns = computed<Column[]>(() => [
   },
 
   // ── number ────────────────────────────────────────────────────────────
-  { key: 'salary', title: '급여 [number]', width: w('salary', 140), type: 'number', align: 'right' },
+  { key: 'salary', title: '급여 [number]', width: w('salary', 140), type: 'number', align: 'right', footer: 'sum', footerLabel: '합계' },
 
   // ── date ──────────────────────────────────────────────────────────────
   { key: 'joinDate', title: '입사일 [date]', width: w('joinDate', 130), type: 'date', align: 'center' },
 
   // ── boolean ───────────────────────────────────────────────────────────
-  { key: 'active', title: '재직 [boolean]', width: w('active', 110), type: 'boolean', align: 'center' },
+  { key: 'active', title: '재직 [boolean]', width: w('active', 110), type: 'boolean', align: 'center', footer: 'count', footerLabel: '재직' },
 
   // ── progress ──────────────────────────────────────────────────────────
-  { key: 'completion', title: '완료율 [progress]', width: w('completion', 160), type: 'progress' },
+  { key: 'completion', title: '완료율 [progress]', width: w('completion', 160), type: 'progress', footer: 'avg', footerLabel: '평균' },
 
   // ── link ──────────────────────────────────────────────────────────────
   { key: 'profile', title: '프로필 [link]', width: w('profile', 180), type: 'link' },

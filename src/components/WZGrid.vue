@@ -462,6 +462,34 @@
           </tbody>
         </table>
       </div>
+
+      <!-- ── 푸터 집계 행 ───────────────────────────────────────────────── -->
+      <div v-if="showFooter" class="sticky bottom-0 z-20 bg-blue-50 border-t-2 border-blue-300 shadow-[0_-1px_3px_rgba(0,0,0,0.08)]" style="min-width: max-content">
+        <table class="table-fixed border-separate border-spacing-0">
+          <tbody>
+            <tr>
+              <td v-if="useRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-r border-blue-200"></td>
+              <td
+                v-if="useCheckbox"
+                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', position: 'sticky', left: (useRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
+                class="border-r border-blue-200 bg-blue-50 z-10"
+              ></td>
+              <td
+                v-for="(col, colIdx) in visibleColumns"
+                :key="'footer-' + col.key"
+                :style="{ ...getColumnStyle(col, colIdx), ...(col.pinned ? { position: 'sticky', zIndex: 10 } : {}) }"
+                class="px-2 py-1.5 border-r border-blue-200 text-xs font-semibold text-blue-800"
+                :class="[getAlignClass(col.align), { 'bg-blue-50': col.pinned }]"
+              >
+                <template v-if="footerValues[col.key] !== undefined">
+                  <span v-if="col.footerLabel" class="text-blue-500 font-normal mr-1">{{ col.footerLabel }}</span>
+                  <span>{{ col.footer === 'count' || col.footer === 'sum' || col.footer === 'min' || col.footer === 'max' ? Number(footerValues[col.key]).toLocaleString() : footerValues[col.key] }}</span>
+                </template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- ── 페이징 ──────────────────────────────────────────────────────── -->
@@ -609,6 +637,7 @@ export default defineComponent({
     licenseKey:         { type: String,  default: '' },
     showExcelExport:    { type: Boolean, default: false },
     excelFilename:      { type: String,  default: 'export.xlsx' },
+    showFooter:         { type: Boolean, default: false },
   },
 
   setup(props, { emit, slots }) {
@@ -632,6 +661,30 @@ export default defineComponent({
       () => props.columns,
       () => props.useFilter
     );
+
+    // ── 2-1. 푸터 집계 ─────────────────────────────────────────────────
+    const footerValues = computed((): Record<string, any> => {
+      if (!props.showFooter) return {};
+      const dataRows = filteredRows.value;
+      const result: Record<string, any> = {};
+      for (const col of visibleColumns.value as Column[]) {
+        if (!col.footer) continue;
+        const vals = dataRows.map((r: any) => r[col.key]).filter((v: any) => v !== null && v !== undefined && v !== '');
+        const nums = vals.map(Number).filter((n: number) => !isNaN(n));
+        if (typeof col.footer === 'function') {
+          result[col.key] = col.footer(dataRows);
+        } else {
+          switch (col.footer) {
+            case 'sum':   result[col.key] = nums.reduce((a: number, b: number) => a + b, 0); break;
+            case 'avg':   result[col.key] = nums.length ? +(nums.reduce((a: number, b: number) => a + b, 0) / nums.length).toFixed(2) : 0; break;
+            case 'count': result[col.key] = vals.length; break;
+            case 'min':   result[col.key] = nums.length ? Math.min(...nums) : 0; break;
+            case 'max':   result[col.key] = nums.length ? Math.max(...nums) : 0; break;
+          }
+        }
+      }
+      return result;
+    });
 
     // ── 3. 그룹핑 ──────────────────────────────────────────────────────
     const { collapsedGroups, toggleGroup, flatGroupedItems, groupColTitle } = useGrouping(
@@ -1009,6 +1062,8 @@ export default defineComponent({
       totalPages, setPage,
       // checkbox
       headerCheckboxEl, isAllChecked, checkedCount, isRowChecked, toggleAll, toggleRow,
+      // footer
+      footerValues,
     };
   }
 });
