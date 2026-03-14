@@ -1,0 +1,82 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+```bash
+# 개발 서버 (App.vue 데모, MSW mock API 포함)
+npm run dev
+
+# 라이브러리 배포 빌드 (dist/wz-grid.es.js, wz-grid.cjs.js, wz-grid.css, index.d.ts)
+npm run build:lib
+
+# VitePress 문서 개발 서버
+npm run docs:dev
+
+# VitePress 문서 빌드
+npm run docs:build
+```
+
+테스트 프레임워크 없음. 타입 체크는 `npx tsc --noEmit`으로 실행하되, `.vue` 파일 모듈 선언 누락 오류(TS2307)와 `import.meta.env` 오류(TS2339)는 기존부터 있는 구조적 문제이므로 무시한다.
+
+## 아키텍처
+
+### 이중 빌드 구조
+
+- **데모 앱**: `src/main.ts` → `src/App.vue`. Vite 기본 설정(`vite.config.ts`)으로 빌드. MSW(`src/mocks/`)로 `/api/employees` REST API를 브라우저에서 모킹.
+- **라이브러리**: `src/index.ts` 진입점. `vite.lib.config.ts`로 빌드. `vue`, `vue-demi`, `@vue/composition-api`를 external로 처리. Vue 2/3 동시 지원을 위해 모든 import는 `vue` 대신 `vue-demi`를 사용.
+
+### WZGrid.vue 내부 데이터 흐름
+
+```
+props.rows
+  → treeAllFlat        (useTree 모드: 트리 전체 노드 평탄화, 필터 입력용)
+  → filteredRows       (useFilter: 컬럼별 AND 필터)
+  ↓
+  [useTree 모드]  flatTreeItems  (useTree: 접기/펼치기 상태 반영)
+  [일반 모드]     flatGroupedItems (useGrouping: 그룹헤더 + 데이터 + 소계)
+  ↓
+  activeItems          (두 경로 통합 computed)
+  → pagedItems         (usePaging: 현재 페이지 슬라이스)
+  → visibleRowsRange   (useVirtualScroll: 셀 병합 활성 시 전체 렌더링)
+```
+
+### Pro 기능 게이팅
+
+`WZGrid.vue` setup() 내부에서 `eff` 접두어 computed로 강제 처리한다:
+- `effShowColumnSettings`, `effUseContextMenu`, `effUseRowDrag`, `effGroupBy`, `effAutoMergeCols`, `effMergeCells`
+- 유효한 `licenseKey` 없이 Pro prop이 설정되면 기능을 비활성화하고 `console.warn`을 세션당 1회 출력
+- 템플릿에서 props 직접 참조 대신 이 `eff` computed를 사용해야 한다 (shadowing 방지)
+- `useTree`, `showFooter`는 **Community** 기능 — 게이팅 없음
+
+### 라이선스 시스템 (`src/license.ts`)
+
+키 형식: `WZGRID-{TIER}-{KEY_ID}-{CHECKSUM}` (TIER: `PRO` | `ENT`)
+검증: FNV-1a 32bit 해시로 오프라인 검증, 외부 서버 통신 없음.
+데모 키 생성: `generateKey('PRO', 'DEMO0001')`
+
+### 컴포저블 역할
+
+| 파일 | 역할 |
+|:-----|:-----|
+| `useVirtualScroll` | 스크롤 위치 기반 렌더 범위 계산. 셀 병합 활성 시 우회됨 |
+| `useFilter` | filters Map 관리. `treeAllFlat`을 입력으로 받아 tree/일반 모드 통합 |
+| `useGrouping` | `useTree` 활성 시 빈 배열/빈 키를 전달받아 자동으로 no-op |
+| `useTree` | `collapsedIds Set` 관리. `getFilteredIds`가 null이면 필터 없음, Set이면 일치 노드 + 조상만 표시 |
+| `useMerge` | `getAutoMergeCols`, `getMergeCellsFn` 기반으로 `MergeState` 맵 생성. `hasActiveMerge`가 true면 가상 스크롤 비활성화 |
+| `useSelection` | `{ startRow, startCol, endRow, endCol }` 범위. 클립보드와 연동 |
+| `useColumnDrag` | 리사이즈 중(`getIsResizing()`) drag 차단 로직 포함 |
+
+### 셀 병합 주의사항
+
+`autoMergeCols` 또는 `mergeCells`가 활성화되면 `hasActiveMerge`가 true가 되어 가상 스크롤이 비활성화되고 전체 행을 렌더링한다. 대량 데이터와 함께 사용 시 성능 저하가 발생할 수 있다.
+
+### 문서 (`docs/`)
+
+VitePress 기반. `docs/.vitepress/config.ts`에서 사이드바 구성.
+**DOCS.md도 코드 변경 시 함께 업데이트해야 한다** — props 추가/변경, 라이선스 티어 변경, 새 기능 추가 시 항상 반영.
+
+### 컬럼 타입별 편집 가능 여부
+
+편집 가능(`text`, `number`, `date`, `select`), 클릭 즉시 반영(`boolean`, `radio`), 편집 불가(`badge`, `progress`, `image`, `button`, `link`).

@@ -198,7 +198,7 @@
                   <!-- 활성 필터 표시 -->
                   <span v-if="useFilter && isFilterActive(col.key)" class="ml-1 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0 inline-block" title="필터 적용 중"></span>
                 </div>
-                <div class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 z-10" @mousedown.stop="startResize($event, colIdx)"></div>
+                <div class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 z-10" @mousedown.stop="startResize($event, colIdx)" @dblclick.stop="autoFitColumn(colIdx)"></div>
               </th>
             </tr>
 
@@ -965,7 +965,7 @@ export default defineComponent({
     let resizedRecently = false;
     const startResize = (e: MouseEvent, colIdx: number) => {
       isResizing.value = true;
-      resizedRecently = false;
+      resizedRecently = true; // mousedown 시점부터 세팅 — click 이벤트(정렬 트리거) 차단
       const startX = e.pageX;
       const startWidth = visibleColumns.value[colIdx]?.width || 150;
       const colKey = visibleColumns.value[colIdx]?.key;
@@ -984,6 +984,51 @@ export default defineComponent({
     const onHeaderClick = (key: string, e: MouseEvent) => {
       if (resizedRecently) { resizedRecently = false; return; }
       toggleSort(key, e);
+    };
+
+    // 리사이즈 핸들 더블클릭 → 컬럼 내용 기준 자동 너비 계산
+    const _autoFitCanvas = document.createElement('canvas');
+    const autoFitColumn = (colIdx: number) => {
+      const col = visibleColumns.value[colIdx];
+      if (!col) return;
+      const ctx = _autoFitCanvas.getContext('2d');
+      if (!ctx) return;
+
+      const CELL_PAD   = 28;  // px-3 양쪽 + 여유
+      const HEADER_PAD = 36;  // 정렬 아이콘 + 필터 도트 + 여유
+
+      const measureCell = (text: string) => {
+        ctx.font = '13px -apple-system, BlinkMacSystemFont, sans-serif';
+        return ctx.measureText(text).width;
+      };
+      const measureHeader = (text: string) => {
+        ctx.font = '600 13px -apple-system, BlinkMacSystemFont, sans-serif';
+        return ctx.measureText(text).width;
+      };
+
+      // 헤더 텍스트 너비 (필수 * 포함)
+      let maxW = measureHeader(col.title + (col.required ? ' *' : '')) + HEADER_PAD;
+
+      // 셀 값 너비 (고정 크기 타입 제외)
+      const SKIP = new Set(['boolean', 'progress', 'image', 'button', 'radio']);
+      if (!SKIP.has(col.type || '')) {
+        for (const row of filteredRows.value) {
+          const val = row[col.key];
+          let text = '';
+          if (col.type === 'number') {
+            text = Number(val || 0).toLocaleString();
+          } else if (col.type === 'select' || col.type === 'badge') {
+            text = col.options?.find(o => o.value === val)?.label ?? String(val ?? '');
+          } else {
+            text = String(val ?? '');
+          }
+          const w = measureCell(text) + CELL_PAD;
+          if (w > maxW) maxW = w;
+        }
+      }
+
+      const finalWidth = Math.max(50, Math.min(600, Math.ceil(maxW)));
+      emit('resize:column', { colIdx, colKey: col.key, width: finalWidth });
     };
 
     // ── 12. 컬럼 드래그 앤 드롭 순서 변경 ─────────────────────────────
@@ -1185,7 +1230,7 @@ export default defineComponent({
       toggleBoolean, handleInput, updateCell, updateCellFromItem,
       // display
       onButtonClick, getOptionLabel, getBadgeColor, getTooltipValue, getRow,
-      startResize, handleKeyDown, getColumnStyle, getAlignClass,
+      startResize, autoFitColumn, handleKeyDown, getColumnStyle, getAlignClass,
       hasError, getError,
       // paging
       totalPages, setPage,

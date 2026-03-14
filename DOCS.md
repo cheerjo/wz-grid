@@ -700,9 +700,16 @@ const handleResize = ({ colKey, width }: { colKey: string; width: number }) => {
 <WZGrid ... @resize:column="handleResize" />
 ```
 
-- 최소 너비: 50px
+- 최소 너비: 50px, 최대 너비: 600px
 - 드래그 중 실시간으로 너비 변경 반영
+- 리사이즈 핸들 **더블클릭** 시 컬럼 내용에 맞게 너비 자동 조정 (Auto-fit)
 - 리사이즈 중에는 헤더 정렬 및 컬럼 드래그 재배치가 차단됨
+
+**Auto-fit 동작 방식:**
+- canvas `measureText`로 `filteredRows` 전체 셀 값의 텍스트 너비 계산
+- 헤더 텍스트(정렬 아이콘·`required *` 포함)와 비교해 가장 넓은 값으로 결정
+- `boolean`, `progress`, `image`, `button`, `radio` 타입은 고정 크기이므로 헤더 너비만 기준
+- `number` → `toLocaleString()` 포맷, `select`/`badge` → options label 기준으로 측정
 
 ---
 
@@ -1284,4 +1291,4 @@ Pro 기능 prop을 `true`로 설정하더라도 유효한 `licenseKey`가 없으
 
 ---
 
-*최종 업데이트: 2026-03-14 — 트리 구조(섹션 30), 푸터 집계 행(섹션 31), Pro 기능 내부 강제 적용, 라이선스 비교 표 업데이트*
+*최종 업데이트: 2026-03-14 — 컬럼 리사이즈 핸들 더블클릭 Auto-fit 추가, 트리 구조(섹션 30), 푸터 집계 행(섹션 31), Pro 기능 내부 강제 적용*

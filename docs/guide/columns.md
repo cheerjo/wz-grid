@@ -31,9 +31,15 @@ const handleResize = ({ colKey, width }: { colKey: string; width: number }) => {
 <WZGrid ... @resize:column="handleResize" />
 ```
 
-- 최소 너비: 50px
+- 최소 너비: 50px, 최대 너비: 600px
 - 드래그 중 실시간으로 너비 변경 반영
+- 리사이즈 핸들 **더블클릭** 시 컬럼 내용에 맞게 너비 자동 조정 (Auto-fit)
 - 리사이즈 중에는 컬럼 드래그 재배치가 차단됨
+
+::: tip Auto-fit
+리사이즈 핸들(`|`)을 더블클릭하면 현재 필터링된 데이터 전체를 기준으로 가장 넓은 셀 내용에 맞춰 너비를 자동으로 조정합니다.
+`boolean`, `progress`, `image`, `button`, `radio` 타입 컬럼은 헤더 텍스트 너비만 기준으로 합니다.
+:::
 
 ## 컬럼 드래그 재배치
 
