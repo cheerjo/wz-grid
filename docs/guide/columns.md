@@ -55,6 +55,33 @@ const handleReorderColumns = ({ srcKey, targetKey }: { srcKey: string; targetKey
 <WZGrid ... @reorder:columns="handleReorderColumns" />
 ```
 
+## 말줄임 & 툴팁
+
+긴 텍스트를 셀 너비에 맞게 말줄임(`...`) 처리하고, hover 시 전체 내용을 툴팁으로 표시할 수 있습니다.
+
+```ts
+const columns = [
+  {
+    key: 'address',
+    title: '주소',
+    width: 160,
+    type: 'text',
+    truncate: true,  // 기본값 true — false로 설정 시 줄바꿈
+    tooltip: true,   // hover 시 전체 내용 표시
+  },
+]
+```
+
+| 옵션 | 타입 | 기본값 | 설명 |
+| :--- | :--- | :---: | :--- |
+| `truncate` | `boolean` | `true` | `false`로 설정하면 셀 내용이 줄바꿈됨 |
+| `tooltip` | `boolean` | `false` | `true`이면 hover 시 말풍선으로 전체 내용 표시 |
+
+::: tip
+`tooltip: true`는 `truncate: true`와 함께 사용할 때 가장 유용합니다.
+말줄임으로 잘린 내용을 hover로 확인할 수 있습니다.
+:::
+
 ## 컬럼 표시/숨기기
 
 `showColumnSettings` prop을 `true`로 설정하면 헤더 우측에 설정 아이콘이 나타납니다.
