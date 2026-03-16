@@ -451,7 +451,17 @@
                         <svg class="w-1.5 h-1.5 text-gray-300" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="2"/></svg>
                       </span>
                     </template>
-                    <template v-if="!col.type || col.type === 'text' || col.type === 'number' || col.type === 'date'">
+                    <!-- 커스텀 셀 슬롯 -->
+                    <slot
+                      v-if="$slots['cell-' + col.key]"
+                      :name="'cell-' + col.key"
+                      :row="getRow(itemIdx)"
+                      :column="col"
+                      :value="getRow(itemIdx)?.[col.key]"
+                      :rowIndex="itemIdx"
+                    />
+                    <!-- 기본 렌더링 (슬롯 미제공 시) -->
+                    <template v-else-if="!col.type || col.type === 'text' || col.type === 'number' || col.type === 'date'">
                       <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">
                         {{ col.type === 'number' ? Number(getRow(itemIdx)?.[col.key] || 0).toLocaleString() : (getRow(itemIdx)?.[col.key] || '') }}
                       </span>
