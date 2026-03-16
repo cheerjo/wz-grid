@@ -148,10 +148,17 @@
                 :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }"
               ></th>
 
+              <!-- 디테일 확장 헤더 -->
+              <th
+                v-if="effUseDetail"
+                class="sticky z-40 border-b border-r border-gray-300 bg-gray-100 h-[40px]"
+                :style="{ width: DETAIL_EXPAND_WIDTH + 'px', minWidth: DETAIL_EXPAND_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
+              ></th>
+
               <th
                 v-if="useCheckbox"
                 class="sticky z-40 border-b border-r border-gray-300 bg-gray-100 h-[40px]"
-                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
+                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + (effUseDetail ? DETAIL_EXPAND_WIDTH : 0) + 'px' }"
               >
                 <div class="flex items-center justify-center w-full h-full">
                   <input
@@ -205,10 +212,11 @@
             <!-- 필터 행 -->
             <tr v-if="useFilter">
               <th v-if="effUseRowDrag" class="sticky left-0 z-40 border-b border-r border-gray-200 bg-gray-50 p-0" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }"></th>
+              <th v-if="effUseDetail" class="sticky z-40 border-b border-r border-gray-200 bg-gray-50 p-0" :style="{ width: DETAIL_EXPAND_WIDTH + 'px', minWidth: DETAIL_EXPAND_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"></th>
               <th
                 v-if="useCheckbox"
                 class="sticky z-40 border-b border-r border-gray-200 bg-gray-50 p-0"
-                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
+                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + (effUseDetail ? DETAIL_EXPAND_WIDTH : 0) + 'px' }"
               ></th>
               <th
                 v-for="(col, colIdx) in visibleColumns"
@@ -326,7 +334,8 @@
                 @mousedown.prevent
               >
                 <td v-if="effUseRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-b border-r border-gray-200 p-0 sticky left-0 z-10 bg-blue-50"></td>
-                <td v-if="useCheckbox" :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-blue-50"></td>
+                <td v-if="effUseDetail" :style="{ width: DETAIL_EXPAND_WIDTH + 'px', minWidth: DETAIL_EXPAND_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-blue-50"></td>
+                <td v-if="useCheckbox" :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + (effUseDetail ? DETAIL_EXPAND_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-blue-50"></td>
                 <td :colspan="visibleColumns.length" class="border-b border-gray-300 px-3 py-0">
                   <div class="flex items-center gap-2">
                     <span class="text-blue-500 w-3 text-center flex-shrink-0">{{ asGroupHeader(itemIdx).collapsed ? '▶' : '▼' }}</span>
@@ -344,7 +353,8 @@
                 class="bg-amber-50"
               >
                 <td v-if="effUseRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-b border-r border-gray-200 p-0 sticky left-0 z-10 bg-amber-50"></td>
-                <td v-if="useCheckbox" :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-amber-50"></td>
+                <td v-if="effUseDetail" :style="{ width: DETAIL_EXPAND_WIDTH + 'px', minWidth: DETAIL_EXPAND_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-amber-50"></td>
+                <td v-if="useCheckbox" :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + (effUseDetail ? DETAIL_EXPAND_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-amber-50"></td>
                 <td
                   v-for="(col, colIdx) in visibleColumns"
                   :key="'sub-' + col.key"
@@ -392,11 +402,30 @@
                   </div>
                 </td>
 
+                <!-- 디테일 확장 버튼 셀 -->
+                <td
+                  v-if="effUseDetail"
+                  class="sticky z-10 border-b border-r border-gray-200 p-0 bg-white"
+                  :style="{ left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px', width: DETAIL_EXPAND_WIDTH + 'px', minWidth: DETAIL_EXPAND_WIDTH + 'px' }"
+                  @mousedown.stop
+                  @click.stop="toggleDetailExpand(getRow(itemIdx)?.id)"
+                >
+                  <div class="flex items-center justify-center w-full h-full cursor-pointer text-gray-400 hover:text-blue-600 transition-colors">
+                    <svg
+                      class="w-3.5 h-3.5 transition-transform duration-150"
+                      :class="isDetailExpanded(getRow(itemIdx)?.id) ? 'rotate-90' : ''"
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </div>
+                </td>
+
                 <!-- 체크박스 셀 -->
                 <td
                   v-if="useCheckbox"
                   class="sticky z-10 border-b border-r border-gray-200 p-0 transition-colors"
-                  :style="{ left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px', width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px' }"
+                  :style="{ left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + (effUseDetail ? DETAIL_EXPAND_WIDTH : 0) + 'px', width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px' }"
                   :class="isRowChecked(getRow(itemIdx)?.id) ? 'bg-blue-50' : 'bg-white'"
                   @mousedown.stop
                 >
@@ -554,6 +583,25 @@
                 </template>
               </tr>
 
+              <!-- ── 디테일 확장 행 ─────────────────────────────────────── -->
+              <tr
+                v-if="effUseDetail && getItem(itemIdx)?.type === 'data' && isDetailExpanded(getRow(itemIdx)?.id)"
+                class="bg-gray-50"
+              >
+                <td
+                  :colspan="visibleColumns.length + (effUseRowDrag ? 1 : 0) + (effUseDetail ? 1 : 0) + (useCheckbox ? 1 : 0)"
+                  class="border-b border-gray-200 p-0"
+                >
+                  <div class="px-4 py-3">
+                    <slot
+                      name="detail"
+                      :row="getRow(itemIdx)"
+                      :rowIndex="itemIdx"
+                    />
+                  </div>
+                </td>
+              </tr>
+
             </template>
           </tbody>
         </table>
@@ -565,9 +613,10 @@
           <tbody>
             <tr>
               <td v-if="effUseRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-r border-blue-200"></td>
+              <td v-if="effUseDetail" :style="{ width: DETAIL_EXPAND_WIDTH + 'px', minWidth: DETAIL_EXPAND_WIDTH + 'px' }" class="border-r border-blue-200"></td>
               <td
                 v-if="useCheckbox"
-                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', position: 'sticky', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
+                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', position: 'sticky', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + (effUseDetail ? DETAIL_EXPAND_WIDTH : 0) + 'px' }"
                 class="border-r border-blue-200 bg-blue-50 z-10"
               ></td>
               <td
@@ -795,6 +844,20 @@ export default defineComponent({
       if (props.serverSide && !isProLicense.value) { warnPro('serverSide'); return false; }
       return props.serverSide;
     });
+    const hasDetailSlot = computed(() => !!slots.detail);
+    const effUseDetail = computed(() => {
+      if (hasDetailSlot.value && !isProLicense.value) { warnPro('detail'); return false; }
+      return hasDetailSlot.value;
+    });
+
+    // ── 마스터-디테일 Row Expand ─────────────────────────────────────
+    const expandedRowIds = reactive(new Set<any>());
+    const DETAIL_EXPAND_WIDTH = 28;
+    const toggleDetailExpand = (rowId: any) => {
+      if (expandedRowIds.has(rowId)) expandedRowIds.delete(rowId);
+      else expandedRowIds.add(rowId);
+    };
+    const isDetailExpanded = (rowId: any) => expandedRowIds.has(rowId);
 
     // ── 다중 선택 필터 드롭다운 ─────────────────────────────────────────
     const multiSelectFilterOpen = ref<string>('');
@@ -1051,6 +1114,7 @@ export default defineComponent({
       if (col.pinned) {
         let left = 0;
         if (effUseRowDrag.value)  left += ROW_DRAG_WIDTH;
+        if (effUseDetail.value)   left += DETAIL_EXPAND_WIDTH;
         if (props.useCheckbox) left += CHECKBOX_WIDTH;
         for (let i = 0; i < colIdx; i++) {
           if (visibleColumns.value[i]?.pinned) left += (visibleColumns.value[i].width || 150);
@@ -1316,6 +1380,7 @@ export default defineComponent({
       isProLicense, showProModal, handleExcelExport,
       // pro feature gates (template에서 사용)
       effShowColumnSettings, effUseContextMenu, effUseRowDrag, effUseAdvancedFilter, effServerSide,
+      effUseDetail, expandedRowIds, DETAIL_EXPAND_WIDTH, toggleDetailExpand, isDetailExpanded,
       // toolbar
       hasToolbarSlot, hiddenColKeys, visibleColumns, toggleColVisibility,
       colSettingsOpen, activeFilterCount, clearAllFilters, handleDelete,

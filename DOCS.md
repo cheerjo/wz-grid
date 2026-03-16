@@ -41,6 +41,7 @@
 32. [셀 커스텀 렌더러 (Custom Cell Renderer)](#32-셀-커스텀-렌더러-custom-cell-renderer)
 33. [행 클릭 & 행/셀 스타일](#33-행-클릭--행셀-스타일)
 34. [서버사이드 모드 ★Pro](#34-서버사이드-모드-pro)
+35. [마스터-디테일 Row Expand ★Pro](#35-마스터-디테일-row-expand-pro)
 
 ---
 
@@ -1314,6 +1315,7 @@ WZ-Grid는 Community / Pro / Enterprise 3가지 티어를 제공합니다.
 | Excel (.xlsx) 내보내기 | ✗ | ✓ | ✓ |
 | 고급 필터 (숫자 범위, 날짜 범위, 다중 선택) | ✗ | ✓ | ✓ |
 | 서버사이드 모드 | ✗ | ✓ | ✓ |
+| 마스터-디테일 Row Expand | ✗ | ✓ | ✓ |
 | 기술 지원 | 커뮤니티 | 이메일 | 전담 |
 | 소스코드 접근 | ✗ | ✗ | ✓ |
 
@@ -1330,7 +1332,7 @@ Pro 기능 prop을 `true`로 설정하더라도 유효한 `licenseKey`가 없으
   ```
 - 같은 기능에 대한 경고는 중복 출력되지 않습니다 (세션당 1회).
 
-대상 기능: `showColumnSettings`, `useContextMenu`, `useRowDrag`, `groupBy`, `autoMergeCols`, `mergeCells`, `advancedFilter`, `serverSide`
+대상 기능: `showColumnSettings`, `useContextMenu`, `useRowDrag`, `groupBy`, `autoMergeCols`, `mergeCells`, `advancedFilter`, `serverSide`, `detail`
 
 ---
 
@@ -1533,4 +1535,56 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ---
 
-*최종 업데이트: 2026-03-16 — 셀 커스텀 렌더러(섹션 32), 고급 필터 모드(섹션 9), 행 클릭 & 행/셀 스타일(섹션 33), 서버사이드 모드(섹션 34) 추가*
+## 35. 마스터-디테일 Row Expand (Pro)
+
+> **Pro 라이선스** 전용 기능입니다.
+
+`#detail` 스코프드 슬롯을 제공하면 각 행에 확장/축소 토글 버튼이 나타납니다. 행을 확장하면 해당 행 아래에 디테일 영역이 표시됩니다.
+
+```vue
+<WZGrid
+  :columns="columns"
+  :rows="rows"
+  :licenseKey="myLicenseKey"
+>
+  <template #detail="{ row, rowIndex }">
+    <div class="grid grid-cols-2 gap-4 text-sm">
+      <div>
+        <span class="font-bold">상세 정보</span>
+        <p>이름: {{ row.name }}</p>
+        <p>부서: {{ row.dept }}</p>
+      </div>
+      <div>
+        <span class="font-bold">이력</span>
+        <p>입사일: {{ row.joinDate }}</p>
+        <p>급여: {{ row.salary?.toLocaleString() }}원</p>
+      </div>
+    </div>
+  </template>
+</WZGrid>
+```
+
+### 슬롯 스코프 데이터
+
+| 속성 | 타입 | 설명 |
+|:-----|:-----|:-----|
+| `row` | `any` | 현재 행 객체 |
+| `rowIndex` | `number` | 현재 행의 인덱스 |
+
+### 동작
+
+- `#detail` 슬롯이 제공되고 Pro 라이선스가 유효하면, 각 데이터 행 왼쪽에 화살표(▶) 토글 버튼이 자동으로 표시됩니다.
+- 버튼 클릭 시 행이 확장되어 디테일 영역이 나타나고, 다시 클릭하면 축소됩니다.
+- 확장된 행의 화살표는 90도 회전(▼)하여 확장 상태를 표시합니다.
+- 디테일 영역은 전체 컬럼 너비를 차지합니다.
+- 여러 행을 동시에 확장할 수 있습니다.
+
+### 주의사항
+
+- `#detail` 슬롯을 제공하지 않으면 확장 버튼이 표시되지 않습니다.
+- Pro 라이선스 없이 `#detail` 슬롯을 제공하면 슬롯이 무시되고 콘솔 경고가 출력됩니다.
+- 가상 스크롤, 페이징, 체크박스 등 기존 기능과 함께 사용 가능합니다.
+
+---
+
+*최종 업데이트: 2026-03-16 — 셀 커스텀 렌더러(섹션 32), 고급 필터 모드(섹션 9), 행 클릭 & 행/셀 스타일(섹션 33), 서버사이드 모드(섹션 34), 마스터-디테일 Row Expand(섹션 35) 추가*
