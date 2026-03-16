@@ -25,12 +25,13 @@ npm run docs:build
 ### 이중 빌드 구조
 
 - **데모 앱**: `src/main.ts` → `src/App.vue`. Vite 기본 설정(`vite.config.ts`)으로 빌드. MSW(`src/mocks/`)로 `/api/employees` REST API를 브라우저에서 모킹.
-- **라이브러리**: `src/index.ts` 진입점. `vite.lib.config.ts`로 빌드. `vue`, `vue-demi`, `@vue/composition-api`를 external로 처리. Vue 2/3 동시 지원을 위해 모든 import는 `vue` 대신 `vue-demi`를 사용.
+- **라이브러리**: `src/index.ts` 진입점. `vite.lib.config.ts`로 빌드. `vue`, `vue-demi`, `@vue/composition-api`, `xlsx`를 external로 처리. Vue 2/3 동시 지원을 위해 모든 import는 `vue` 대신 `vue-demi`를 사용.
 
 ### WZGrid.vue 내부 데이터 흐름
 
 ```
 props.rows
+  → sortedRows         (useSort: serverSide=false일 때 클라이언트 사이드 자동 정렬)
   → treeAllFlat        (useTree 모드: 트리 전체 노드 평탄화, 필터 입력용)
   → filteredRows       (useFilter: 컬럼별 AND 필터)
   ↓
@@ -45,9 +46,10 @@ props.rows
 ### Pro 기능 게이팅
 
 `WZGrid.vue` setup() 내부에서 `eff` 접두어 computed로 강제 처리한다:
-- `effShowColumnSettings`, `effUseContextMenu`, `effUseRowDrag`, `effGroupBy`, `effAutoMergeCols`, `effMergeCells`, `effUseAdvancedFilter`, `effServerSide`, `effUseDetail`
-- 유효한 `licenseKey` 없이 Pro prop이 설정되면 기능을 비활성화하고 `console.warn`을 세션당 1회 출력
+- `effShowColumnSettings`, `effUseContextMenu`, `effUseRowDrag`, `effGroupBy`, `effAutoMergeCols`, `effMergeCells`, `effUseAdvancedFilter`, `effServerSide`, `effUseDetail`, `effShowExcelExport`
+- `eff` computed는 순수 계산만 수행. Pro 경고 `console.warn`은 별도 `watch(isProLicense, ...)` 에서 세션당 1회 출력
 - 템플릿에서 props 직접 참조 대신 이 `eff` computed를 사용해야 한다 (shadowing 방지)
+- Prop alias: `useColumnSettings`(←showColumnSettings), `useExcelExport`(←showExcelExport), `useServerSide`(←serverSide) — 기존 이름도 하위 호환 유지
 - `useTree`, `showFooter`는 **Community** 기능 — 게이팅 없음
 
 ### 라이선스 시스템 (`src/license.ts`)
@@ -56,11 +58,21 @@ props.rows
 검증: FNV-1a 32bit 해시로 오프라인 검증, 외부 서버 통신 없음.
 데모 키 생성: `generateKey('PRO', 'DEMO0001')`
 
+### 컴포넌트 구조
+
+| 컴포넌트 | 역할 |
+|:---------|:-----|
+| `WZGrid.vue` | 메인 컨테이너. setup()에서 모든 컴포저블 초기화, 데이터 흐름 관리, 그룹헤더/소계/디테일/푸터/페이징/컨텍스트메뉴 렌더링 |
+| `WZGridToolbar.vue` | 상단 툴바: 추가/삭제 버튼, 엑셀 내보내기, 컬럼 설정. `#toolbar` 슬롯 포워딩 |
+| `WZGridHeader.vue` | `<thead>` 영역: 컬럼 헤더, 정렬 표시, 리사이즈 핸들, 필터 행 |
+| `WZGridRow.vue` | 단일 데이터 행 렌더링: 셀, 편집 모드, 체크박스, 드래그 핸들. `parentSlots` prop으로 `cell-*` 동적 슬롯 포워딩 |
+
 ### 컴포저블 역할
 
 | 파일 | 역할 |
 |:-----|:-----|
-| `useVirtualScroll` | 스크롤 위치 기반 렌더 범위 계산. 셀 병합 활성 시 우회됨 |
+| `useSort` | `sortedRows` computed 제공. serverSide=false일 때 숫자/날짜/문자열 자동 감지 정렬. serverSide=true일 때 원본 반환 |
+| `useVirtualScroll` | 스크롤 위치 기반 렌더 범위 계산. getter 함수로 rowHeight/viewportHeight를 받아 동적 반응. 셀 병합 활성 시 우회됨 |
 | `useFilter` | filters Map 관리. `treeAllFlat`을 입력으로 받아 tree/일반 모드 통합 |
 | `useGrouping` | `useTree` 활성 시 빈 배열/빈 키를 전달받아 자동으로 no-op |
 | `useTree` | `collapsedIds Set` 관리. `getFilteredIds`가 null이면 필터 없음, Set이면 일치 노드 + 조상만 표시 |

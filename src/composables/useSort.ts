@@ -1,8 +1,12 @@
 // src/composables/useSort.ts
-import { ref } from 'vue-demi';
-import { SortConfig } from '../types/grid';
+import { ref, computed } from 'vue-demi';
+import type { SortConfig, GridRow } from '../types/grid';
 
-export function useSort(onSort: (configs: SortConfig[]) => void) {
+export function useSort(
+  onSort: (configs: SortConfig[]) => void,
+  getRows: () => GridRow[],
+  isServerSide: () => boolean
+) {
   const sortConfigs = ref<SortConfig[]>([]);
 
   const getSortEntry = (key: string) => sortConfigs.value.find(s => s.key === key);
@@ -28,5 +32,38 @@ export function useSort(onSort: (configs: SortConfig[]) => void) {
     onSort(sortConfigs.value);
   };
 
-  return { sortConfigs, getSortEntry, getSortIndex, toggleSort };
+  // 값 비교: 숫자/날짜(ISO 문자열)/문자열 자동 감지
+  const compareValues = (a: any, b: any): number => {
+    if (a === null || a === undefined) return 1;
+    if (b === null || b === undefined) return -1;
+
+    // 숫자
+    const na = Number(a);
+    const nb = Number(b);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+
+    // 날짜 (ISO 형식: YYYY-MM-DD 또는 YYYY-MM-DDTHH:mm:ss)
+    const da = Date.parse(String(a));
+    const db = Date.parse(String(b));
+    if (!isNaN(da) && !isNaN(db)) return da - db;
+
+    // 문자열
+    return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+  };
+
+  const sortedRows = computed((): GridRow[] => {
+    const rows = getRows();
+    // 서버사이드 모드이거나 정렬 기준이 없으면 원본 반환
+    if (isServerSide() || sortConfigs.value.length === 0) return rows;
+
+    return [...rows].sort((a, b) => {
+      for (const { key, order } of sortConfigs.value) {
+        const cmp = compareValues(a[key], b[key]);
+        if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
+      }
+      return 0;
+    });
+  });
+
+  return { sortConfigs, getSortEntry, getSortIndex, toggleSort, sortedRows };
 }

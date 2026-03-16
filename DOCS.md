@@ -51,7 +51,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import WZGrid from './components/WZGrid.vue';
-import type { Column } from './types/grid';
+import type { Column, GridRow } from './types/grid';
 
 const columns = ref<Column[]>([
   { key: 'id',   title: 'ID',   width: 60 },
@@ -59,7 +59,8 @@ const columns = ref<Column[]>([
   { key: 'age',  title: '나이', width: 80, type: 'number', align: 'right' },
 ]);
 
-const rows = ref([
+// GridRow: id 필드(string | number)가 필수인 인터페이스
+const rows = ref<GridRow[]>([
   { id: 1, name: '홍길동', age: 30 },
   { id: 2, name: '김철수', age: 25 },
 ]);
@@ -86,36 +87,43 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 
 ## 2. Props 명세
 
-| Prop | 타입 | 기본값 | 설명 |
-| :--- | :--- | :---: | :--- |
-| `columns` | `Column[]` | — | **(필수)** 컬럼 정의 배열 |
-| `rows` | `any[]` | — | **(필수)** 행 데이터 배열. 각 객체는 `id` 필드 필요 |
-| `height` | `number` | `500` | 그리드 전체 높이(px) |
-| `rowHeight` | `number` | `40` | 각 행의 높이(px). 가상 스크롤 계산에 사용 |
-| `usePaging` | `boolean` | `false` | 페이징 활성화 여부 |
-| `pageSize` | `number` | `20` | 페이지당 표시 행 수 (`v-model:pageSize` 지원) |
-| `currentPage` | `number` | `1` | 현재 페이지 번호 (`v-model:currentPage` 지원) |
-| `useCheckbox` | `boolean` | `false` | 첫 번째 컬럼에 체크박스 활성화 여부 |
-| `showAdd` | `boolean` | `false` | 툴바에 기본 추가 버튼 표시 여부 |
-| `showDelete` | `boolean` | `false` | 툴바에 기본 삭제 버튼 표시 여부 |
-| `useFilter` | `boolean` | `false` | 컬럼별 필터 입력 행 표시 여부 |
-| `showColumnSettings` | `boolean` | `false` | ★Pro — 헤더 우측 컬럼 표시/숨기기 설정 버튼 표시 |
-| `groupBy` | `string` | `''` | ★Pro — 그룹핑 기준 컬럼 key. 빈 문자열이면 그룹핑 없음 |
-| `useContextMenu` | `boolean` | `false` | ★Pro — 우클릭 컨텍스트 메뉴 사용 여부 |
-| `useRowDrag` | `boolean` | `false` | ★Pro — 행 드래그 핸들 표시 및 재배치 기능 활성화 |
-| `autoMergeCols` | `string[]` | `[]` | ★Pro — 인접한 동일 값 셀을 자동 병합할 컬럼 key 목록 |
-| `mergeCells` | `MergeCell[]` | `[]` | ★Pro — 수동으로 정의한 셀 병합 규칙 목록 |
-| `licenseKey` | `string` | `''` | WZ-Grid 라이선스 키. Pro/Enterprise 기능 활성화에 필요 |
-| `showExcelExport` | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시 (Pro 기능) |
-| `excelFilename` | `string` | `'export.xlsx'` | Excel 내보내기 시 저장 파일명 |
-| `showFooter` | `boolean` | `false` | 그리드 하단에 집계 행 표시 여부. 컬럼별 `footer` 속성으로 집계 방식 지정 |
-| `useTree` | `boolean` | `false` | 트리(계층) 구조 모드 활성화. `rows`에 `children` 배열을 중첩해 사용 |
-| `treeKey` | `string` | `''` | 트리 인덴트·토글 버튼을 표시할 컬럼 key. 미지정 시 첫 번째 컬럼 |
-| `childrenKey` | `string` | `'children'` | 자식 행 배열 필드명 |
-| `rowClass` | `(row, rowIndex) => any` | `null` | 행에 동적 CSS 클래스를 적용하는 함수 |
-| `cellClass` | `(row, column, rowIndex) => any` | `null` | 셀에 동적 CSS 클래스를 적용하는 함수 |
-| `serverSide` | `boolean` | `false` | ★Pro — 서버사이드 모드. 정렬/필터/페이징을 서버에 위임 |
-| `totalRows` | `number` | `0` | 서버사이드 모드에서 전체 행 수 (페이징 UI에 사용) |
+> **네이밍 규칙**: "기능 활성화" props는 `use` 접두어로 통일하는 것을 권장합니다.
+> 하위 호환을 위해 기존 이름도 계속 동작하지만, 신규 코드에서는 **권장 이름**을 사용하세요.
+> `showAdd`, `showDelete`, `showFooter`는 "표시 여부"라는 의미가 명확하므로 변경 없이 유지됩니다.
+
+| Prop | 권장 이름 | 타입 | 기본값 | 설명 |
+| :--- | :--- | :--- | :---: | :--- |
+| `columns` | — | `Column[]` | — | **(필수)** 컬럼 정의 배열 |
+| `rows` | — | `GridRow[]` | — | **(필수)** 행 데이터 배열. 각 객체는 `id: string \| number` 필드 필요 |
+| `height` | — | `number` | `500` | 그리드 전체 높이(px) |
+| `rowHeight` | — | `number` | `40` | 각 행의 높이(px). 가상 스크롤 계산에 사용 |
+| `usePaging` | — | `boolean` | `false` | 페이징 활성화 여부 |
+| `pageSize` | — | `number` | `20` | 페이지당 표시 행 수 (`v-model:pageSize` 지원) |
+| `currentPage` | — | `number` | `1` | 현재 페이지 번호 (`v-model:currentPage` 지원) |
+| `useCheckbox` | — | `boolean` | `false` | 첫 번째 컬럼에 체크박스 활성화 여부 |
+| `showAdd` | — | `boolean` | `false` | 툴바에 기본 추가 버튼 표시 여부 |
+| `showDelete` | — | `boolean` | `false` | 툴바에 기본 삭제 버튼 표시 여부 |
+| `useFilter` | — | `boolean` | `false` | 컬럼별 필터 입력 행 표시 여부 |
+| `showColumnSettings` ⚠️ | `useColumnSettings` | `boolean` | `false` | ★Pro — 헤더 우측 컬럼 표시/숨기기 설정 버튼 표시 |
+| `groupBy` | — | `string` | `''` | ★Pro — 그룹핑 기준 컬럼 key. 빈 문자열이면 그룹핑 없음 |
+| `useContextMenu` | — | `boolean` | `false` | ★Pro — 우클릭 컨텍스트 메뉴 사용 여부 |
+| `useRowDrag` | — | `boolean` | `false` | ★Pro — 행 드래그 핸들 표시 및 재배치 기능 활성화 |
+| `autoMergeCols` | — | `string[]` | `[]` | ★Pro — 인접한 동일 값 셀을 자동 병합할 컬럼 key 목록 |
+| `mergeCells` | — | `MergeCell[]` | `[]` | ★Pro — 수동으로 정의한 셀 병합 규칙 목록 |
+| `licenseKey` | — | `string` | `''` | WZ-Grid 라이선스 키. Pro/Enterprise 기능 활성화에 필요 |
+| `showExcelExport` ⚠️ | `useExcelExport` | `boolean` | `false` | ★Pro — 툴바에 Excel 내보내기 버튼 표시 |
+| `excelFilename` | — | `string` | `'export.xlsx'` | Excel 내보내기 시 저장 파일명 |
+| `showFooter` | — | `boolean` | `false` | 그리드 하단에 집계 행 표시 여부. 컬럼별 `footer` 속성으로 집계 방식 지정 |
+| `useTree` | — | `boolean` | `false` | 트리(계층) 구조 모드 활성화. `rows`에 `children` 배열을 중첩해 사용 |
+| `treeKey` | — | `string` | `''` | 트리 인덴트·토글 버튼을 표시할 컬럼 key. 미지정 시 첫 번째 컬럼 |
+| `childrenKey` | — | `string` | `'children'` | 자식 행 배열 필드명 |
+| `rowClass` | — | `(row, rowIndex) => any` | `null` | 행에 동적 CSS 클래스를 적용하는 함수 |
+| `cellClass` | — | `(row, column, rowIndex) => any` | `null` | 셀에 동적 CSS 클래스를 적용하는 함수 |
+| `serverSide` ⚠️ | `useServerSide` | `boolean` | `false` | ★Pro — 서버사이드 모드. 정렬/필터/페이징을 서버에 위임 |
+| `totalRows` | — | `number` | `0` | 서버사이드 모드에서 전체 행 수 (페이징 UI에 사용) |
+
+> ⚠️ 표시된 prop은 deprecated이며, 권장 이름 컬럼의 alias로 대체 예정입니다.
+> 두 이름 모두 동작하며, 둘 중 하나라도 `true`이면 기능이 활성화됩니다.
 
 ---
 
@@ -382,7 +390,46 @@ const pageSize = ref(20);
 
 ## 8. 정렬 (Sort)
 
-헤더 셀 클릭으로 정렬 이벤트를 발생시킵니다. **실제 정렬 로직은 부모 컴포넌트에서 처리합니다.**
+헤더 셀 클릭으로 정렬이 즉시 동작합니다.
+
+### 클라이언트 사이드 정렬 (기본 동작)
+
+`serverSide` prop이 `false`(기본값)일 때 WZGrid가 내부적으로 `rows`를 자동 정렬합니다. **별도 이벤트 핸들러 없이 바로 사용 가능합니다.**
+
+- 숫자 컬럼: 수치 크기 기준 정렬
+- 날짜 컬럼(ISO 형식 문자열): 날짜 순 정렬
+- 텍스트 컬럼: `localeCompare` 기준 정렬
+
+```vue
+<!-- 핸들러 없이 클라이언트 정렬 자동 동작 -->
+<WZGrid :columns="columns" :rows="rows" />
+```
+
+`@sort` 이벤트는 클라이언트 모드에서도 emit됩니다. 정렬 상태를 외부에서 감지하거나 추가 처리가 필요한 경우에만 사용하세요.
+
+```ts
+import type { SortConfig } from './types/grid';
+
+// 정렬 상태 감지 예시 (내부 정렬은 이미 자동으로 수행됨)
+const handleSort = (configs: SortConfig[]) => {
+  console.log('현재 정렬 기준:', configs);
+};
+```
+
+### 서버사이드 모드에서의 정렬
+
+`serverSide: true` 일 때는 내부 정렬이 비활성화됩니다. `@sort` 이벤트를 받아 API를 재호출하세요.
+
+```ts
+const handleSort = (configs: SortConfig[]) => {
+  // configs 기반으로 서버 API 재호출
+  fetchData({ sort: configs });
+};
+```
+
+```vue
+<WZGrid :serverSide="true" :license-key="key" ... @sort="handleSort" />
+```
 
 ### 단일 정렬
 
@@ -394,25 +441,6 @@ const pageSize = ref(20);
 
 - 정렬된 컬럼 헤더에 순서 번호(①②③…)와 방향 화살표 표시
 - 이미 정렬 중인 컬럼을 Shift+클릭하면 방향 토글 → 해제 순으로 변경
-
-```ts
-import type { SortConfig } from './types/grid';
-
-const handleSort = (configs: SortConfig[]) => {
-  if (configs.length === 0) return;
-  rows.value = [...rows.value].sort((a, b) => {
-    for (const { key, order } of configs) {
-      const modifier = order === 'asc' ? 1 : -1;
-      if (a[key] !== b[key]) return (a[key] > b[key] ? 1 : -1) * modifier;
-    }
-    return 0;
-  });
-};
-```
-
-```vue
-<WZGrid ... @sort="handleSort" />
-```
 
 ---
 
@@ -1068,8 +1096,10 @@ src/
 ### WZGrid 내부 데이터 흐름
 
 ```
-props.rows
-  → filteredRows      (useFilter — 컬럼별 텍스트 필터)
+props.rows (GridRow[])
+  → sortedRows        (useSort — 클라이언트 정렬. serverSide=true 시 원본 그대로)
+  → treeAllFlat       (useTree 모드: 트리 전체 노드 평탄화, 필터 입력용)
+  → filteredRows      (useFilter — 컬럼별 AND 필터. serverSide=true 시 비활성화)
   ↓
   [useTree 모드]      flatTreeItems  (useTree — 계층 평탄화, 토글 상태 반영)
   [일반 모드]         flatGroupedItems (useGrouping — DataItem | GroupHeader | SubtotalItem)
@@ -1079,12 +1109,23 @@ props.rows
   → visibleRowsRange  (useVirtualScroll — 셀 병합 활성 시 전체 렌더링)
 ```
 
+### GridRow 인터페이스
+
+`rows` prop에 전달하는 행 데이터의 기본 타입입니다. `id` 필드가 필수입니다.
+
+```ts
+interface GridRow {
+  id: string | number;  // 행 식별자 (체크박스, 트리, 편집 등 내부 식별에 사용)
+  [key: string]: any;   // 컬럼 데이터
+}
+```
+
 ### GridItem 타입
 
 그룹핑 활성화 시 내부 아이템은 세 가지 타입의 union으로 구성됩니다:
 
 ```ts
-type DataItem     = { type: 'data'; row: any; level?: number; hasChildren?: boolean };
+type DataItem     = { type: 'data'; row: GridRow; level?: number; hasChildren?: boolean };
 type GroupHeader  = { type: 'group-header'; key: string; label: string; count: number; collapsed: boolean };
 type SubtotalItem = { type: 'subtotal'; key: string; count: number; sums: Record<string, number> };
 type GridItem     = DataItem | GroupHeader | SubtotalItem;
@@ -1587,4 +1628,4 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ---
 
-*최종 업데이트: 2026-03-16 — 셀 커스텀 렌더러(섹션 32), 고급 필터 모드(섹션 9), 행 클릭 & 행/셀 스타일(섹션 33), 서버사이드 모드(섹션 34), 마스터-디테일 Row Expand(섹션 35) 추가*
+*최종 업데이트: 2026-03-16 — Props 네이밍 alias 추가: `showColumnSettings`→`useColumnSettings`, `showExcelExport`→`useExcelExport`, `serverSide`→`useServerSide` (기존 이름 하위 호환 유지); 셀 커스텀 렌더러(섹션 32), 고급 필터 모드(섹션 9), 행 클릭 & 행/셀 스타일(섹션 33), 서버사이드 모드(섹션 34), 마스터-디테일 Row Expand(섹션 35) 추가; 클라이언트 사이드 기본 정렬(섹션 8) 추가 및 GridRow 인터페이스(섹션 29) 도입*

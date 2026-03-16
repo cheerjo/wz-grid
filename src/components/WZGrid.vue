@@ -3,126 +3,35 @@
   <div class="wz-grid-wrapper flex flex-col" :style="{ height: height + 'px' }">
 
     <!-- ── 툴바 ──────────────────────────────────────────────────────────── -->
-    <div
-      v-if="showAdd || showDelete || hasToolbarSlot || effShowColumnSettings || showExcelExport || useTree"
-      class="wz-grid-toolbar flex items-center justify-between gap-2 px-3 py-2 bg-gray-50 border border-gray-300 border-b-0 rounded-t"
+    <WZGridToolbar
+      v-if="showAdd || showDelete || hasToolbarSlot || effShowColumnSettings || effShowExcelExport || useTree"
+      :columns="columns"
+      :hidden-col-keys="hiddenColKeys"
+      :col-settings-open="colSettingsOpen"
+      :eff-show-column-settings="effShowColumnSettings"
+      :use-tree="useTree"
+      :use-filter="useFilter"
+      :active-filter-count="activeFilterCount"
+      :show-add="showAdd"
+      :show-delete="showDelete"
+      :eff-show-excel-export="effShowExcelExport"
+      :is-pro-license="isProLicense"
+      :checked-count="checkedCount"
+      :has-toolbar-slot="hasToolbarSlot"
+      @toggle-col-settings="colSettingsOpen = !colSettingsOpen"
+      @show-all-cols="hiddenColKeys = []"
+      @toggle-col-visibility="toggleColVisibility"
+      @expand-all="expandAll"
+      @collapse-all="collapseAll"
+      @clear-all-filters="clearAllFilters"
+      @delete="handleDelete"
+      @add="$emit('click:add')"
+      @excel-export="handleExcelExport"
     >
-      <!-- 왼쪽: 컬럼 설정 + 필터 초기화 -->
-      <div class="flex items-center gap-2">
-
-        <!-- 컬럼 표시/숨기기 -->
-        <div v-if="effShowColumnSettings" class="relative" @click.stop>
-          <button
-            @click="colSettingsOpen = !colSettingsOpen"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-gray-300 text-gray-600 hover:bg-gray-600 hover:text-white hover:border-gray-600"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-            </svg>
-            컬럼 설정
-            <span v-if="hiddenColKeys.length > 0" class="bg-blue-500 text-white rounded-full text-[9px] w-4 h-4 flex items-center justify-center">{{ hiddenColKeys.length }}</span>
-          </button>
-
-          <!-- 드롭다운 패널 -->
-          <div
-            v-if="colSettingsOpen"
-            class="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 w-52 max-h-72 flex flex-col"
-            @click.stop
-          >
-            <div class="px-3 py-2 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
-              <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">컬럼 표시</span>
-              <button @click="hiddenColKeys = []" class="text-[10px] text-blue-500 hover:underline">전체 표시</button>
-            </div>
-            <div class="overflow-y-auto flex-grow">
-              <label
-                v-for="col in columns"
-                :key="col.key"
-                class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  :checked="!hiddenColKeys.includes(col.key)"
-                  @change="toggleColVisibility(col.key)"
-                  class="w-3.5 h-3.5 accent-blue-500 flex-shrink-0"
-                />
-                <span class="text-xs text-gray-700 truncate">{{ col.title }}</span>
-                <span v-if="col.pinned" class="ml-auto text-[9px] text-orange-500 bg-orange-50 px-1 rounded flex-shrink-0">고정</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <!-- 트리 모두 펼치기/접기 -->
-        <template v-if="useTree">
-          <button
-            @click="expandAll"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-gray-300 text-gray-600 hover:bg-teal-600 hover:text-white hover:border-teal-600"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            모두 펼치기
-          </button>
-          <button
-            @click="collapseAll"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-gray-300 text-gray-600 hover:bg-teal-600 hover:text-white hover:border-teal-600"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-            모두 접기
-          </button>
-        </template>
-
-        <!-- 필터 초기화 -->
-        <button
-          v-if="useFilter && activeFilterCount > 0"
-          @click="clearAllFilters"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-blue-50 border-blue-300 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500"
-        >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-          필터 초기화 ({{ activeFilterCount }})
-        </button>
-      </div>
-
-      <!-- 오른쪽: 커스텀 슬롯 + 삭제 + 추가 -->
-      <div class="flex items-center gap-2">
+      <template #toolbar>
         <slot name="toolbar" />
-        <div v-if="hasToolbarSlot && (showAdd || showDelete)" class="w-px h-5 bg-gray-300 mx-1" />
-        <button
-          v-if="showDelete"
-          @click="handleDelete"
-          :disabled="checkedCount === 0"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-red-300 text-red-600 hover:bg-red-500 hover:text-white hover:border-red-500 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-red-600 disabled:hover:border-red-300"
-        >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-          삭제<span v-if="checkedCount > 0" class="opacity-80">({{ checkedCount }})</span>
-        </button>
-        <button
-          v-if="showAdd"
-          @click="$emit('click:add')"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-blue-300 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500"
-        >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          추가
-        </button>
-
-        <!-- Excel 내보내기 (Pro) -->
-        <button
-          v-if="showExcelExport"
-          @click="handleExcelExport"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-green-300 text-green-700 hover:bg-green-600 hover:text-white hover:border-green-600"
-        >
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Excel
-          <span v-if="!isProLicense" class="text-[9px] bg-amber-400 text-white px-1 rounded">PRO</span>
-        </button>
-      </div>
-    </div>
+      </template>
+    </WZGridToolbar>
 
     <!-- ── 그리드 컨테이너 ─────────────────────────────────────────────── -->
     <div
@@ -137,190 +46,44 @@
     >
       <div :style="{ paddingTop: topPadding + 'px', paddingBottom: bottomPadding + 'px', minWidth: 'max-content' }">
         <table class="table-fixed border-separate border-spacing-0">
-          <thead class="sticky top-0 z-30 bg-gray-100 shadow-sm">
 
-            <!-- 헤더 행 -->
-            <tr>
-              <!-- 행 드래그 핸들 헤더 -->
-              <th
-                v-if="effUseRowDrag"
-                class="sticky left-0 z-40 border-b border-r border-gray-300 bg-gray-100 h-[40px]"
-                :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }"
-              ></th>
-
-              <!-- 디테일 확장 헤더 -->
-              <th
-                v-if="effUseDetail"
-                class="sticky z-40 border-b border-r border-gray-300 bg-gray-100 h-[40px]"
-                :style="{ width: DETAIL_EXPAND_WIDTH + 'px', minWidth: DETAIL_EXPAND_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"
-              ></th>
-
-              <th
-                v-if="useCheckbox"
-                class="sticky z-40 border-b border-r border-gray-300 bg-gray-100 h-[40px]"
-                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + (effUseDetail ? DETAIL_EXPAND_WIDTH : 0) + 'px' }"
-              >
-                <div class="flex items-center justify-center w-full h-full">
-                  <input
-                    ref="headerCheckboxEl"
-                    type="checkbox"
-                    :checked="isAllChecked"
-                    @change="toggleAll"
-                    class="w-4 h-4 rounded border-gray-400 cursor-pointer accent-blue-500"
-                  />
-                </div>
-              </th>
-
-              <th
-                v-for="(col, colIdx) in visibleColumns"
-                :key="col.key"
-                :style="getColumnStyle(col, colIdx)"
-                class="border-b border-r border-gray-300 px-2 py-2 text-xs font-bold text-gray-600 uppercase tracking-wider h-[40px] relative group transition-colors"
-                :class="{
-                  'sticky left-0 z-40 bg-gray-100': col.pinned,
-                  'bg-blue-100 border-l-2 border-l-blue-500': dragOverColIdx === colIdx && !col.pinned,
-                  'opacity-40': dragSourceColIdx === colIdx,
-                  'cursor-pointer hover:bg-gray-200': !col.pinned,
-                  'cursor-default': col.pinned,
-                }"
-                :draggable="!col.pinned"
-                @dragstart="!col.pinned && onDragStart(colIdx, $event)"
-                @dragover.prevent="!col.pinned && onDragOver(colIdx)"
-                @dragleave="onDragLeave"
-                @drop.prevent="!col.pinned && onDrop(colIdx)"
-                @dragend="onDragEnd"
-                @click="onHeaderClick(col.key, $event)"
-              >
-                <div class="flex items-center w-full" :class="getAlignClass(col.headerAlign || 'center')">
-                  <!-- 드래그 핸들 (pinned 아닌 컬럼) -->
-                  <svg v-if="!col.pinned" class="w-3 h-3 mr-1 text-gray-400 flex-shrink-0 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 6a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm8-16a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4z"/>
-                  </svg>
-                  <span class="truncate">{{ col.title }}</span>
-                  <span v-if="col.required" class="ml-1 text-red-500">*</span>
-                  <!-- 다중 정렬 표시 -->
-                  <span v-if="getSortEntry(col.key)" class="ml-1 text-[10px] text-blue-600 flex items-center gap-0.5 flex-shrink-0">
-                    {{ getSortEntry(col.key)?.order === 'asc' ? '▲' : '▼' }}<sup v-if="sortConfigs.length > 1" class="text-[8px] leading-none">{{ getSortIndex(col.key) + 1 }}</sup>
-                  </span>
-                  <!-- 활성 필터 표시 -->
-                  <span v-if="useFilter && isFilterActive(col.key)" class="ml-1 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0 inline-block" title="필터 적용 중"></span>
-                </div>
-                <div class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 z-10" @mousedown.stop="startResize($event, colIdx)" @dblclick.stop="autoFitColumn(colIdx)"></div>
-              </th>
-            </tr>
-
-            <!-- 필터 행 -->
-            <tr v-if="useFilter">
-              <th v-if="effUseRowDrag" class="sticky left-0 z-40 border-b border-r border-gray-200 bg-gray-50 p-0" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }"></th>
-              <th v-if="effUseDetail" class="sticky z-40 border-b border-r border-gray-200 bg-gray-50 p-0" :style="{ width: DETAIL_EXPAND_WIDTH + 'px', minWidth: DETAIL_EXPAND_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }"></th>
-              <th
-                v-if="useCheckbox"
-                class="sticky z-40 border-b border-r border-gray-200 bg-gray-50 p-0"
-                :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + (effUseDetail ? DETAIL_EXPAND_WIDTH : 0) + 'px' }"
-              ></th>
-              <th
-                v-for="(col, colIdx) in visibleColumns"
-                :key="'f-' + col.key"
-                :style="getColumnStyle(col, colIdx)"
-                class="border-b border-r border-gray-200 bg-gray-50 p-1 relative"
-                :class="{ 'sticky left-0 z-40': col.pinned }"
-                @mousedown.stop
-                @click.stop
-              >
-                <!-- ── Pro 고급 필터 모드 ── -->
-                <template v-if="effUseAdvancedFilter">
-                  <!-- text / link / radio / 기타 -->
-                  <input
-                    v-if="!col.type || col.type === 'text' || col.type === 'link' || col.type === 'radio'"
-                    v-model="filters[col.key].value"
-                    type="text"
-                    placeholder="검색..."
-                    class="filter-input"
-                  />
-
-                  <!-- number: min ~ max -->
-                  <div v-else-if="col.type === 'number'" class="flex items-center gap-0.5">
-                    <input v-model="filters[col.key].min" type="number" placeholder="최소" class="filter-input" />
-                    <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
-                    <input v-model="filters[col.key].max" type="number" placeholder="최대" class="filter-input" />
-                  </div>
-
-                  <!-- date: from / to -->
-                  <div v-else-if="col.type === 'date'" class="flex flex-col gap-0.5">
-                    <input v-model="filters[col.key].from" type="date" class="filter-input" style="font-size:10px;" />
-                    <input v-model="filters[col.key].to"   type="date" class="filter-input" style="font-size:10px;" />
-                  </div>
-
-                  <!-- select / badge: 다중 선택 드롭다운 -->
-                  <div v-else-if="col.type === 'select' || col.type === 'badge'" class="relative">
-                    <button
-                      @click.stop="multiSelectFilterOpen = multiSelectFilterOpen === col.key ? '' : col.key"
-                      class="filter-input text-left flex items-center justify-between cursor-pointer"
-                    >
-                      <span class="truncate text-[10px]">{{ filters[col.key].values && filters[col.key].values.length ? filters[col.key].values.length + '개 선택' : '전체' }}</span>
-                      <svg class="w-2.5 h-2.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div
-                      v-if="multiSelectFilterOpen === col.key"
-                      class="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 min-w-full max-h-48 flex flex-col"
-                      @click.stop
-                    >
-                      <div class="flex items-center justify-between px-2 py-1 border-b border-gray-100">
-                        <button @click.stop="selectAllFilterOptions(col)" class="text-[9px] text-blue-500 hover:text-blue-700">전체 선택</button>
-                        <button @click.stop="deselectAllFilterOptions(col.key)" class="text-[9px] text-gray-400 hover:text-red-500">전체 해제</button>
-                      </div>
-                      <div class="overflow-auto flex-1">
-                        <label
-                          v-for="opt in col.options"
-                          :key="opt.value"
-                          class="flex items-center gap-1.5 px-2 py-1 hover:bg-gray-50 cursor-pointer text-[10px] text-gray-700 whitespace-nowrap"
-                        >
-                          <input
-                            type="checkbox"
-                            :checked="filters[col.key].values && filters[col.key].values.includes(opt.value)"
-                            @change="toggleMultiSelectFilter(col.key, opt.value)"
-                            class="w-3 h-3 rounded border-gray-300 text-blue-600"
-                          />
-                          {{ opt.label }}
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- boolean -->
-                  <select v-else-if="col.type === 'boolean'" v-model="filters[col.key].value" class="filter-input">
-                    <option value="">전체</option>
-                    <option value="true">예</option>
-                    <option value="false">아니요</option>
-                  </select>
-
-                  <!-- 나머지 타입(image, button, progress): 빈 칸 -->
-                  <template v-else></template>
-                </template>
-
-                <!-- ── Community 기본 텍스트 필터 ── -->
-                <template v-else>
-                  <input
-                    v-if="col.type !== 'image' && col.type !== 'button' && col.type !== 'progress'"
-                    v-model="filters[col.key].value"
-                    type="text"
-                    placeholder="검색..."
-                    class="filter-input"
-                  />
-                  <template v-else></template>
-                </template>
-
-                <!-- 개별 필터 초기화 -->
-                <button
-                  v-if="isFilterActive(col.key)"
-                  @click.stop="clearFilter(col.key)"
-                  class="absolute right-0.5 top-0.5 w-3.5 h-3.5 flex items-center justify-center text-[9px] text-gray-400 hover:text-red-500 bg-white rounded-full border border-gray-200 hover:border-red-300 transition-colors z-10"
-                  title="필터 초기화"
-                >✕</button>
-              </th>
-            </tr>
-
-          </thead>
+          <!-- ── 헤더 ───────────────────────────────────────────────────── -->
+          <WZGridHeader
+            :visible-columns="visibleColumns"
+            :use-checkbox="useCheckbox"
+            :eff-use-row-drag="effUseRowDrag"
+            :eff-use-detail="effUseDetail"
+            :eff-use-advanced-filter="effUseAdvancedFilter"
+            :use-filter="useFilter"
+            :is-all-checked="isAllChecked"
+            :sort-configs="sortConfigs"
+            :get-sort-entry="getSortEntry"
+            :get-sort-index="getSortIndex"
+            :is-filter-active="isFilterActive"
+            :filters="filters"
+            :multi-select-filter-open="multiSelectFilterOpen"
+            :drag-source-col-idx="dragSourceColIdx"
+            :drag-over-col-idx="dragOverColIdx"
+            :get-column-style="getColumnStyle"
+            :get-align-class="getAlignClass"
+            :checkbox-width="CHECKBOX_WIDTH"
+            :row-drag-width="ROW_DRAG_WIDTH"
+            :detail-expand-width="DETAIL_EXPAND_WIDTH"
+            @toggle-all="toggleAll"
+            @col-drag-start="(idx, evt) => onDragStart(idx, evt)"
+            @col-drag-over="onDragOver"
+            @col-drag-leave="onDragLeave"
+            @col-drop="onDrop"
+            @col-drag-end="onDragEnd"
+            @header-click="onHeaderClick"
+            @start-resize="(evt, idx) => startResize(evt, idx)"
+            @auto-fit-column="autoFitColumn"
+            @clear-filter="clearFilter"
+            @toggle-multi-select-filter-open="toggleMultiSelectFilterOpen"
+            @select-all-filter-options="selectAllFilterOptions"
+            @deselect-all-filter-options="deselectAllFilterOptions"
+            @toggle-multi-select-filter="toggleMultiSelectFilter"
+          />
 
           <tbody>
             <template v-for="itemIdx in visibleRowsRange" :key="itemIdx">
@@ -338,7 +101,7 @@
                 <td v-if="useCheckbox" :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + (effUseDetail ? DETAIL_EXPAND_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-blue-50"></td>
                 <td :colspan="visibleColumns.length" class="border-b border-gray-300 px-3 py-0">
                   <div class="flex items-center gap-2">
-                    <span class="text-blue-500 w-3 text-center flex-shrink-0">{{ asGroupHeader(itemIdx).collapsed ? '▶' : '▼' }}</span>
+                    <span class="text-blue-500 w-3 text-center flex-shrink-0">{{ asGroupHeader(itemIdx).collapsed ? '&#9654;' : '&#9660;' }}</span>
                     <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ groupColTitle }}</span>
                     <span class="text-sm font-semibold text-blue-700">{{ asGroupHeader(itemIdx).label }}</span>
                     <span class="text-[11px] text-gray-400 bg-blue-100 px-1.5 py-0.5 rounded-full">{{ asGroupHeader(itemIdx).count.toLocaleString() }}건</span>
@@ -373,215 +136,64 @@
               </tr>
 
               <!-- ── 데이터 행 ───────────────────────────────────────────── -->
-              <tr
+              <WZGridRow
                 v-else
-                :style="{ height: rowHeight + 'px' }"
-                :class="[{
-                  'opacity-40': effUseRowDrag && rowDragSrcIdx === itemIdx,
-                  'row-drag-over-top':    effUseRowDrag && rowDragOverIdx === itemIdx && rowDragOverPos === 'above',
-                  'row-drag-over-bottom': effUseRowDrag && rowDragOverIdx === itemIdx && rowDragOverPos === 'below',
-                }, rowClass ? rowClass(getRow(itemIdx), itemIdx) : null]"
-                @click="onRowClick(itemIdx)"
-                @dragover="effUseRowDrag && onRowDragOver($event, itemIdx)"
-                @drop="effUseRowDrag && onRowDrop($event, itemIdx)"
-                @dragend="effUseRowDrag && onRowDragEnd()"
-              >
-                <!-- 행 드래그 핸들 셀 -->
-                <td
-                  v-if="effUseRowDrag"
-                  class="sticky left-0 z-10 border-b border-r border-gray-200 p-0 bg-white cursor-grab active:cursor-grabbing"
-                  :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }"
-                  draggable="true"
-                  @dragstart="onRowDragStart(itemIdx)"
-                  @mousedown.stop
-                >
-                  <div class="flex items-center justify-center w-full h-full text-gray-300 hover:text-gray-500 transition-colors">
-                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 6a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm8-16a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4z"/>
-                    </svg>
-                  </div>
-                </td>
-
-                <!-- 디테일 확장 버튼 셀 -->
-                <td
-                  v-if="effUseDetail"
-                  class="sticky z-10 border-b border-r border-gray-200 p-0 bg-white"
-                  :style="{ left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px', width: DETAIL_EXPAND_WIDTH + 'px', minWidth: DETAIL_EXPAND_WIDTH + 'px' }"
-                  @mousedown.stop
-                  @click.stop="toggleDetailExpand(getRow(itemIdx)?.id)"
-                >
-                  <div class="flex items-center justify-center w-full h-full cursor-pointer text-gray-400 hover:text-blue-600 transition-colors">
-                    <svg
-                      class="w-3.5 h-3.5 transition-transform duration-150"
-                      :class="isDetailExpanded(getRow(itemIdx)?.id) ? 'rotate-90' : ''"
-                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                  </div>
-                </td>
-
-                <!-- 체크박스 셀 -->
-                <td
-                  v-if="useCheckbox"
-                  class="sticky z-10 border-b border-r border-gray-200 p-0 transition-colors"
-                  :style="{ left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + (effUseDetail ? DETAIL_EXPAND_WIDTH : 0) + 'px', width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px' }"
-                  :class="isRowChecked(getRow(itemIdx)?.id) ? 'bg-blue-50' : 'bg-white'"
-                  @mousedown.stop
-                >
-                  <div class="flex items-center justify-center w-full h-full">
-                    <input
-                      type="checkbox"
-                      :checked="isRowChecked(getRow(itemIdx)?.id)"
-                      @change="toggleRow(getRow(itemIdx)?.id)"
-                      class="w-4 h-4 rounded border-gray-400 cursor-pointer accent-blue-500"
-                    />
-                  </div>
-                </td>
-
-                <template v-for="(col, colIdx) in visibleColumns" :key="col.key">
-                <td
-                  v-if="!getMerge(itemIdx, col.key)?.hidden"
-                  :rowspan="getMerge(itemIdx, col.key)?.rowspan ?? 1"
-                  :colspan="getMerge(itemIdx, col.key)?.colspan ?? 1"
-                  :style="getColumnStyle(col, colIdx)"
-                  class="border-b border-r border-gray-200 p-0 relative group"
-                  :class="[{
-                    'bg-blue-50/50': isSelected(itemIdx, colIdx),
-                    'sticky left-0 z-10 bg-white group-hover:bg-gray-50': col.pinned,
-                    'bg-blue-50/80': col.pinned && isSelected(itemIdx, colIdx),
-                    'ring-1 ring-inset ring-red-500 bg-red-50': hasError(itemIdx, col.key)
-                  }, cellClass ? cellClass(getRow(itemIdx), col, itemIdx) : null]"
-                  @mousedown="startSelection(itemIdx, colIdx)"
-                  @mouseenter="updateSelection(itemIdx, colIdx)"
-                  @mouseup="endSelection"
-                  @dblclick="startEditing(itemIdx, colIdx)"
-                  @contextmenu="effUseContextMenu && openContextMenu($event, itemIdx, colIdx)"
-                >
-                  <!-- 에러 툴팁 -->
-                  <div v-if="hasError(itemIdx, col.key)" class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-red-600 text-white text-[10px] rounded shadow-lg z-50 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                    {{ getError(itemIdx, col.key) }}
-                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-red-600"></div>
-                  </div>
-
-                  <!-- 데이터 툴팁 -->
-                  <div
-                    v-else-if="col.tooltip && getTooltipValue(itemIdx, col)"
-                    class="absolute bottom-full left-0 mb-2 px-2.5 py-1.5 bg-gray-800 text-white text-xs leading-snug rounded shadow-xl z-50 max-w-[280px] break-words whitespace-normal opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
-                  >
-                    {{ getTooltipValue(itemIdx, col) }}
-                    <div class="absolute top-full left-4 border-4 border-transparent border-t-gray-800"></div>
-                  </div>
-
-                  <!-- 편집 모드 -->
-                  <div v-if="isEditing(itemIdx, colIdx)" class="absolute inset-0 z-30 bg-white">
-                    <input
-                      v-if="col.type === 'date'"
-                      ref="editInput" v-model="editValue" type="date"
-                      class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
-                      @blur="stopEditing(true)" @keydown.enter="stopEditing(true)" @keydown.esc="stopEditing(false)" @mousedown.stop
-                      @change="stopEditing(true)"
-                    />
-                    <input
-                      v-else-if="col.type !== 'select' && col.type !== 'boolean'"
-                      ref="editInput" v-model="editValue" :type="col.type === 'number' ? 'number' : 'text'"
-                      class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
-                      @blur="stopEditing(true)" @keydown.enter="stopEditing(true)" @keydown.esc="stopEditing(false)" @mousedown.stop
-                      @input="handleInput(col)"
-                    />
-                    <select v-else-if="col.type === 'select'" ref="editInput" v-model="editValue" class="w-full h-full px-1 text-sm border-2 border-blue-500 outline-none" @blur="stopEditing(true)" @change="stopEditing(true)" @mousedown.stop>
-                      <option v-for="opt in col.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-                    </select>
-                  </div>
-
-                  <!-- 읽기 모드 -->
-                  <div
-                    v-else
-                    class="text-sm w-full h-full flex items-center overflow-hidden min-w-0"
-                    :class="[getAlignClass(col.align), (useTree && col.key === effectiveTreeKey) ? '' : 'px-2 py-1']"
-                    :style="useTree && col.key === effectiveTreeKey ? { paddingLeft: (getTreeLevel(itemIdx) * 16 + 4) + 'px', paddingTop: '4px', paddingBottom: '4px', paddingRight: '8px' } : {}"
-                  >
-                    <!-- 트리 토글 버튼 (트리 컬럼에만 표시) -->
-                    <template v-if="useTree && col.key === effectiveTreeKey">
-                      <button
-                        v-if="getTreeHasChildren(itemIdx)"
-                        @click.stop="toggleNode(getRow(itemIdx)?.id)"
-                        @mousedown.stop
-                        @dblclick.stop
-                        class="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-teal-600 hover:bg-teal-50 rounded transition-colors mr-1"
-                      >
-                        <svg
-                          class="w-3 h-3 transition-transform duration-150"
-                          :class="isExpanded(getRow(itemIdx)?.id) ? 'rotate-90' : ''"
-                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        >
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
-                        </svg>
-                      </button>
-                      <span v-else class="w-5 h-5 flex-shrink-0 mr-1 flex items-center justify-center">
-                        <svg class="w-1.5 h-1.5 text-gray-300" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="2"/></svg>
-                      </span>
-                    </template>
-                    <!-- 커스텀 셀 슬롯 -->
-                    <slot
-                      v-if="$slots['cell-' + col.key]"
-                      :name="'cell-' + col.key"
-                      :row="getRow(itemIdx)"
-                      :column="col"
-                      :value="getRow(itemIdx)?.[col.key]"
-                      :rowIndex="itemIdx"
-                    />
-                    <!-- 기본 렌더링 (슬롯 미제공 시) -->
-                    <template v-else-if="!col.type || col.type === 'text' || col.type === 'number' || col.type === 'date'">
-                      <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">
-                        {{ col.type === 'number' ? Number(getRow(itemIdx)?.[col.key] || 0).toLocaleString() : (getRow(itemIdx)?.[col.key] || '') }}
-                      </span>
-                    </template>
-                    <template v-else-if="col.type === 'select'">
-                      <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">{{ getOptionLabel(itemIdx, col) }}</span>
-                    </template>
-                    <template v-else-if="col.type === 'boolean'">
-                      <div class="flex items-center justify-center w-full h-full" @mousedown.stop>
-                        <input type="checkbox" :checked="!!getRow(itemIdx)?.[col.key]" @change="toggleBoolean(itemIdx, col.key)" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer" />
-                      </div>
-                    </template>
-                    <template v-else-if="col.type === 'badge'">
-                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm" :class="getBadgeColor(itemIdx, col)">{{ getOptionLabel(itemIdx, col) }}</span>
-                    </template>
-                    <template v-else-if="col.type === 'progress'">
-                      <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden border border-gray-200 mx-1">
-                        <div class="bg-blue-500 h-full transition-all duration-500" :style="{ width: (getRow(itemIdx)?.[col.key] || 0) + '%' }"></div>
-                      </div>
-                    </template>
-                    <template v-else-if="col.type === 'image'">
-                      <div class="flex items-center justify-center w-full"><img :src="getRow(itemIdx)?.[col.key]" class="w-8 h-8 rounded-full object-cover border border-gray-200 shadow-sm" /></div>
-                    </template>
-                    <template v-else-if="col.type === 'button'">
-                      <div class="flex items-center justify-center w-full" @mousedown.stop>
-                        <button @click="onButtonClick(itemIdx, col.key)" class="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded border border-blue-200 hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-95">{{ col.options?.[0]?.label || '액션' }}</button>
-                      </div>
-                    </template>
-                    <template v-else-if="col.type === 'link'">
-                      <div class="flex items-center w-full overflow-hidden" @mousedown.stop>
-                        <a :href="getRow(itemIdx)?.[col.key]" target="_blank" class="text-blue-600 hover:underline truncate text-sm flex items-center gap-1">
-                          <span class="truncate">{{ getRow(itemIdx)?.[col.key] }}</span>
-                          <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                        </a>
-                      </div>
-                    </template>
-                    <template v-else-if="col.type === 'radio'">
-                      <div class="flex items-center gap-3 overflow-hidden px-1" @mousedown.stop>
-                        <label v-for="opt in col.options" :key="opt.value" class="flex items-center gap-1 cursor-pointer whitespace-nowrap text-xs text-gray-600 hover:text-blue-600 transition-colors">
-                          <input type="radio" :name="`radio-${getRow(itemIdx)?.id}-${col.key}`" :value="opt.value" :checked="getRow(itemIdx)?.[col.key] === opt.value" @change="updateCellFromItem(itemIdx, col.key, opt.value)" class="w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500" />
-                          {{ opt.label }}
-                        </label>
-                      </div>
-                    </template>
-                  </div>
-                  <div v-if="isSelected(itemIdx, colIdx)" class="absolute inset-0 pointer-events-none border-2 border-blue-500 z-10"></div>
-                </td>
-                </template>
-              </tr>
+                :item-idx="itemIdx"
+                :row="getRow(itemIdx)"
+                :row-height="rowHeight"
+                :visible-columns="visibleColumns"
+                :use-checkbox="useCheckbox"
+                :eff-use-row-drag="effUseRowDrag"
+                :eff-use-detail="effUseDetail"
+                :eff-use-context-menu="effUseContextMenu"
+                :use-tree="useTree"
+                :effective-tree-key="effectiveTreeKey"
+                :checkbox-width="CHECKBOX_WIDTH"
+                :row-drag-width="ROW_DRAG_WIDTH"
+                :detail-expand-width="DETAIL_EXPAND_WIDTH"
+                :row-drag-src-idx="rowDragSrcIdx"
+                :row-drag-over-idx="rowDragOverIdx"
+                :row-drag-over-pos="rowDragOverPos"
+                :row-class="rowClass"
+                :cell-class="cellClass"
+                :get-merge="getMerge"
+                :is-selected="isSelected"
+                :is-editing="isEditing"
+                :is-row-checked="isRowChecked"
+                :is-detail-expanded="isDetailExpanded"
+                :is-expanded="isExpanded"
+                :get-tree-level="getTreeLevel"
+                :get-tree-has-children="getTreeHasChildren"
+                :get-column-style="getColumnStyle"
+                :get-align-class="getAlignClass"
+                :get-option-label="getOptionLabel"
+                :get-badge-color="getBadgeColor"
+                :get-tooltip-value="getTooltipValue"
+                :has-error="hasError"
+                :get-error="getError"
+                v-model:edit-value="editValue"
+                :editing-row-id="editing.rowId"
+                :editing-col-idx="editing.colIdx"
+                :parent-slots="$slots"
+                @row-click="onRowClick"
+                @row-drag-over="onRowDragOver"
+                @row-drop="onRowDrop"
+                @row-drag-end="onRowDragEnd"
+                @row-drag-start="onRowDragStart"
+                @toggle-detail="toggleDetailExpand"
+                @toggle-row="toggleRow"
+                @start-selection="startSelection"
+                @update-selection="updateSelection"
+                @end-selection="endSelection"
+                @start-editing="startEditing"
+                @stop-editing="stopEditing"
+                @handle-input="handleInput"
+                @open-context-menu="openContextMenu"
+                @toggle-boolean="toggleBoolean"
+                @toggle-node="toggleNode"
+                @button-click="onButtonClick"
+                @update-cell-from-item="updateCellFromItem"
+              />
 
               <!-- ── 디테일 확장 행 ─────────────────────────────────────── -->
               <tr
@@ -640,9 +252,9 @@
     <!-- ── 페이징 ──────────────────────────────────────────────────────── -->
     <WZGridPagination
       v-if="usePaging"
-      :total-filtered-rows="serverSide && totalRows > 0 ? totalRows : filteredRows.length"
-      :total-rows="serverSide && totalRows > 0 ? totalRows : rows.length"
-      :show-filter-note="!serverSide && useFilter && filteredRows.length !== rows.length"
+      :total-filtered-rows="effServerSide && totalRows > 0 ? totalRows : filteredRows.length"
+      :total-rows="effServerSide && totalRows > 0 ? totalRows : rows.length"
+      :show-filter-note="!effServerSide && useFilter && filteredRows.length !== rows.length"
       :checked-count="checkedCount"
       :page-size="pageSize"
       :current-page="currentPage"
@@ -674,7 +286,7 @@
       <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
         <!-- 헤더 -->
         <div class="bg-gradient-to-r from-amber-400 to-orange-500 px-6 py-5 text-white text-center">
-          <div class="text-3xl mb-1">⭐</div>
+          <div class="text-3xl mb-1">&#11088;</div>
           <h2 class="text-lg font-bold">Pro 기능</h2>
           <p class="text-sm opacity-90 mt-1">이 기능은 Pro 라이선스가 필요합니다</p>
         </div>
@@ -682,16 +294,16 @@
         <div class="px-6 py-5">
           <ul class="space-y-2 mb-5">
             <li class="flex items-center gap-2 text-sm text-gray-700">
-              <span class="text-green-500 font-bold">✓</span> Excel(.xlsx) 내보내기
+              <span class="text-green-500 font-bold">&#10003;</span> Excel(.xlsx) 내보내기
             </li>
             <li class="flex items-center gap-2 text-sm text-gray-700">
-              <span class="text-green-500 font-bold">✓</span> 고급 그룹핑 & 소계
+              <span class="text-green-500 font-bold">&#10003;</span> 고급 그룹핑 &amp; 소계
             </li>
             <li class="flex items-center gap-2 text-sm text-gray-700">
-              <span class="text-green-500 font-bold">✓</span> 셀 병합
+              <span class="text-green-500 font-bold">&#10003;</span> 셀 병합
             </li>
             <li class="flex items-center gap-2 text-sm text-gray-700">
-              <span class="text-green-500 font-bold">✓</span> 우선순위 기술 지원
+              <span class="text-green-500 font-bold">&#10003;</span> 우선순위 기술 지원
             </li>
           </ul>
           <p class="text-xs text-gray-500 mb-4">
@@ -711,7 +323,7 @@
               class="flex-1 px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 text-white text-center hover:opacity-90 transition-opacity"
               @click="showProModal = false"
             >
-              라이선스 구매 →
+              라이선스 구매 &rarr;
             </a>
           </div>
         </div>
@@ -722,8 +334,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, PropType, ref, reactive, nextTick, watch, onMounted, onBeforeUnmount } from 'vue-demi';
-import type { Column, SortConfig, GridItem, DataItem, GroupHeader, SubtotalItem } from '../types/grid';
+import { defineComponent, computed, PropType, ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue-demi';
+import type { Column, SortConfig, GridItem, DataItem, GroupHeader, SubtotalItem, GridRow } from '../types/grid';
 import { validateLicense, isPro } from '../license';
 import { exportExcel } from '../utils/excel';
 import { useSelection }      from '../composables/useSelection';
@@ -741,13 +353,16 @@ import { useCheckbox }       from '../composables/useCheckbox';
 import { useTree }           from '../composables/useTree';
 import WZGridPagination      from './WZGridPagination.vue';
 import WZContextMenu         from './WZContextMenu.vue';
+import WZGridToolbar         from './WZGridToolbar.vue';
+import WZGridHeader          from './WZGridHeader.vue';
+import WZGridRow             from './WZGridRow.vue';
 
 const CHECKBOX_WIDTH = 40;
 const ROW_DRAG_WIDTH = 28;
 
 export default defineComponent({
   name: 'WZGrid',
-  components: { WZGridPagination, WZContextMenu },
+  components: { WZGridPagination, WZContextMenu, WZGridToolbar, WZGridHeader, WZGridRow },
   emits: [
     'update:cell',
     'update:currentPage',
@@ -766,7 +381,7 @@ export default defineComponent({
   ],
   props: {
     columns:            { type: Array as PropType<Column[]>, required: true },
-    rows:               { type: Array as PropType<any[]>, required: true },
+    rows:               { type: Array as PropType<GridRow[]>, required: true },
     height:             { type: Number, default: 500 },
     rowHeight:          { type: Number, default: 40 },
     usePaging:          { type: Boolean, default: false },
@@ -776,14 +391,20 @@ export default defineComponent({
     showAdd:            { type: Boolean, default: false },
     showDelete:         { type: Boolean, default: false },
     useFilter:          { type: Boolean, default: false },
+    /** @deprecated `useColumnSettings`를 사용하세요. 하위 호환을 위해 유지됩니다. */
     showColumnSettings: { type: Boolean, default: false },
+    /** showColumnSettings의 통일된 네이밍 alias (권장). 두 prop 중 하나라도 true이면 활성화됩니다. */
+    useColumnSettings:  { type: Boolean, default: false },
     groupBy:            { type: String,  default: '' },
     useContextMenu:     { type: Boolean, default: false },
     useRowDrag:         { type: Boolean, default: false },
     autoMergeCols:      { type: Array as PropType<string[]>, default: () => [] },
     mergeCells:         { type: Function as PropType<(row: any, colKey: string) => { rowspan?: number; colspan?: number } | null | void>, default: null },
     licenseKey:         { type: String,  default: '' },
+    /** @deprecated `useExcelExport`를 사용하세요. 하위 호환을 위해 유지됩니다. */
     showExcelExport:    { type: Boolean, default: false },
+    /** showExcelExport의 통일된 네이밍 alias (권장). 두 prop 중 하나라도 true이면 활성화됩니다. */
+    useExcelExport:     { type: Boolean, default: false },
     excelFilename:      { type: String,  default: 'export.xlsx' },
     showFooter:         { type: Boolean, default: false },
     useTree:            { type: Boolean, default: false },
@@ -791,7 +412,10 @@ export default defineComponent({
     childrenKey:        { type: String,  default: 'children' },
     rowClass:           { type: Function as PropType<(row: any, rowIndex: number) => any>, default: null },
     cellClass:          { type: Function as PropType<(row: any, column: Column, rowIndex: number) => any>, default: null },
+    /** @deprecated `useServerSide`를 사용하세요. 하위 호환을 위해 유지됩니다. */
     serverSide:         { type: Boolean, default: false },
+    /** serverSide의 통일된 네이밍 alias (권장). 두 prop 중 하나라도 true이면 활성화됩니다. */
+    useServerSide:      { type: Boolean, default: false },
     totalRows:          { type: Number, default: 0 },
   },
 
@@ -814,34 +438,44 @@ export default defineComponent({
     };
 
     // ── eff computed: 순수 계산만 수행 (side-effect 없음) ────────────
-    const effShowColumnSettings = computed(() => props.showColumnSettings && isProLicense.value);
+    // alias prop(useColumnSettings, useExcelExport, useServerSide)은 기존 prop과 || 로 병합됩니다.
+    const effShowColumnSettings = computed(() => (props.showColumnSettings || props.useColumnSettings) && isProLicense.value);
     const effUseContextMenu     = computed(() => props.useContextMenu     && isProLicense.value);
     const effUseRowDrag         = computed(() => props.useRowDrag         && isProLicense.value);
     const effGroupBy            = computed(() => isProLicense.value ? props.groupBy : '');
     const effAutoMergeCols      = computed((): string[] => isProLicense.value ? (props.autoMergeCols || []) : []);
     const effMergeCells         = computed(() => isProLicense.value ? (props.mergeCells || null) : null);
-    // 버그 1 수정: props.useFilter가 false이면 고급 필터도 false
+    // 버그 수정: props.useFilter가 false이면 고급 필터도 false
     const effUseAdvancedFilter  = computed(() => {
       if (!props.useFilter) return false;
       return isProLicense.value;
     });
-    const effServerSide         = computed(() => props.serverSide && isProLicense.value);
+    const effServerSide         = computed(() => (props.serverSide || props.useServerSide) && isProLicense.value);
+    const effShowExcelExport    = computed(() => (props.showExcelExport || props.useExcelExport) && isProLicense.value);
     const hasDetailSlot         = computed(() => !!slots.detail);
     const effUseDetail          = computed(() => hasDetailSlot.value && isProLicense.value);
 
     // ── Pro 기능 사용 경고 (side-effect는 watch에서만) ────────────────
     watch(isProLicense, (isValid) => {
       if (isValid) return;
-      if (props.showColumnSettings)              warnPro('showColumnSettings');
-      if (props.useContextMenu)                  warnPro('useContextMenu');
-      if (props.useRowDrag)                      warnPro('useRowDrag');
-      if (props.groupBy)                         warnPro('groupBy');
-      if ((props.autoMergeCols?.length ?? 0) > 0) warnPro('autoMergeCols');
-      if (props.mergeCells !== null)             warnPro('mergeCells');
-      if (props.useFilter)                       warnPro('advancedFilter');
-      if (props.serverSide)                      warnPro('serverSide');
-      if (hasDetailSlot.value)                   warnPro('detail');
+      if (props.showColumnSettings || props.useColumnSettings) warnPro('useColumnSettings');
+      if (props.useContextMenu)                                warnPro('useContextMenu');
+      if (props.useRowDrag)                                    warnPro('useRowDrag');
+      if (props.groupBy)                                       warnPro('groupBy');
+      if ((props.autoMergeCols?.length ?? 0) > 0)             warnPro('autoMergeCols');
+      if (props.mergeCells !== null)                           warnPro('mergeCells');
+      if (props.useFilter)                                     warnPro('advancedFilter');
+      if (props.serverSide || props.useServerSide)             warnPro('useServerSide');
+      if (hasDetailSlot.value)                                 warnPro('detail');
     }, { immediate: true });
+
+    // ── 정렬 (데이터 흐름 최상단: props.rows → sortedRows) ──────────────
+    // serverSide=true이면 정렬을 수행하지 않고 원본 rows를 그대로 반환합니다.
+    const { sortConfigs, getSortEntry, getSortIndex, toggleSort, sortedRows } = useSort(
+      (configs) => emit('sort', configs),
+      () => props.rows,
+      () => effServerSide.value
+    );
 
     // ── 마스터-디테일 Row Expand ─────────────────────────────────────
     const expandedRowIds = reactive(new Set<any>());
@@ -854,6 +488,9 @@ export default defineComponent({
 
     // ── 다중 선택 필터 드롭다운 ─────────────────────────────────────────
     const multiSelectFilterOpen = ref<string>('');
+    const toggleMultiSelectFilterOpen = (key: string) => {
+      multiSelectFilterOpen.value = multiSelectFilterOpen.value === key ? '' : key;
+    };
     const toggleMultiSelectFilter = (colKey: string, value: any) => {
       const f = filters[colKey];
       if (!f || !('values' in f)) return;
@@ -881,18 +518,19 @@ export default defineComponent({
     );
 
     // ── 트리: 모든 노드 플래튼 (필터 입력에 사용) ─────────────────────
-    const treeAllFlat = computed(() => {
-      if (!props.useTree) return props.rows;
+    // sortedRows를 입력으로 받아 props.rows → sortedRows → treeAllFlat → filteredRows 흐름 유지
+    const treeAllFlat = computed((): GridRow[] => {
+      if (!props.useTree) return sortedRows.value;
       const childKey = props.childrenKey || 'children';
-      const result: any[] = [];
-      function flatten(rows: any[]) {
+      const result: GridRow[] = [];
+      function flatten(rows: GridRow[]) {
         for (const row of rows) {
           result.push(row);
           const ch = row[childKey];
           if (Array.isArray(ch)) flatten(ch);
         }
       }
-      flatten(props.rows);
+      flatten(sortedRows.value);
       return result;
     });
 
@@ -947,7 +585,7 @@ export default defineComponent({
     });
 
     const { flatTreeItems, toggleNode, isExpanded, expandAll, collapseAll } = useTree(
-      () => props.rows,
+      () => sortedRows.value,
       () => props.useTree,
       () => props.childrenKey || 'children',
       () => treeFilteredIds.value
@@ -1004,7 +642,11 @@ export default defineComponent({
     // ── 5. 가상 스크롤 ─────────────────────────────────────────────────
     const hasActiveMerge = computed(() => effAutoMergeCols.value.length > 0 || !!effMergeCells.value);
 
-    const _vs = useVirtualScroll(computed(() => pagedItems.value.length), props.rowHeight, props.height);
+    const _vs = useVirtualScroll(
+      computed(() => pagedItems.value.length),
+      () => props.rowHeight,
+      () => props.height
+    );
 
     const topPadding    = computed(() => hasActiveMerge.value ? 0 : _vs.topPadding.value);
     const bottomPadding = computed(() => hasActiveMerge.value ? 0 : _vs.bottomPadding.value);
@@ -1101,18 +743,28 @@ export default defineComponent({
     const getError = (rowIdx: number, colKey: string) => { const row = getRow(rowIdx); return row ? errors[`${row.id}:${colKey}`] : ''; };
 
     // ── 11. 스타일 & 리사이즈 ──────────────────────────────────────────
-    const getColumnStyle = (col: Column, colIdx: number) => {
+    // pinned 컬럼의 sticky left 값을 미리 계산 — 매 렌더링마다 for 루프 대신 O(1) lookup
+    const pinnedLeftMap = computed<Map<string, number>>(() => {
+      const map = new Map<string, number>();
+      const baseLeft =
+        (effUseRowDrag.value  ? ROW_DRAG_WIDTH        : 0) +
+        (effUseDetail.value   ? DETAIL_EXPAND_WIDTH   : 0) +
+        (props.useCheckbox    ? CHECKBOX_WIDTH         : 0);
+      let accLeft = baseLeft;
+      for (const col of visibleColumns.value) {
+        if (col.pinned) {
+          map.set(col.key, accLeft);
+          accLeft += col.width || 150;
+        }
+      }
+      return map;
+    });
+
+    const getColumnStyle = (col: Column, _colIdx: number) => {
       const px = (col.width || 150) + 'px';
       const style: Record<string, any> = { width: px, minWidth: px, maxWidth: px };
       if (col.pinned) {
-        let left = 0;
-        if (effUseRowDrag.value)  left += ROW_DRAG_WIDTH;
-        if (effUseDetail.value)   left += DETAIL_EXPAND_WIDTH;
-        if (props.useCheckbox) left += CHECKBOX_WIDTH;
-        for (let i = 0; i < colIdx; i++) {
-          if (visibleColumns.value[i]?.pinned) left += (visibleColumns.value[i].width || 150);
-        }
-        style.left = left + 'px';
+        style.left = (pinnedLeftMap.value.get(col.key) ?? 0) + 'px';
       }
       return style;
     };
@@ -1200,15 +852,9 @@ export default defineComponent({
       () => isResizing.value
     );
 
-    // ── 13. 다중 정렬 ──────────────────────────────────────────────────
-    const { sortConfigs, getSortEntry, getSortIndex, toggleSort } = useSort(
-      (configs) => emit('sort', configs)
-    );
-
     // ── 14. 편집 ───────────────────────────────────────────────────────
     const editing   = reactive({ rowId: null as any, colIdx: -1 });
     const editValue = ref<any>('');
-    const editInput = ref<any>(null);
 
     const handleInput = (col: Column) => { if (col.onInput) editValue.value = col.onInput(editValue.value); };
 
@@ -1229,15 +875,15 @@ export default defineComponent({
       updateCell(fullIdx, key, val);
     };
 
-    const startEditing = async (rIdx: number, cIdx: number, initialValue?: string) => {
+    const startEditing = (rIdx: number, cIdx: number, initialValue?: string) => {
       const row = getRow(rIdx);
       const col = visibleColumns.value[cIdx];
       if (!row || !col || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio'].includes(col.type || '')) return;
       editing.rowId = row.id; editing.colIdx = cIdx;
       const useInitial = initialValue !== undefined && col.type !== 'date';
       editValue.value = useInitial ? initialValue : row[col.key];
-      clearSelection(); await nextTick();
-      const el = Array.isArray(editInput.value) ? editInput.value[0] : editInput.value; el?.focus();
+      clearSelection();
+      // 포커스는 WZGridRow가 editingColIdx prop 변화를 watch하여 자동으로 처리
       if (initialValue !== undefined) handleInput(col);
     };
 
@@ -1281,7 +927,7 @@ export default defineComponent({
       const col  = cols[colIdx];
       if (!col || col.pinned) return;
 
-      // 버그 2 수정: effUseDetail 열을 extraCols에 포함
+      // effUseDetail 열을 extraCols에 포함
       const extraCols  = (effUseRowDrag.value ? 1 : 0) + (effUseDetail.value ? 1 : 0) + (props.useCheckbox ? 1 : 0);
       const ths        = el.querySelectorAll<HTMLElement>('thead tr:first-child th');
       const th         = ths[extraCols + colIdx];
@@ -1374,14 +1020,15 @@ export default defineComponent({
       // license
       isProLicense, showProModal, handleExcelExport,
       // pro feature gates (template에서 사용)
-      effShowColumnSettings, effUseContextMenu, effUseRowDrag, effUseAdvancedFilter, effServerSide,
+      effShowColumnSettings, effUseContextMenu, effUseRowDrag, effUseAdvancedFilter, effServerSide, effShowExcelExport,
       effUseDetail, expandedRowIds, DETAIL_EXPAND_WIDTH, toggleDetailExpand, isDetailExpanded,
       // toolbar
       hasToolbarSlot, hiddenColKeys, visibleColumns, toggleColVisibility,
       colSettingsOpen, activeFilterCount, clearAllFilters, handleDelete,
       // filter
       filters, isFilterActive, clearFilter,
-      multiSelectFilterOpen, toggleMultiSelectFilter, selectAllFilterOptions, deselectAllFilterOptions,
+      multiSelectFilterOpen, toggleMultiSelectFilterOpen, toggleMultiSelectFilter,
+      selectAllFilterOptions, deselectAllFilterOptions,
       // sort
       sortConfigs, toggleSort, getSortEntry, getSortIndex, onHeaderClick,
       // column drag
@@ -1400,7 +1047,7 @@ export default defineComponent({
       isSelected, startSelection, updateSelection, endSelection,
       onCopy, onPaste,
       // editing
-      isEditing, startEditing, stopEditing, editValue, editInput,
+      editing, isEditing, startEditing, stopEditing, editValue,
       toggleBoolean, handleInput, updateCell, updateCellFromItem,
       // row click & style
       onRowClick,
@@ -1427,22 +1074,6 @@ export default defineComponent({
 .sticky { position: sticky !important; }
 .z-40 { z-index: 40; }
 .z-30 { z-index: 30; }
+.z-20 { z-index: 20; }
 .z-10 { z-index: 10; }
-
-.filter-input {
-  width: 100%;
-  font-size: 11px;
-  padding: 2px 16px 2px 4px;
-  border: 1px solid #d1d5db;
-  border-radius: 3px;
-  outline: none;
-  background: white;
-  color: #374151;
-  min-width: 0;
-}
-.filter-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
-.filter-input::placeholder { color: #9ca3af; }
-
-.row-drag-over-top    td { box-shadow: 0 -2px 0 0 #3b82f6 inset; }
-.row-drag-over-bottom td { box-shadow: 0 2px 0 0 #3b82f6; }
 </style>

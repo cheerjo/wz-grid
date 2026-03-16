@@ -26,6 +26,7 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/wz-grid.es.js",
       "require": "./dist/wz-grid.cjs.js"
     },
@@ -57,15 +58,18 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
-    "vue-demi": "^0.14.6",
-    "xlsx": "^0.18.5"
+    "vue-demi": "^0.14.6"
   },
   "peerDependencies": {
     "@vue/composition-api": "^1.0.0-rc.1",
-    "vue": "^2.0.0 || >=3.0.0"
+    "vue": "^2.7.0 || >=3.0.0",
+    "xlsx": ">=0.18.0"
   },
   "peerDependenciesMeta": {
     "@vue/composition-api": {
+      "optional": true
+    },
+    "xlsx": {
       "optional": true
     }
   },

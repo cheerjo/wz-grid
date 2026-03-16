@@ -150,6 +150,6 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 - **개인 / 오픈소스**: 무료 (Community License)
 - **상업적 사용**: Pro 또는 Enterprise 라이선스 필요
 
-자세한 내용은 [LICENSE.md](./LICENSE.md) 및 [가격 페이지](https://wz-grid.com/pricing)를 참고하세요.
+자세한 내용은 [LICENSE.md](./LICENSE.md) 및 [가격 페이지](https://cheerjo.github.io/wz-grid/pricing.html)를 참고하세요.
 
 문의: **jmcho@wezon.com**

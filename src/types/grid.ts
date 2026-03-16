@@ -1,7 +1,17 @@
 // src/types/grid.ts
 export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'select' | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio';
 export type Align = 'left' | 'center' | 'right';
-export type FooterAggr = 'sum' | 'avg' | 'count' | 'min' | 'max' | ((rows: any[]) => any);
+
+/**
+ * WZGrid에 전달하는 행 데이터의 기본 인터페이스.
+ * id 필드는 체크박스, 트리, 편집, 병합 등 내부 식별자로 필수 사용됩니다.
+ */
+export interface GridRow {
+  id: string | number;
+  [key: string]: any;
+}
+
+export type FooterAggr = 'sum' | 'avg' | 'count' | 'min' | 'max' | ((rows: GridRow[]) => any);
 
 export type Column = {
   key: string;
@@ -26,9 +36,25 @@ export type SortConfig = {
   order: 'asc' | 'desc';
 };
 
-export interface GridData {
-  [key: string]: any;
-}
+/** @deprecated GridRow를 사용하세요 */
+export type GridData = GridRow;
+
+/**
+ * WZGrid props 네이밍 가이드
+ *
+ * 기능 활성화 props는 `use` 접두어로 통일하는 것을 권장합니다.
+ * 하위 호환을 위해 기존 이름도 계속 동작하지만, 신규 코드에서는 아래 권장 이름을 사용하세요.
+ *
+ * | 기존 이름 (deprecated)    | 권장 이름 (alias)      |
+ * |:--------------------------|:-----------------------|
+ * | `showColumnSettings`      | `useColumnSettings`    |
+ * | `showExcelExport`         | `useExcelExport`       |
+ * | `serverSide`              | `useServerSide`        |
+ *
+ * 참고: `showAdd`, `showDelete`, `showFooter`는 "표시 여부"가 명확한 의미라
+ * 변경 없이 유지됩니다.
+ */
+export type _WZGridPropNamingGuide = never;
 
 export interface Selection {
   startRow: number;
@@ -40,7 +66,7 @@ export interface Selection {
 // 그룹핑/가상 스크롤에서 사용하는 행 아이템 타입
 export type DataItem = {
   type: 'data';
-  row: any;
+  row: GridRow;
   level?: number;
   hasChildren?: boolean;
 };
