@@ -45,7 +45,7 @@ props.rows
 ### Pro 기능 게이팅
 
 `WZGrid.vue` setup() 내부에서 `eff` 접두어 computed로 강제 처리한다:
-- `effShowColumnSettings`, `effUseContextMenu`, `effUseRowDrag`, `effGroupBy`, `effAutoMergeCols`, `effMergeCells`
+- `effShowColumnSettings`, `effUseContextMenu`, `effUseRowDrag`, `effGroupBy`, `effAutoMergeCols`, `effMergeCells`, `effUseAdvancedFilter`, `effServerSide`, `effUseDetail`
 - 유효한 `licenseKey` 없이 Pro prop이 설정되면 기능을 비활성화하고 `console.warn`을 세션당 1회 출력
 - 템플릿에서 props 직접 참조 대신 이 `eff` computed를 사용해야 한다 (shadowing 방지)
 - `useTree`, `showFooter`는 **Community** 기능 — 게이팅 없음
