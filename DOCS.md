@@ -39,6 +39,7 @@
 30. [트리 구조 (Tree Grid)](#30-트리-구조-tree-grid)
 31. [푸터 집계 행](#31-푸터-집계-행)
 32. [셀 커스텀 렌더러 (Custom Cell Renderer)](#32-셀-커스텀-렌더러-custom-cell-renderer)
+33. [행 클릭 & 행/셀 스타일](#33-행-클릭--행셀-스타일)
 
 ---
 
@@ -109,6 +110,8 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 | `useTree` | `boolean` | `false` | 트리(계층) 구조 모드 활성화. `rows`에 `children` 배열을 중첩해 사용 |
 | `treeKey` | `string` | `''` | 트리 인덴트·토글 버튼을 표시할 컬럼 key. 미지정 시 첫 번째 컬럼 |
 | `childrenKey` | `string` | `'children'` | 자식 행 배열 필드명 |
+| `rowClass` | `(row, rowIndex) => any` | `null` | 행에 동적 CSS 클래스를 적용하는 함수 |
+| `cellClass` | `(row, column, rowIndex) => any` | `null` | 셀에 동적 CSS 클래스를 적용하는 함수 |
 
 ---
 
@@ -285,6 +288,7 @@ URL 값을 클릭 가능한 하이퍼링크로 표시. `target="_blank"`로 새 
 | `@click:insert` | `{ position, row }` | 컨텍스트 메뉴 행 추가 시 발생. `position`은 `'above'` \| `'below'` |
 | `@click:delete` | `any[]` | 툴바 삭제 버튼 또는 컨텍스트 메뉴 행 삭제 시 발생. 행 객체 배열 |
 | `@click:button` | `{ rowIdx, row, colKey }` | `button` 타입 셀 클릭 시 발생 |
+| `@click:row` | `{ rowIdx, row }` | 데이터 행 클릭 시 발생 |
 
 ### `@update:cell` 처리 예제
 
@@ -1386,4 +1390,60 @@ Pro 기능 prop을 `true`로 설정하더라도 유효한 `licenseKey`가 없으
 
 ---
 
-*최종 업데이트: 2026-03-16 — 셀 커스텀 렌더러(섹션 32), 고급 필터 모드(섹션 9) 추가*
+## 33. 행 클릭 & 행/셀 스타일
+
+### `@click:row` 이벤트
+
+데이터 행을 클릭하면 `@click:row` 이벤트가 발생합니다.
+
+```vue
+<WZGrid :columns="columns" :rows="rows" @click:row="handleRowClick" />
+```
+
+```ts
+const handleRowClick = ({ rowIdx, row }: { rowIdx: number; row: any }) => {
+  console.log('클릭된 행:', row.id, '인덱스:', rowIdx);
+};
+```
+
+### `rowClass` — 행 동적 스타일
+
+함수를 전달하여 행(tr)에 동적으로 CSS 클래스를 적용합니다.
+
+```vue
+<WZGrid
+  :columns="columns"
+  :rows="rows"
+  :rowClass="(row, rowIndex) => ({
+    'bg-red-50': row.status === 'Inactive',
+    'bg-green-50': row.status === 'Active',
+    'font-bold': rowIndex === 0,
+  })"
+/>
+```
+
+반환값은 Vue의 `:class` 바인딩과 동일한 형식을 지원합니다:
+- 문자열: `'bg-red-50 font-bold'`
+- 배열: `['bg-red-50', 'font-bold']`
+- 객체: `{ 'bg-red-50': true, 'font-bold': false }`
+
+### `cellClass` — 셀 동적 스타일
+
+함수를 전달하여 셀(td)에 동적으로 CSS 클래스를 적용합니다.
+
+```vue
+<WZGrid
+  :columns="columns"
+  :rows="rows"
+  :cellClass="(row, column, rowIndex) => {
+    if (column.key === 'salary' && row.salary > 100000) return 'bg-yellow-50 font-bold';
+    return null;
+  }"
+/>
+```
+
+> `rowClass`와 `cellClass`는 Community 기능이므로 라이선스 키 없이 사용 가능합니다.
+
+---
+
+*최종 업데이트: 2026-03-16 — 셀 커스텀 렌더러(섹션 32), 고급 필터 모드(섹션 9), 행 클릭 & 행/셀 스타일(섹션 33) 추가*

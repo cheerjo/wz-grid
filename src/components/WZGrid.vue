@@ -366,11 +366,12 @@
               <tr
                 v-else
                 :style="{ height: rowHeight + 'px' }"
-                :class="{
+                :class="[{
                   'opacity-40': effUseRowDrag && rowDragSrcIdx === itemIdx,
                   'row-drag-over-top':    effUseRowDrag && rowDragOverIdx === itemIdx && rowDragOverPos === 'above',
                   'row-drag-over-bottom': effUseRowDrag && rowDragOverIdx === itemIdx && rowDragOverPos === 'below',
-                }"
+                }, rowClass ? rowClass(getRow(itemIdx), itemIdx) : null]"
+                @click="onRowClick(itemIdx)"
                 @dragover="effUseRowDrag && onRowDragOver($event, itemIdx)"
                 @drop="effUseRowDrag && onRowDrop($event, itemIdx)"
                 @dragend="effUseRowDrag && onRowDragEnd()"
@@ -416,12 +417,12 @@
                   :colspan="getMerge(itemIdx, col.key)?.colspan ?? 1"
                   :style="getColumnStyle(col, colIdx)"
                   class="border-b border-r border-gray-200 p-0 relative group"
-                  :class="{
+                  :class="[{
                     'bg-blue-50/50': isSelected(itemIdx, colIdx),
                     'sticky left-0 z-10 bg-white group-hover:bg-gray-50': col.pinned,
                     'bg-blue-50/80': col.pinned && isSelected(itemIdx, colIdx),
                     'ring-1 ring-inset ring-red-500 bg-red-50': hasError(itemIdx, col.key)
-                  }"
+                  }, cellClass ? cellClass(getRow(itemIdx), col, itemIdx) : null]"
                   @mousedown="startSelection(itemIdx, colIdx)"
                   @mouseenter="updateSelection(itemIdx, colIdx)"
                   @mouseup="endSelection"
@@ -711,6 +712,7 @@ export default defineComponent({
     'reorder:columns',
     'reorder:rows',
     'sort',
+    'click:row',
   ],
   props: {
     columns:            { type: Array as PropType<Column[]>, required: true },
@@ -737,6 +739,8 @@ export default defineComponent({
     useTree:            { type: Boolean, default: false },
     treeKey:            { type: String,  default: '' },
     childrenKey:        { type: String,  default: 'children' },
+    rowClass:           { type: Function as PropType<(row: any, rowIndex: number) => any>, default: null },
+    cellClass:          { type: Function as PropType<(row: any, column: Column, rowIndex: number) => any>, default: null },
   },
 
   setup(props, { emit, slots }) {
@@ -1238,6 +1242,12 @@ export default defineComponent({
       }
     };
 
+    // ── 행 클릭 ──────────────────────────────────────────────────────
+    const onRowClick = (pagedIdx: number) => {
+      const row = getRow(pagedIdx);
+      if (row) { const fullIdx = props.rows.findIndex(r => r.id === row.id); emit('click:row', { rowIdx: fullIdx, row }); }
+    };
+
     // ── 16. 표시 헬퍼 ──────────────────────────────────────────────────
     const onButtonClick = (pagedIdx: number, key: string) => {
       const row = getRow(pagedIdx);
@@ -1308,6 +1318,8 @@ export default defineComponent({
       // editing
       isEditing, startEditing, stopEditing, editValue, editInput,
       toggleBoolean, handleInput, updateCell, updateCellFromItem,
+      // row click & style
+      onRowClick,
       // display
       onButtonClick, getOptionLabel, getBadgeColor, getTooltipValue, getRow,
       startResize, autoFitColumn, handleKeyDown, getColumnStyle, getAlignClass,
