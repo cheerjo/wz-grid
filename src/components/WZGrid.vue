@@ -219,47 +219,88 @@
                 @mousedown.stop
                 @click.stop
               >
-                <!-- text / link / 기타 -->
-                <input
-                  v-if="!col.type || col.type === 'text' || col.type === 'link' || col.type === 'radio'"
-                  v-model="filters[col.key].value"
-                  type="text"
-                  placeholder="검색..."
-                  class="filter-input"
-                />
+                <!-- ── Pro 고급 필터 모드 ── -->
+                <template v-if="effUseAdvancedFilter">
+                  <!-- text / link / radio / 기타 -->
+                  <input
+                    v-if="!col.type || col.type === 'text' || col.type === 'link' || col.type === 'radio'"
+                    v-model="filters[col.key].value"
+                    type="text"
+                    placeholder="검색..."
+                    class="filter-input"
+                  />
 
-                <!-- number: min ~ max -->
-                <div v-else-if="col.type === 'number'" class="flex items-center gap-0.5">
-                  <input v-model="filters[col.key].min" type="number" placeholder="최소" class="filter-input" />
-                  <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
-                  <input v-model="filters[col.key].max" type="number" placeholder="최대" class="filter-input" />
-                </div>
+                  <!-- number: min ~ max -->
+                  <div v-else-if="col.type === 'number'" class="flex items-center gap-0.5">
+                    <input v-model="filters[col.key].min" type="number" placeholder="최소" class="filter-input" />
+                    <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
+                    <input v-model="filters[col.key].max" type="number" placeholder="최대" class="filter-input" />
+                  </div>
 
-                <!-- date: from / to -->
-                <div v-else-if="col.type === 'date'" class="flex flex-col gap-0.5">
-                  <input v-model="filters[col.key].from" type="date" class="filter-input" style="font-size:10px;" />
-                  <input v-model="filters[col.key].to"   type="date" class="filter-input" style="font-size:10px;" />
-                </div>
+                  <!-- date: from / to -->
+                  <div v-else-if="col.type === 'date'" class="flex flex-col gap-0.5">
+                    <input v-model="filters[col.key].from" type="date" class="filter-input" style="font-size:10px;" />
+                    <input v-model="filters[col.key].to"   type="date" class="filter-input" style="font-size:10px;" />
+                  </div>
 
-                <!-- select / badge -->
-                <select
-                  v-else-if="col.type === 'select' || col.type === 'badge'"
-                  v-model="filters[col.key].value"
-                  class="filter-input"
-                >
-                  <option value="">전체</option>
-                  <option v-for="opt in col.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-                </select>
+                  <!-- select / badge: 다중 선택 드롭다운 -->
+                  <div v-else-if="col.type === 'select' || col.type === 'badge'" class="relative">
+                    <button
+                      @click.stop="multiSelectFilterOpen = multiSelectFilterOpen === col.key ? '' : col.key"
+                      class="filter-input text-left flex items-center justify-between cursor-pointer"
+                    >
+                      <span class="truncate text-[10px]">{{ filters[col.key].values && filters[col.key].values.length ? filters[col.key].values.length + '개 선택' : '전체' }}</span>
+                      <svg class="w-2.5 h-2.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div
+                      v-if="multiSelectFilterOpen === col.key"
+                      class="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 min-w-full max-h-48 flex flex-col"
+                      @click.stop
+                    >
+                      <div class="flex items-center justify-between px-2 py-1 border-b border-gray-100">
+                        <button @click.stop="selectAllFilterOptions(col)" class="text-[9px] text-blue-500 hover:text-blue-700">전체 선택</button>
+                        <button @click.stop="deselectAllFilterOptions(col.key)" class="text-[9px] text-gray-400 hover:text-red-500">전체 해제</button>
+                      </div>
+                      <div class="overflow-auto flex-1">
+                        <label
+                          v-for="opt in col.options"
+                          :key="opt.value"
+                          class="flex items-center gap-1.5 px-2 py-1 hover:bg-gray-50 cursor-pointer text-[10px] text-gray-700 whitespace-nowrap"
+                        >
+                          <input
+                            type="checkbox"
+                            :checked="filters[col.key].values && filters[col.key].values.includes(opt.value)"
+                            @change="toggleMultiSelectFilter(col.key, opt.value)"
+                            class="w-3 h-3 rounded border-gray-300 text-blue-600"
+                          />
+                          {{ opt.label }}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
 
-                <!-- boolean -->
-                <select v-else-if="col.type === 'boolean'" v-model="filters[col.key].value" class="filter-input">
-                  <option value="">전체</option>
-                  <option value="true">예</option>
-                  <option value="false">아니요</option>
-                </select>
+                  <!-- boolean -->
+                  <select v-else-if="col.type === 'boolean'" v-model="filters[col.key].value" class="filter-input">
+                    <option value="">전체</option>
+                    <option value="true">예</option>
+                    <option value="false">아니요</option>
+                  </select>
 
-                <!-- 나머지 타입(image, button, progress): 빈 칸 -->
-                <template v-else></template>
+                  <!-- 나머지 타입(image, button, progress): 빈 칸 -->
+                  <template v-else></template>
+                </template>
+
+                <!-- ── Community 기본 텍스트 필터 ── -->
+                <template v-else>
+                  <input
+                    v-if="col.type !== 'image' && col.type !== 'button' && col.type !== 'progress'"
+                    v-model="filters[col.key].value"
+                    type="text"
+                    placeholder="검색..."
+                    class="filter-input"
+                  />
+                  <template v-else></template>
+                </template>
 
                 <!-- 개별 필터 초기화 -->
                 <button
@@ -739,6 +780,31 @@ export default defineComponent({
       if (props.mergeCells !== null && !isProLicense.value) { warnPro('mergeCells'); return null; }
       return props.mergeCells || null;
     });
+    const effUseAdvancedFilter = computed(() => {
+      if (!isProLicense.value) { warnPro('advancedFilter'); return false; }
+      return true;
+    });
+
+    // ── 다중 선택 필터 드롭다운 ─────────────────────────────────────────
+    const multiSelectFilterOpen = ref<string>('');
+    const toggleMultiSelectFilter = (colKey: string, value: any) => {
+      const f = filters[colKey];
+      if (!f || !('values' in f)) return;
+      const arr = f.values as any[];
+      const idx = arr.indexOf(value);
+      if (idx === -1) arr.push(value);
+      else arr.splice(idx, 1);
+    };
+    const selectAllFilterOptions = (col: Column) => {
+      const f = filters[col.key];
+      if (!f || !('values' in f) || !col.options) return;
+      f.values = col.options.map((o: any) => o.value);
+    };
+    const deselectAllFilterOptions = (colKey: string) => {
+      const f = filters[colKey];
+      if (!f || !('values' in f)) return;
+      f.values = [];
+    };
 
     const { selection, startSelection, updateSelection, endSelection, isSelected, clearSelection, moveSelection } = useSelection();
 
@@ -921,8 +987,9 @@ export default defineComponent({
     };
 
     const closeCtxMenu = () => { ctxMenu.visible = false; };
-    onMounted(()       => document.addEventListener('click', closeCtxMenu));
-    onBeforeUnmount(() => document.removeEventListener('click', closeCtxMenu));
+    const closePopups = () => { closeCtxMenu(); multiSelectFilterOpen.value = ''; };
+    onMounted(()       => document.addEventListener('click', closePopups));
+    onBeforeUnmount(() => document.removeEventListener('click', closePopups));
 
     const ctxClearCell = () => {
       const row = getRow(ctxMenu.itemIdx);
@@ -1214,12 +1281,13 @@ export default defineComponent({
       // license
       isProLicense, showProModal, handleExcelExport,
       // pro feature gates (template에서 사용)
-      effShowColumnSettings, effUseContextMenu, effUseRowDrag,
+      effShowColumnSettings, effUseContextMenu, effUseRowDrag, effUseAdvancedFilter,
       // toolbar
       hasToolbarSlot, hiddenColKeys, visibleColumns, toggleColVisibility,
       colSettingsOpen, activeFilterCount, clearAllFilters, handleDelete,
       // filter
       filters, isFilterActive, clearFilter,
+      multiSelectFilterOpen, toggleMultiSelectFilter, selectAllFilterOptions, deselectAllFilterOptions,
       // sort
       sortConfigs, toggleSort, getSortEntry, getSortIndex, onHeaderClick,
       // column drag

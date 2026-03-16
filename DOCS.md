@@ -409,7 +409,7 @@ const handleSort = (configs: SortConfig[]) => {
 
 ## 9. 필터 (Filter)
 
-`useFilter` prop을 `true`로 설정하면 헤더 아래에 컬럼별 텍스트 입력 필터 행이 나타납니다.
+`useFilter` prop을 `true`로 설정하면 헤더 아래에 컬럼별 필터 행이 나타납니다.
 
 ```vue
 <WZGrid :useFilter="true" ... />
@@ -418,6 +418,38 @@ const handleSort = (configs: SortConfig[]) => {
 - 각 컬럼 입력창에 텍스트를 입력하면 해당 컬럼 값에 대해 부분 일치 필터링 적용
 - 여러 컬럼에 동시에 필터 적용 가능 (AND 조건)
 - 필터 결과는 페이징과 연동되며, 필터 변경 시 1페이지로 자동 이동
+
+### 고급 필터 모드 (Pro)
+
+> **Pro 라이선스** 전용 기능입니다. 유효한 `licenseKey` 없이 사용하면 모든 컬럼에서 기본 텍스트 필터만 제공됩니다.
+
+Pro 라이선스가 활성화되면 컬럼 타입에 따라 고급 필터 UI가 자동으로 적용됩니다:
+
+| 컬럼 타입 | 필터 UI | 설명 |
+|:----------|:--------|:-----|
+| `text`, `link`, `radio` | 텍스트 입력 | 부분 일치 검색 |
+| `number` | 최소~최대 범위 입력 | 숫자 범위 필터링 |
+| `date` | 시작일~종료일 | 날짜 범위 필터링 |
+| `select`, `badge` | 다중 선택 체크박스 드롭다운 | 여러 값을 동시 선택 (OR 조건) |
+| `boolean` | 전체/예/아니요 드롭다운 | 불리언 필터 |
+
+**다중 선택 필터 (select / badge):**
+
+- 필터 버튼 클릭 시 체크박스 목록 드롭다운 표시
+- 여러 값을 동시에 체크하여 OR 조건으로 필터링
+- "전체 선택" / "전체 해제" 버튼 제공
+- 선택된 항목 수가 버튼에 배지로 표시 (예: "3개 선택")
+
+```vue
+<WZGrid
+  :columns="columns"
+  :rows="rows"
+  :useFilter="true"
+  :licenseKey="myLicenseKey"
+/>
+```
+
+**Community 모드 폴백:** Pro 라이선스 없이 `useFilter`만 활성화하면 모든 컬럼에서 기본 텍스트 입력 필터가 제공됩니다.
 
 ---
 
@@ -1272,6 +1304,7 @@ WZ-Grid는 Community / Pro / Enterprise 3가지 티어를 제공합니다.
 | 그룹핑 & 소계 | ✗ | ✓ | ✓ |
 | 셀 병합 | ✗ | ✓ | ✓ |
 | Excel (.xlsx) 내보내기 | ✗ | ✓ | ✓ |
+| 고급 필터 (숫자 범위, 날짜 범위, 다중 선택) | ✗ | ✓ | ✓ |
 | 기술 지원 | 커뮤니티 | 이메일 | 전담 |
 | 소스코드 접근 | ✗ | ✗ | ✓ |
 
@@ -1288,7 +1321,7 @@ Pro 기능 prop을 `true`로 설정하더라도 유효한 `licenseKey`가 없으
   ```
 - 같은 기능에 대한 경고는 중복 출력되지 않습니다 (세션당 1회).
 
-대상 기능: `showColumnSettings`, `useContextMenu`, `useRowDrag`, `groupBy`, `autoMergeCols`, `mergeCells`
+대상 기능: `showColumnSettings`, `useContextMenu`, `useRowDrag`, `groupBy`, `autoMergeCols`, `mergeCells`, `advancedFilter`
 
 ---
 
@@ -1353,4 +1386,4 @@ Pro 기능 prop을 `true`로 설정하더라도 유효한 `licenseKey`가 없으
 
 ---
 
-*최종 업데이트: 2026-03-16 — 셀 커스텀 렌더러(섹션 32) 추가*
+*최종 업데이트: 2026-03-16 — 셀 커스텀 렌더러(섹션 32), 고급 필터 모드(섹션 9) 추가*
