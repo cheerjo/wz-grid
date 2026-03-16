@@ -805,6 +805,7 @@ export default defineComponent({
     const showProModal = ref(false);
 
     // ── Pro 기능 게이팅 ────────────────────────────────────────────────
+    // warnPro: side-effect는 watch에서만 호출, computed는 순수하게 유지
     const _warnedPro = new Set<string>();
     const warnPro = (feature: string) => {
       if (_warnedPro.has(feature)) return;
@@ -812,43 +813,35 @@ export default defineComponent({
       console.warn(`[WZ-Grid] "${feature}" is a Pro feature. A valid licenseKey is required. https://cheerjo.github.io/wz-grid/pricing`);
     };
 
-    const effShowColumnSettings = computed(() => {
-      if (props.showColumnSettings && !isProLicense.value) { warnPro('showColumnSettings'); return false; }
-      return props.showColumnSettings;
+    // ── eff computed: 순수 계산만 수행 (side-effect 없음) ────────────
+    const effShowColumnSettings = computed(() => props.showColumnSettings && isProLicense.value);
+    const effUseContextMenu     = computed(() => props.useContextMenu     && isProLicense.value);
+    const effUseRowDrag         = computed(() => props.useRowDrag         && isProLicense.value);
+    const effGroupBy            = computed(() => isProLicense.value ? props.groupBy : '');
+    const effAutoMergeCols      = computed((): string[] => isProLicense.value ? (props.autoMergeCols || []) : []);
+    const effMergeCells         = computed(() => isProLicense.value ? (props.mergeCells || null) : null);
+    // 버그 1 수정: props.useFilter가 false이면 고급 필터도 false
+    const effUseAdvancedFilter  = computed(() => {
+      if (!props.useFilter) return false;
+      return isProLicense.value;
     });
-    const effUseContextMenu = computed(() => {
-      if (props.useContextMenu && !isProLicense.value) { warnPro('useContextMenu'); return false; }
-      return props.useContextMenu;
-    });
-    const effUseRowDrag = computed(() => {
-      if (props.useRowDrag && !isProLicense.value) { warnPro('useRowDrag'); return false; }
-      return props.useRowDrag;
-    });
-    const effGroupBy = computed(() => {
-      if (props.groupBy && !isProLicense.value) { warnPro('groupBy'); return ''; }
-      return props.groupBy;
-    });
-    const effAutoMergeCols = computed((): string[] => {
-      if ((props.autoMergeCols?.length ?? 0) > 0 && !isProLicense.value) { warnPro('autoMergeCols'); return []; }
-      return props.autoMergeCols || [];
-    });
-    const effMergeCells = computed(() => {
-      if (props.mergeCells !== null && !isProLicense.value) { warnPro('mergeCells'); return null; }
-      return props.mergeCells || null;
-    });
-    const effUseAdvancedFilter = computed(() => {
-      if (!isProLicense.value) { warnPro('advancedFilter'); return false; }
-      return true;
-    });
-    const effServerSide = computed(() => {
-      if (props.serverSide && !isProLicense.value) { warnPro('serverSide'); return false; }
-      return props.serverSide;
-    });
-    const hasDetailSlot = computed(() => !!slots.detail);
-    const effUseDetail = computed(() => {
-      if (hasDetailSlot.value && !isProLicense.value) { warnPro('detail'); return false; }
-      return hasDetailSlot.value;
-    });
+    const effServerSide         = computed(() => props.serverSide && isProLicense.value);
+    const hasDetailSlot         = computed(() => !!slots.detail);
+    const effUseDetail          = computed(() => hasDetailSlot.value && isProLicense.value);
+
+    // ── Pro 기능 사용 경고 (side-effect는 watch에서만) ────────────────
+    watch(isProLicense, (isValid) => {
+      if (isValid) return;
+      if (props.showColumnSettings)              warnPro('showColumnSettings');
+      if (props.useContextMenu)                  warnPro('useContextMenu');
+      if (props.useRowDrag)                      warnPro('useRowDrag');
+      if (props.groupBy)                         warnPro('groupBy');
+      if ((props.autoMergeCols?.length ?? 0) > 0) warnPro('autoMergeCols');
+      if (props.mergeCells !== null)             warnPro('mergeCells');
+      if (props.useFilter)                       warnPro('advancedFilter');
+      if (props.serverSide)                      warnPro('serverSide');
+      if (hasDetailSlot.value)                   warnPro('detail');
+    }, { immediate: true });
 
     // ── 마스터-디테일 Row Expand ─────────────────────────────────────
     const expandedRowIds = reactive(new Set<any>());
@@ -1288,7 +1281,8 @@ export default defineComponent({
       const col  = cols[colIdx];
       if (!col || col.pinned) return;
 
-      const extraCols  = (effUseRowDrag.value ? 1 : 0) + (props.useCheckbox ? 1 : 0);
+      // 버그 2 수정: effUseDetail 열을 extraCols에 포함
+      const extraCols  = (effUseRowDrag.value ? 1 : 0) + (effUseDetail.value ? 1 : 0) + (props.useCheckbox ? 1 : 0);
       const ths        = el.querySelectorAll<HTMLElement>('thead tr:first-child th');
       const th         = ths[extraCols + colIdx];
       if (!th) return;
@@ -1297,6 +1291,7 @@ export default defineComponent({
       const elRect  = el.getBoundingClientRect();
       const pinnedWidth = (props.useCheckbox ? CHECKBOX_WIDTH : 0)
                         + (effUseRowDrag.value  ? ROW_DRAG_WIDTH  : 0)
+                        + (effUseDetail.value   ? DETAIL_EXPAND_WIDTH : 0)
                         + cols.filter(c => c.pinned).reduce((s, c) => s + (c.width || 150), 0);
 
       const leftBound  = elRect.left + pinnedWidth;
