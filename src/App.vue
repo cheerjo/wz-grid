@@ -145,6 +145,16 @@
             :class="isProUser ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400 line-through'"
             class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
           >Excel {{ isProUser ? '✓' : '🔒' }}</span>
+          <span
+            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
+            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+          >고급 필터 {{ isProUser ? '✓' : '🔒' }}</span>
+          <span
+            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
+            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+          >마스터-디테일 {{ isProUser ? '✓' : '🔒' }}</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">셀 슬롯 ✓</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">행 스타일 ✓</span>
         </div>
       </div>
 
@@ -250,7 +260,51 @@
           @click:insert="handleInsert"
           @reorder:rows="handleReorderRows"
           @click:button="handleButtonClick"
+
+          :rowClass="demoRowClass"
+          :cellClass="demoCellClass"
+          @click:row="handleRowClick"
         >
+          <!-- ── 셀 커스텀 슬롯: 이름 (아바타 + 볼드) ── -->
+          <template #cell-name="{ row, value }">
+            <div class="flex items-center gap-2">
+              <img :src="row.avatar" class="w-6 h-6 rounded-full" />
+              <span class="font-semibold text-gray-800">{{ value }}</span>
+            </div>
+          </template>
+
+          <!-- ── 셀 커스텀 슬롯: 급여 (통화 포맷) ── -->
+          <template #cell-salary="{ value }">
+            <div class="flex items-center gap-0.5 justify-end">
+              <span class="text-gray-400 text-[10px]">&#8361;</span>
+              <span class="tabular-nums">{{ Number(value).toLocaleString() }}</span>
+            </div>
+          </template>
+
+          <!-- ── 마스터-디테일 슬롯 ── -->
+          <template #detail="{ row }">
+            <div class="grid grid-cols-3 gap-4 text-sm p-2">
+              <div>
+                <span class="font-bold text-gray-600">기본 정보</span>
+                <p class="mt-1">이름: {{ row.name }}</p>
+                <p>성별: {{ row.gender === 'M' ? '남' : '여' }}</p>
+                <p>휴대전화: {{ row.phone }}</p>
+              </div>
+              <div>
+                <span class="font-bold text-gray-600">근무 정보</span>
+                <p class="mt-1">부서: {{ row.dept }}</p>
+                <p>상태: {{ row.status }}</p>
+                <p>입사일: {{ row.joinDate }}</p>
+              </div>
+              <div>
+                <span class="font-bold text-gray-600">급여 & 실적</span>
+                <p class="mt-1">급여: {{ Number(row.salary).toLocaleString() }}원</p>
+                <p>완료율: {{ row.completion }}%</p>
+                <p>주소: {{ row.address }}</p>
+              </div>
+            </div>
+          </template>
+
           <!-- 커스텀 툴바 슬롯 -->
           <template #toolbar>
             <!-- CSV 내보내기 -->
@@ -502,6 +556,23 @@ const handleReorderColumns = ({ srcKey, targetKey }: { srcKey: string; targetKey
 };
 
 const handleButtonClick = ({ row }: any) => { alert(`${row.name} 상세 보기`); };
+
+// ── 행 클릭 & 행/셀 스타일 ──────────────────────────────────────────────────
+const clickedRowId = ref<number | null>(null);
+
+const handleRowClick = ({ row }: any) => {
+  clickedRowId.value = row.id;
+};
+
+const demoRowClass = (row: any) => ({
+  'bg-blue-50/60': row.id === clickedRowId.value,
+  'bg-red-50/40': row.status === 'Inactive',
+});
+
+const demoCellClass = (row: any, column: any) => {
+  if (column.key === 'salary' && row.salary > 80000) return 'bg-yellow-50/60 font-semibold';
+  return null;
+};
 const exportCSV  = () => { downloadCSV(rows.value, columns.value, 'wz-grid-demo.csv'); };
 
 const handlePrint = (checkedOnly: boolean) => {
