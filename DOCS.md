@@ -40,6 +40,7 @@
 31. [푸터 집계 행](#31-푸터-집계-행)
 32. [셀 커스텀 렌더러 (Custom Cell Renderer)](#32-셀-커스텀-렌더러-custom-cell-renderer)
 33. [행 클릭 & 행/셀 스타일](#33-행-클릭--행셀-스타일)
+34. [서버사이드 모드 ★Pro](#34-서버사이드-모드-pro)
 
 ---
 
@@ -112,6 +113,8 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 | `childrenKey` | `string` | `'children'` | 자식 행 배열 필드명 |
 | `rowClass` | `(row, rowIndex) => any` | `null` | 행에 동적 CSS 클래스를 적용하는 함수 |
 | `cellClass` | `(row, column, rowIndex) => any` | `null` | 셀에 동적 CSS 클래스를 적용하는 함수 |
+| `serverSide` | `boolean` | `false` | ★Pro — 서버사이드 모드. 정렬/필터/페이징을 서버에 위임 |
+| `totalRows` | `number` | `0` | 서버사이드 모드에서 전체 행 수 (페이징 UI에 사용) |
 
 ---
 
@@ -289,6 +292,7 @@ URL 값을 클릭 가능한 하이퍼링크로 표시. `target="_blank"`로 새 
 | `@click:delete` | `any[]` | 툴바 삭제 버튼 또는 컨텍스트 메뉴 행 삭제 시 발생. 행 객체 배열 |
 | `@click:button` | `{ rowIdx, row, colKey }` | `button` 타입 셀 클릭 시 발생 |
 | `@click:row` | `{ rowIdx, row }` | 데이터 행 클릭 시 발생 |
+| `@update:filters` | `Record<string, any>` | 서버사이드 모드에서 필터 변경 시 발생 |
 
 ### `@update:cell` 처리 예제
 
@@ -1309,6 +1313,7 @@ WZ-Grid는 Community / Pro / Enterprise 3가지 티어를 제공합니다.
 | 셀 병합 | ✗ | ✓ | ✓ |
 | Excel (.xlsx) 내보내기 | ✗ | ✓ | ✓ |
 | 고급 필터 (숫자 범위, 날짜 범위, 다중 선택) | ✗ | ✓ | ✓ |
+| 서버사이드 모드 | ✗ | ✓ | ✓ |
 | 기술 지원 | 커뮤니티 | 이메일 | 전담 |
 | 소스코드 접근 | ✗ | ✗ | ✓ |
 
@@ -1325,7 +1330,7 @@ Pro 기능 prop을 `true`로 설정하더라도 유효한 `licenseKey`가 없으
   ```
 - 같은 기능에 대한 경고는 중복 출력되지 않습니다 (세션당 1회).
 
-대상 기능: `showColumnSettings`, `useContextMenu`, `useRowDrag`, `groupBy`, `autoMergeCols`, `mergeCells`, `advancedFilter`
+대상 기능: `showColumnSettings`, `useContextMenu`, `useRowDrag`, `groupBy`, `autoMergeCols`, `mergeCells`, `advancedFilter`, `serverSide`
 
 ---
 
@@ -1446,4 +1451,86 @@ const handleRowClick = ({ rowIdx, row }: { rowIdx: number; row: any }) => {
 
 ---
 
-*최종 업데이트: 2026-03-16 — 셀 커스텀 렌더러(섹션 32), 고급 필터 모드(섹션 9), 행 클릭 & 행/셀 스타일(섹션 33) 추가*
+## 34. 서버사이드 모드 (Pro)
+
+> **Pro 라이선스** 전용 기능입니다.
+
+`serverSide` prop을 `true`로 설정하면 정렬, 필터링, 페이징을 클라이언트에서 처리하지 않고 이벤트를 통해 서버에 위임합니다.
+
+```vue
+<WZGrid
+  :columns="columns"
+  :rows="currentPageRows"
+  :serverSide="true"
+  :totalRows="serverTotalCount"
+  :usePaging="true"
+  :useFilter="true"
+  :licenseKey="myLicenseKey"
+  v-model:currentPage="currentPage"
+  v-model:pageSize="pageSize"
+  @sort="handleServerSort"
+  @update:filters="handleServerFilter"
+  @update:currentPage="fetchData"
+  @update:pageSize="fetchData"
+/>
+```
+
+### 동작 방식
+
+| 기능 | 클라이언트 모드 (기본) | 서버사이드 모드 |
+|:-----|:----------------------|:---------------|
+| 필터링 | `useFilter`로 클라이언트에서 필터 | 필터 UI 유지, `@update:filters` 이벤트 emit |
+| 정렬 | `@sort` 이벤트로 클라이언트 처리 | `@sort` 이벤트로 서버에 위임 (동일) |
+| 페이징 | `activeItems`를 슬라이싱 | `rows`를 현재 페이지 데이터로 직접 사용 |
+| 전체 행 수 | `rows.length`에서 자동 계산 | `totalRows` prop으로 전달 |
+
+### `@update:filters` 이벤트 페이로드
+
+활성화된 필터만 포함하는 객체입니다.
+
+```ts
+// 예시 페이로드
+{
+  name: { value: '홍' },                    // 텍스트 필터
+  salary: { min: '30000', max: '80000' },   // 숫자 범위 필터
+  joinDate: { from: '2024-01-01', to: '2024-12-31' }, // 날짜 범위 필터
+  dept: { values: ['dev', 'hr'] },          // 다중 선택 필터
+}
+```
+
+### 서버사이드 사용 예시
+
+```ts
+const currentPage = ref(1);
+const pageSize = ref(20);
+const currentPageRows = ref<any[]>([]);
+const serverTotalCount = ref(0);
+
+const fetchData = async () => {
+  const res = await fetch(`/api/employees?page=${currentPage.value}&size=${pageSize.value}`);
+  const data = await res.json();
+  currentPageRows.value = data.items;
+  serverTotalCount.value = data.total;
+};
+
+const handleServerSort = (configs: SortConfig[]) => {
+  // 서버에 정렬 파라미터 전달 후 fetchData
+  fetchData();
+};
+
+const handleServerFilter = (filters: Record<string, any>) => {
+  // 서버에 필터 파라미터 전달 후 fetchData
+  currentPage.value = 1;
+  fetchData();
+};
+```
+
+### 주의사항
+
+- 서버사이드 모드에서 `rows`는 **현재 페이지의 데이터만** 전달해야 합니다.
+- `totalRows`를 반드시 설정해야 페이징 UI가 올바르게 표시됩니다.
+- 트리 모드(`useTree`)와 그룹핑(`groupBy`)은 서버사이드 모드와 함께 사용하지 않는 것을 권장합니다.
+
+---
+
+*최종 업데이트: 2026-03-16 — 셀 커스텀 렌더러(섹션 32), 고급 필터 모드(섹션 9), 행 클릭 & 행/셀 스타일(섹션 33), 서버사이드 모드(섹션 34) 추가*

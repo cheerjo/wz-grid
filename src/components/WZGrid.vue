@@ -591,9 +591,9 @@
     <!-- ── 페이징 ──────────────────────────────────────────────────────── -->
     <WZGridPagination
       v-if="usePaging"
-      :total-filtered-rows="filteredRows.length"
-      :total-rows="rows.length"
-      :show-filter-note="useFilter && filteredRows.length !== rows.length"
+      :total-filtered-rows="serverSide && totalRows > 0 ? totalRows : filteredRows.length"
+      :total-rows="serverSide && totalRows > 0 ? totalRows : rows.length"
+      :show-filter-note="!serverSide && useFilter && filteredRows.length !== rows.length"
       :checked-count="checkedCount"
       :page-size="pageSize"
       :current-page="currentPage"
@@ -713,6 +713,7 @@ export default defineComponent({
     'reorder:rows',
     'sort',
     'click:row',
+    'update:filters',
   ],
   props: {
     columns:            { type: Array as PropType<Column[]>, required: true },
@@ -741,6 +742,8 @@ export default defineComponent({
     childrenKey:        { type: String,  default: 'children' },
     rowClass:           { type: Function as PropType<(row: any, rowIndex: number) => any>, default: null },
     cellClass:          { type: Function as PropType<(row: any, column: Column, rowIndex: number) => any>, default: null },
+    serverSide:         { type: Boolean, default: false },
+    totalRows:          { type: Number, default: 0 },
   },
 
   setup(props, { emit, slots }) {
@@ -787,6 +790,10 @@ export default defineComponent({
     const effUseAdvancedFilter = computed(() => {
       if (!isProLicense.value) { warnPro('advancedFilter'); return false; }
       return true;
+    });
+    const effServerSide = computed(() => {
+      if (props.serverSide && !isProLicense.value) { warnPro('serverSide'); return false; }
+      return props.serverSide;
     });
 
     // ── 다중 선택 필터 드롭다운 ─────────────────────────────────────────
@@ -837,8 +844,21 @@ export default defineComponent({
     const { filters, isFilterActive, activeFilterCount, clearFilter, clearAllFilters, filteredRows } = useFilter(
       () => treeAllFlat.value,
       () => props.columns,
-      () => props.useFilter
+      () => props.useFilter && !effServerSide.value  // 서버사이드 모드에서는 클라이언트 필터링 비활성화
     );
+
+    // 서버사이드 모드: 필터 변경 시 이벤트 emit
+    watch(filters, (newFilters) => {
+      if (effServerSide.value && props.useFilter) {
+        const filterState: Record<string, any> = {};
+        for (const col of props.columns) {
+          if (isFilterActive(col.key)) {
+            filterState[col.key] = { ...newFilters[col.key] };
+          }
+        }
+        emit('update:filters', filterState);
+      }
+    }, { deep: true });
 
     // ── 2-1. 푸터 집계 ─────────────────────────────────────────────────
     const footerValues = computed((): Record<string, any> => {
@@ -902,7 +922,10 @@ export default defineComponent({
     // ── 5. 페이징 ──────────────────────────────────────────────────────
     const activeItems = computed((): GridItem[] => props.useTree ? flatTreeItems.value : flatGroupedItems.value);
 
-    const totalPages = computed(() => Math.ceil(activeItems.value.length / props.pageSize) || 1);
+    const totalPages = computed(() => {
+      if (effServerSide.value && props.totalRows > 0) return Math.ceil(props.totalRows / props.pageSize) || 1;
+      return Math.ceil(activeItems.value.length / props.pageSize) || 1;
+    });
 
     const setPage = (page: number) => {
       emit('update:currentPage', Math.max(1, Math.min(page, totalPages.value)));
@@ -916,6 +939,7 @@ export default defineComponent({
     watch(filters, () => { if (props.usePaging) setPage(1); }, { deep: true });
 
     const pagedItems = computed((): GridItem[] => {
+      if (effServerSide.value) return activeItems.value; // 서버사이드: rows가 이미 현재 페이지 데이터
       if (!props.usePaging) return activeItems.value;
       const start = (props.currentPage - 1) * props.pageSize;
       return activeItems.value.slice(start, start + props.pageSize);
@@ -1291,7 +1315,7 @@ export default defineComponent({
       // license
       isProLicense, showProModal, handleExcelExport,
       // pro feature gates (template에서 사용)
-      effShowColumnSettings, effUseContextMenu, effUseRowDrag, effUseAdvancedFilter,
+      effShowColumnSettings, effUseContextMenu, effUseRowDrag, effUseAdvancedFilter, effServerSide,
       // toolbar
       hasToolbarSlot, hiddenColKeys, visibleColumns, toggleColVisibility,
       colSettingsOpen, activeFilterCount, clearAllFilters, handleDelete,
