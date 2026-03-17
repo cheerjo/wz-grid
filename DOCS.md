@@ -165,7 +165,8 @@ interface Option {
 type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'select'
                 | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio'
                 | 'tag' | 'currency' | 'rating' | 'datetime' | 'color' | 'email'
-                | 'sparkline';  // 숫자 배열을 SVG 미니 라인 차트로 렌더링
+                | 'sparkline'   // 숫자 배열을 SVG 미니 라인 차트로 렌더링
+                | 'textarea';   // 멀티라인 텍스트 편집
 
 type Align = 'left' | 'center' | 'right';
 ```
@@ -372,6 +373,15 @@ CSS 색상 문자열을 색상 박스로 표시. 색상 피커 클릭 즉시 `@u
   sparklineHeight: 32,
 }
 // row.trend 예: [30, 72, 45, 88, 61, 95, 42, 78, 55, 90, 33, 67]
+```
+
+### `textarea`
+
+멀티라인 텍스트 입력. 더블 클릭 또는 Enter로 편집 모드 진입, `<textarea>` 요소를 셀 위에 표시합니다.
+읽기 모드에서는 `whitespace-pre`로 줄바꿈 유지. 편집 중 Enter로 다음 행 이동, Shift+Enter로 줄바꿈 입력.
+
+```ts
+{ key: 'memo', title: '메모', type: 'textarea', width: 200 }
 ```
 
 ---
@@ -1190,7 +1200,7 @@ src/
 > |:---|:-----|
 > | 종합 데모 | 페이징, 필터, 정렬, 그룹핑 등 주요 기능 종합 체험 |
 > | 트리 그리드 | 계층 데이터 트리 모드 & 펼치기/접기 |
-> | **컬럼 타입** | 편집 가능 7종 · 클릭 즉시 반영 4종 · 읽기 전용 7종(sparkline 포함), 총 18종 컬럼 타입 인터랙티브 데모 + 이벤트 로그 패널 |
+> | **컬럼 타입** | 편집 가능 8종 · 클릭 즉시 반영 4종 · 읽기 전용 7종(sparkline 포함), 총 19종 컬럼 타입 인터랙티브 데모 + 이벤트 로그 패널 |
 
 ### WZGrid 내부 데이터 흐름
 

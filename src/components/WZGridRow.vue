@@ -110,7 +110,7 @@
           v-if="col.type === 'date'"
           ref="editInput" :value="editValue" type="date"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
-          @blur="$emit('stop-editing', true)" @keydown.enter="$emit('stop-editing', true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
+          @blur="$emit('stop-editing', true)" @keydown.enter.exact="$emit('stop-editing', true, true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
           @input="$emit('update:editValue', getEventValue($event))"
           @change="$emit('stop-editing', true)"
         />
@@ -118,19 +118,30 @@
           v-else-if="col.type === 'datetime'"
           ref="editInput" :value="editValue" type="datetime-local"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
-          @blur="$emit('stop-editing', true)" @keydown.enter="$emit('stop-editing', true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
+          @blur="$emit('stop-editing', true)" @keydown.enter.exact="$emit('stop-editing', true, true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
           @input="$emit('update:editValue', getEventValue($event))"
           @change="$emit('stop-editing', true)"
+        />
+        <textarea
+          v-else-if="col.type === 'textarea'"
+          ref="editInput"
+          :value="editValue"
+          class="absolute inset-0 w-full h-full px-2 py-1 text-sm border-2 border-blue-500 outline-none resize-none bg-white z-30"
+          @blur="$emit('stop-editing', true)"
+          @keydown.esc.stop="$emit('stop-editing', false)"
+          @keydown.enter.exact="$emit('stop-editing', true, true)"
+          @mousedown.stop
+          @input="editValue = ($event.target as HTMLTextAreaElement).value; $emit('update:editValue', ($event.target as HTMLTextAreaElement).value)"
         />
         <input
           v-else-if="col.type !== 'select' && col.type !== 'boolean' && col.type !== 'tag' && col.type !== 'color' && col.type !== 'rating' && col.type !== 'sparkline'"
           ref="editInput" :value="editValue"
           :type="col.type === 'number' || col.type === 'currency' ? 'number' : col.type === 'email' ? 'email' : 'text'"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
-          @blur="$emit('stop-editing', true)" @keydown.enter="$emit('stop-editing', true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
+          @blur="$emit('stop-editing', true)" @keydown.enter.exact="$emit('stop-editing', true, true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
           @input="$emit('update:editValue', getEventValue($event)); $emit('handle-input', col)"
         />
-        <select v-else-if="col.type === 'select'" ref="editInput" :value="editValue" class="w-full h-full px-1 text-sm border-2 border-blue-500 outline-none" @blur="$emit('stop-editing', true)" @change="$emit('update:editValue', getEventValue($event)); $emit('stop-editing', true)" @mousedown.stop>
+        <select v-else-if="col.type === 'select'" ref="editInput" :value="editValue" class="w-full h-full px-1 text-sm border-2 border-blue-500 outline-none" @blur="$emit('stop-editing', true)" @keydown.enter.exact="$emit('stop-editing', true, true)" @change="$emit('update:editValue', getEventValue($event)); $emit('stop-editing', true)" @mousedown.stop>
           <option v-for="opt in col.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
         </select>
       </div>
@@ -171,6 +182,9 @@
         />
 
         <!-- 기본 렌더링 (슬롯 미제공 시) -->
+        <template v-else-if="col.type === 'textarea'">
+          <span class="truncate min-w-0 block w-full whitespace-pre">{{ row?.[col.key] || '' }}</span>
+        </template>
         <template v-else-if="!col.type || col.type === 'text' || col.type === 'number' || col.type === 'date'">
           <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">
             {{ col.type === 'number' ? Number(row?.[col.key] || 0).toLocaleString() : (row?.[col.key] || '') }}

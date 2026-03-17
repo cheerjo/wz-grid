@@ -806,19 +806,39 @@ export default defineComponent({
       const col = visibleColumns.value[cIdx];
       if (!row || !col || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating', 'color', 'tag', 'sparkline'].includes(col.type || '')) return;
       editing.rowId = row.id; editing.colIdx = cIdx;
-      const useInitial = initialValue !== undefined && col.type !== 'date' && col.type !== 'datetime';
+      const useInitial = initialValue !== undefined && col.type !== 'date' && col.type !== 'datetime' && col.type !== 'textarea';
       editValue.value = useInitial ? initialValue : row[col.key];
       clearSelection();
       // 포커스는 WZGridRow가 editingColIdx prop 변화를 watch하여 자동으로 처리
       if (initialValue !== undefined) handleInput(col);
     };
 
-    const stopEditing = (save: boolean) => {
+    const stopEditing = (save: boolean, moveNext = false) => {
       if (save && editing.rowId !== null) {
         const fullRowIdx = props.rows.findIndex(r => r.id === editing.rowId);
         if (fullRowIdx !== -1) {
           const col = visibleColumns.value[editing.colIdx];
           if (col) { validateCell(props.rows[fullRowIdx], col, editValue.value); updateCell(fullRowIdx, col.key, editValue.value); }
+        }
+      }
+      if (moveNext && editing.rowId !== null) {
+        const currentRowId = editing.rowId;
+        const currentColIdx = editing.colIdx;
+        // pagedItems에서 현재 행의 인덱스를 찾아 다음 data 행으로 이동
+        const currentPagedIdx = pagedItems.value.findIndex(
+          item => item.type === 'data' && (item as DataItem).row.id === currentRowId
+        );
+        if (currentPagedIdx !== -1) {
+          // 현재 인덱스 이후의 다음 data 타입 항목 찾기
+          let nextPagedIdx = -1;
+          for (let i = currentPagedIdx + 1; i < pagedItems.value.length; i++) {
+            if (pagedItems.value[i].type === 'data') { nextPagedIdx = i; break; }
+          }
+          if (nextPagedIdx !== -1) {
+            editing.rowId = null; editing.colIdx = -1;
+            startEditing(nextPagedIdx, currentColIdx);
+            return;
+          }
         }
       }
       editing.rowId = null; editing.colIdx = -1;
