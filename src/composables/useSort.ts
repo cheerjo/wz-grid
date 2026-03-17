@@ -34,10 +34,10 @@ export function useSort(
 
   // 값 비교: 숫자/날짜(ISO 문자열)/문자열 자동 감지
   const compareValues = (a: any, b: any): number => {
-    if (a === null || a === undefined) return 1;
-    if (b === null || b === undefined) return -1;
+    if (a === null || a === undefined || a === '') return 1;
+    if (b === null || b === undefined || b === '') return -1;
 
-    // 숫자
+    // 숫자 (빈 문자열 제외 후 변환)
     const na = Number(a);
     const nb = Number(b);
     if (!isNaN(na) && !isNaN(nb)) return na - nb;

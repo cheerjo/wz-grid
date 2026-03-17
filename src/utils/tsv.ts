@@ -10,14 +10,19 @@ export function stringifyTSV(data: string[][]): string {
   return data.map(row => row.join('\t')).join('\n');
 }
 
+// RFC 4180: 쉼표, 큰따옴표, 줄바꿈 포함 시 따옴표로 감싸고, 큰따옴표는 ""로 이스케이프
+function escapeCSVField(val: any): string {
+  const str = val === null || val === undefined ? '' : String(val);
+  if (str.includes('"') || str.includes(',') || str.includes('\n') || str.includes('\r')) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
 export function downloadCSV(data: any[], columns: any[], fileName: string = 'grid-data.csv') {
-  const header = columns.map(col => col.title).join(',');
-  const rows = data.map(row => 
-    columns.map(col => {
-      const val = row[col.key] || '';
-      // 쉼표가 포함된 경우 따옴표로 감싸기
-      return typeof val === 'string' && val.includes(',') ? `"${val}"` : val;
-    }).join(',')
+  const header = columns.map(col => escapeCSVField(col.title)).join(',');
+  const rows = data.map(row =>
+    columns.map(col => escapeCSVField(row[col.key])).join(',')
   );
   
   const csvContent = "\uFEFF" + [header, ...rows].join('\n'); // Excel 한글 깨짐 방지용 BOM
