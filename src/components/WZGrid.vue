@@ -839,6 +839,8 @@ export default defineComponent({
             editing.rowId = null; editing.colIdx = -1;
             scrollToCell(nextPagedIdx, currentColIdx);
             startSelection(nextPagedIdx, currentColIdx);
+            endSelection();
+            containerEl.value?.focus();
             return;
           }
         }
