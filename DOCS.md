@@ -1732,4 +1732,4 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ---
 
-*최종 업데이트: 2026-03-17 — 컬럼 타입 6종 추가: `tag`, `currency`, `rating`, `datetime`, `color`, `email`; Column 인터페이스에 `currencySymbol`, `decimals`, `maxRating` 옵션 추가; 고급 필터 타입 매핑 테이블 업데이트; 데모 앱 "컬럼 타입" 탭 추가 (DemoColumnTypes.vue, 17종 컬럼 타입 인터랙티브 데모)*
+*최종 업데이트: 2026-03-17 — 컬럼 타입 6종 추가: `tag`, `currency`, `rating`, `datetime`, `color`, `email`; Column 인터페이스에 `currencySymbol`, `decimals`, `maxRating` 옵션 추가; 고급 필터 타입 매핑 테이블 업데이트; 데모 앱 탭 셸 구조로 리팩토링 (App.vue → 탭 컨테이너, `src/demos/` 디렉토리 분리: DemoBasic.vue·DemoTree.vue·DemoColumnTypes.vue, `src/demos/shared/useLicense.ts` 추가)*
