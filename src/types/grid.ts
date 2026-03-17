@@ -1,5 +1,5 @@
 // src/types/grid.ts
-export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'select' | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio';
+export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'select' | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio' | 'color' | 'email';
 export type Align = 'left' | 'center' | 'right';
 
 /**

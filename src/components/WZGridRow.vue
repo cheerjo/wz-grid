@@ -115,7 +115,14 @@
           @change="$emit('stop-editing', true)"
         />
         <input
-          v-else-if="col.type !== 'select' && col.type !== 'boolean'"
+          v-else-if="col.type === 'email'"
+          ref="editInput" :value="editValue" type="email"
+          class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
+          @blur="$emit('stop-editing', true)" @keydown.enter="$emit('stop-editing', true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
+          @input="$emit('update:editValue', ($event.target as HTMLInputElement).value); $emit('handle-input', col)"
+        />
+        <input
+          v-else-if="col.type !== 'select' && col.type !== 'boolean' && col.type !== 'color'"
           ref="editInput" :value="editValue" :type="col.type === 'number' ? 'number' : 'text'"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
           @blur="$emit('stop-editing', true)" @keydown.enter="$emit('stop-editing', true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
@@ -197,6 +204,23 @@
               <span class="truncate">{{ row?.[col.key] }}</span>
               <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
             </a>
+          </div>
+        </template>
+        <template v-else-if="col.type === 'color'">
+          <div class="flex items-center gap-2 w-full overflow-hidden" @mousedown.stop>
+            <input
+              type="color"
+              :value="row?.[col.key] || '#000000'"
+              @change="(e: Event) => { $emit('update-cell-from-item', itemIdx, col.key, (e.target as HTMLInputElement).value) }"
+              class="w-6 h-6 rounded cursor-pointer border-0 p-0 bg-transparent"
+              style="min-width:1.5rem"
+            />
+            <span class="truncate text-xs font-mono text-gray-600">{{ row?.[col.key] }}</span>
+          </div>
+        </template>
+        <template v-else-if="col.type === 'email'">
+          <div class="flex items-center w-full overflow-hidden" @mousedown.stop>
+            <a :href="row?.[col.key] ? 'mailto:' + row?.[col.key] : undefined" class="text-blue-600 hover:underline truncate text-sm">{{ row?.[col.key] }}</a>
           </div>
         </template>
         <template v-else-if="col.type === 'radio'">
