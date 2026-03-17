@@ -43,6 +43,12 @@ const handleExportCSV = () => {
 
 ## Excel 내보내기
 
+Excel 내보내기 기능은 [ExcelJS](https://github.com/exceljs/exceljs)를 사용합니다. wz-grid의 optional peerDependency이므로 Excel 내보내기 기능을 사용하려면 별도로 설치해야 합니다.
+
+```bash
+npm install exceljs
+```
+
 ### 툴바 버튼으로 내보내기 (권장)
 
 `showExcelExport` prop을 활성화하면 툴바에 **Excel** 버튼이 자동으로 추가됩니다.
@@ -66,7 +72,8 @@ const handleExportCSV = () => {
 - `useCheckbox: true` + 체크된 행이 있으면 → **체크된 행만** 내보냅니다.
 - `image`, `button` 타입 컬럼은 자동 제외됩니다.
 - `select`, `badge`, `radio` 타입은 `options` label 값으로 변환됩니다.
-- `boolean` → `✓` / `✗`, `progress` → `N%`
+- `boolean` → `✓` / `✗`
+- `progress` → 숫자(0~100)로 출력되며 셀 포맷 `0"%"` 및 data bar 조건부 서식이 자동 적용됩니다.
 
 ### 직접 호출
 

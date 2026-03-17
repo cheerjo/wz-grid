@@ -25,7 +25,7 @@ npm run docs:build
 ### 이중 빌드 구조
 
 - **데모 앱**: `src/main.ts` → `src/App.vue`. Vite 기본 설정(`vite.config.ts`)으로 빌드. MSW(`src/mocks/`)로 `/api/employees` REST API를 브라우저에서 모킹.
-- **라이브러리**: `src/index.ts` 진입점. `vite.lib.config.ts`로 빌드. `vue`, `vue-demi`, `@vue/composition-api`, `xlsx`를 external로 처리. Vue 2/3 동시 지원을 위해 모든 import는 `vue` 대신 `vue-demi`를 사용.
+- **라이브러리**: `src/index.ts` 진입점. `vite.lib.config.ts`로 빌드. `vue`, `vue-demi`, `@vue/composition-api`, `exceljs`를 external로 처리. Vue 2/3 동시 지원을 위해 모든 import는 `vue` 대신 `vue-demi`를 사용.
 
 ### WZGrid.vue 내부 데이터 흐름
 

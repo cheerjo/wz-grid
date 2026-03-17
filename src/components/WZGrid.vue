@@ -610,8 +610,8 @@ export default defineComponent({
       emit('click:delete', checked);
     };
 
-    const handleExcelExport = () => {
-      exportExcel(props.columns as Column[], props.rows, {
+    const handleExcelExport = async () => {
+      await exportExcel(props.columns as Column[], props.rows, {
         filename: props.excelFilename,
         checkedOnly: props.useCheckbox,
         checkedRows: props.rows.filter(r => checkedIds.value.has(r.id)),

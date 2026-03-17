@@ -19,6 +19,16 @@ yarn add wz-grid
 <script src="https://cdn.jsdelivr.net/npm/wz-grid/dist/wz-grid.cjs.js"></script>
 ```
 
+## Optional 의존성
+
+Excel 내보내기 기능(`showExcelExport`)을 사용하려면 ExcelJS를 추가로 설치해야 합니다.
+
+```bash
+npm install exceljs
+```
+
+ExcelJS를 설치하지 않으면 Excel 내보내기 버튼이 표시되더라도 실행 시 오류가 발생합니다. CSV 내보내기와 인쇄 기능은 ExcelJS 없이도 동작합니다.
+
 ## CSS 임포트
 
 패키지 설치 후 CSS를 반드시 임포트해야 합니다.

@@ -27,4 +27,4 @@ SOFTWARE.
 - [Vue](https://vuejs.org/) — MIT License
 - [vue-demi](https://github.com/vueuse/vue-demi) — MIT License
 - [Tailwind CSS](https://tailwindcss.com/) — MIT License
-- [SheetJS (xlsx)](https://sheetjs.com/) — Apache-2.0 License
+- [ExcelJS](https://github.com/exceljs/exceljs) — MIT License

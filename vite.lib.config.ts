@@ -28,13 +28,13 @@ export default defineConfig({
       fileName: (format) => `wz-grid.${format}.js`,
     },
     rollupOptions: {
-      external: ['vue', 'vue-demi', '@vue/composition-api', 'xlsx'],
+      external: ['vue', 'vue-demi', '@vue/composition-api', 'exceljs'],
       output: {
         globals: {
           vue: 'Vue',
           'vue-demi': 'VueDemi',
           '@vue/composition-api': 'VueCompositionAPI',
-          xlsx: 'XLSX',
+          exceljs: 'ExcelJS',
         },
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === 'style.css') return 'wz-grid.css';

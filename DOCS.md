@@ -1438,7 +1438,7 @@ const columns = [
 - `image`, `button` 타입 컬럼은 자동으로 제외됩니다.
 - `select`, `badge`, `radio` 타입은 `options`의 `label` 값으로 변환됩니다.
 - `boolean` 타입은 `✓` / `✗` 문자로 출력됩니다.
-- `progress` 타입은 숫자(0~100)로 출력되며 셀 포맷 `0"%"`가 적용됩니다. Excel에서 `75%` 형태로 표시되고, SheetJS Pro / xlsx-js-style 환경에서는 data bar conditional formatting도 적용됩니다.
+- `progress` 타입은 숫자(0~100)로 출력되며 셀 포맷 `0"%"`가 적용됩니다. Excel에서 `75%` 형태로 표시되고, ExcelJS를 통해 data bar 조건부 서식도 자동 적용됩니다.
 
 ---
 
@@ -1683,4 +1683,4 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ---
 
-*최종 업데이트: 2026-03-17 — 라이선스 시스템 제거, 전 기능 오픈소스 공개: `licenseKey` prop 제거, `eff*` computed에서 Pro 게이팅 제거, WZGridRow `isProLicense` prop 제거, sparkline 🔒 제거, Pro 모달 제거, `src/license.ts` 및 `src/demos/shared/useLicense.ts` 삭제; `textarea` 컬럼 타입 추가 (멀티라인 편집, Enter 다음 행 이동, Shift+Enter 줄바꿈); 편집 중 Enter 키로 동일 컬럼 다음 행 이동(Excel 동작) 추가; docs/pricing.md·guide/introduction.md에서 Pro/Enterprise 티어 관련 내용 제거 (MIT 오픈소스 전환 반영)*
+*최종 업데이트: 2026-03-17 — 라이선스 시스템 제거, 전 기능 오픈소스 공개: `licenseKey` prop 제거, `eff*` computed에서 Pro 게이팅 제거, WZGridRow `isProLicense` prop 제거, sparkline 🔒 제거, Pro 모달 제거, `src/license.ts` 및 `src/demos/shared/useLicense.ts` 삭제; `textarea` 컬럼 타입 추가 (멀티라인 편집, Enter 다음 행 이동, Shift+Enter 줄바꿈); 편집 중 Enter 키로 동일 컬럼 다음 행 이동(Excel 동작) 추가; docs/pricing.md·guide/introduction.md에서 Pro/Enterprise 티어 관련 내용 제거 (MIT 오픈소스 전환 반영); 엑셀 내보내기 라이브러리를 SheetJS(xlsx)에서 ExcelJS로 마이그레이션 — peerDependency 변경, progress 컬럼 data bar 조건부 서식 정상 지원*
