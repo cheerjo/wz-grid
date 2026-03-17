@@ -979,8 +979,10 @@ export default defineComponent({
       } else if (e.key === 'Escape') {
         clearSelection();
       } else if (e.key === 'Backspace' || e.key === 'Delete') {
-        const colKey = visibleColumns.value[selection.startCol]?.key;
-        if (colKey) updateCellFromItem(selection.startRow, colKey, '');
+        const col = visibleColumns.value[selection.startCol];
+        if (col && !['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating', 'color', 'tag'].includes(col.type || '')) {
+          updateCellFromItem(selection.startRow, col.key, '');
+        }
       } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
         if (selection.startRow !== -1) { e.preventDefault(); startEditing(selection.startRow, selection.startCol, e.key); }
       }
