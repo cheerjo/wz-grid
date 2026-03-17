@@ -22,8 +22,9 @@ export function useFilter(
   const isFilterActive = (key: string): boolean => {
     const f = filters[key];
     if (!f) return false;
-    if ('values' in f) return (f.values as any[]).length > 0;
-    if ('value' in f) return String(f.value ?? '') !== '';
+    // values 배열이 비어 있어도 value 텍스트 검색이 활성일 수 있으므로 둘 다 확인
+    if ('values' in f && (f.values as any[]).length > 0) return true;
+    if ('value' in f && String(f.value ?? '') !== '') return true;
     if ('min' in f || 'max' in f) return String(f.min ?? '') !== '' || String(f.max ?? '') !== '';
     if ('from' in f || 'to' in f) return String(f.from ?? '') !== '' || String(f.to ?? '') !== '';
     return false;

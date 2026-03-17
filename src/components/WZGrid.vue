@@ -56,6 +56,7 @@
             :eff-use-advanced-filter="effUseAdvancedFilter"
             :use-filter="useFilter"
             :is-all-checked="isAllChecked"
+            :is-indeterminate="isIndeterminate"
             :sort-configs="sortConfigs"
             :get-sort-entry="getSortEntry"
             :get-sort-index="getSortIndex"
@@ -219,8 +220,15 @@
         </table>
       </div>
 
-      <!-- ── 푸터 집계 행 ───────────────────────────────────────────────── -->
-      <div v-if="showFooter" class="sticky bottom-0 z-20 bg-blue-50 border-t-2 border-blue-300 shadow-[0_-1px_3px_rgba(0,0,0,0.08)]" style="min-width: max-content">
+    </div>
+
+    <!-- ── 푸터 집계 행 ───────────────────────────────────────────────── -->
+    <div
+      v-if="showFooter"
+      ref="footerEl"
+      class="wz-grid-footer overflow-hidden bg-blue-50 border-t-2 border-blue-300 shadow-[0_-1px_3px_rgba(0,0,0,0.08)] flex-shrink-0"
+    >
+      <div style="min-width: max-content">
         <table class="table-fixed border-separate border-spacing-0">
           <tbody>
             <tr>
@@ -422,6 +430,7 @@ export default defineComponent({
   setup(props, { emit, slots }) {
     const hasToolbarSlot = computed(() => !!slots.toolbar);
     const containerEl = ref<HTMLElement | null>(null);
+    const footerEl    = ref<HTMLElement | null>(null);
 
     // ── 라이선스 ───────────────────────────────────────────────────────
     const licenseTier  = computed(() => validateLicense(props.licenseKey));
@@ -464,7 +473,6 @@ export default defineComponent({
       if (props.groupBy)                                       warnPro('groupBy');
       if ((props.autoMergeCols?.length ?? 0) > 0)             warnPro('autoMergeCols');
       if (props.mergeCells !== null)                           warnPro('mergeCells');
-      if (props.useFilter)                                     warnPro('advancedFilter');
       if (props.serverSide || props.useServerSide)             warnPro('useServerSide');
       if (hasDetailSlot.value)                                 warnPro('detail');
     }, { immediate: true });
@@ -650,7 +658,13 @@ export default defineComponent({
 
     const topPadding    = computed(() => hasActiveMerge.value ? 0 : _vs.topPadding.value);
     const bottomPadding = computed(() => hasActiveMerge.value ? 0 : _vs.bottomPadding.value);
-    const onScroll      = _vs.onScroll;
+    const onScroll      = (e: Event) => {
+      _vs.onScroll(e);
+      // 푸터 수평 스크롤 동기화
+      if (footerEl.value && containerEl.value) {
+        footerEl.value.scrollLeft = containerEl.value.scrollLeft;
+      }
+    };
 
     const visibleRowsRange = computed(() => {
       if (hasActiveMerge.value) return Array.from({ length: pagedItems.value.length }, (_, i) => i);
@@ -672,7 +686,7 @@ export default defineComponent({
     const asSubtotal    = (idx: number) => getItem(idx) as SubtotalItem;
 
     // ── 6. 체크박스 ────────────────────────────────────────────────────
-    const { checkedIds, isAllChecked, checkedCount, isRowChecked, toggleAll, toggleRow, headerCheckboxEl } = useCheckbox(
+    const { checkedIds, isAllChecked, isIndeterminate, checkedCount, isRowChecked, toggleAll, toggleRow } = useCheckbox(
       () => filteredRows.value,
       () => props.rows,
       (checked) => emit('update:checked', checked)
@@ -1043,7 +1057,7 @@ export default defineComponent({
       rowDragSrcIdx, rowDragOverIdx, rowDragOverPos,
       onRowDragStart, onRowDragOver, onRowDrop, onRowDragEnd,
       // grid
-      topPadding, bottomPadding, onScroll, visibleRowsRange, filteredRows,
+      topPadding, bottomPadding, onScroll, visibleRowsRange, filteredRows, footerEl,
       isSelected, startSelection, updateSelection, endSelection,
       onCopy, onPaste,
       // editing
@@ -1058,7 +1072,7 @@ export default defineComponent({
       // paging
       totalPages, setPage,
       // checkbox
-      headerCheckboxEl, isAllChecked, checkedCount, isRowChecked, toggleAll, toggleRow,
+      isAllChecked, isIndeterminate, checkedCount, isRowChecked, toggleAll, toggleRow,
       // footer
       footerValues,
       // tree

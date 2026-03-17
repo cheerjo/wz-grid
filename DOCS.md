@@ -486,7 +486,18 @@ Pro 라이선스가 활성화되면 컬럼 타입에 따라 고급 필터 UI가 
 />
 ```
 
-**Community 모드 폴백:** Pro 라이선스 없이 `useFilter`만 활성화하면 모든 컬럼에서 기본 텍스트 입력 필터가 제공됩니다.
+**Community 모드 폴백:** Pro 라이선스 없이 `useFilter`만 활성화하면 컬럼 타입에 맞는 기본 필터 UI가 제공됩니다:
+
+| 컬럼 타입 | Community 필터 UI |
+|:----------|:-----------------|
+| `text`, `link`, `radio`, 기타 | 텍스트 입력 (부분 일치) |
+| `number` | 최소~최대 범위 숫자 입력 |
+| `date` | 시작일~종료일 날짜 입력 |
+| `select`, `badge` | 텍스트 입력 (값 부분 일치 검색) |
+| `boolean` | 전체/예/아니요 드롭다운 |
+| `image`, `button`, `progress` | 필터 없음 |
+
+> Community 모드에서는 `useFilter`를 사용해도 Pro 경고가 출력되지 않습니다. `groupBy`, `autoMergeCols` 등 실제 Pro 전용 기능에만 경고가 출력됩니다.
 
 ---
 
@@ -1270,6 +1281,8 @@ const treeRows = [
 
 `showFooter="true"` 설정 시 그리드 하단에 집계 행이 고정 표시됩니다.
 각 컬럼의 `footer` 필드로 집계 방식을 지정합니다.
+
+> 푸터 행은 스크롤 컨테이너 외부에 독립적으로 렌더링되며, 본문 수평 스크롤 시 자동으로 동기화됩니다.
 
 ```ts
 const columns = [

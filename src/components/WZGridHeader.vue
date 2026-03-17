@@ -163,8 +163,38 @@
 
         <!-- ── Community 기본 텍스트 필터 ── -->
         <template v-else>
+          <!-- number: min ~ max -->
+          <div v-if="col.type === 'number'" class="flex items-center gap-0.5">
+            <input v-model="filters[col.key].min" type="number" placeholder="최소" class="filter-input" />
+            <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
+            <input v-model="filters[col.key].max" type="number" placeholder="최대" class="filter-input" />
+          </div>
+
+          <!-- date: from / to -->
+          <div v-else-if="col.type === 'date'" class="flex flex-col gap-0.5">
+            <input v-model="filters[col.key].from" type="date" class="filter-input" style="font-size:10px;" />
+            <input v-model="filters[col.key].to"   type="date" class="filter-input" style="font-size:10px;" />
+          </div>
+
+          <!-- select / badge: 단순 텍스트 검색 (value 기반) -->
           <input
-            v-if="col.type !== 'image' && col.type !== 'button' && col.type !== 'progress'"
+            v-else-if="col.type === 'select' || col.type === 'badge'"
+            v-model="filters[col.key].value"
+            type="text"
+            placeholder="검색..."
+            class="filter-input"
+          />
+
+          <!-- boolean -->
+          <select v-else-if="col.type === 'boolean'" v-model="filters[col.key].value" class="filter-input">
+            <option value="">전체</option>
+            <option value="true">예</option>
+            <option value="false">아니요</option>
+          </select>
+
+          <!-- text / link / radio / 기타 (편집 불가 타입 제외) -->
+          <input
+            v-else-if="col.type !== 'image' && col.type !== 'button' && col.type !== 'progress'"
             v-model="filters[col.key].value"
             type="text"
             placeholder="검색..."
@@ -187,7 +217,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue-demi';
+import { defineComponent, PropType, ref, watchEffect } from 'vue-demi';
 import type { Column, SortConfig } from '../types/grid';
 
 export default defineComponent({
@@ -200,6 +230,7 @@ export default defineComponent({
     effUseAdvancedFilter:  { type: Boolean, required: true },
     useFilter:             { type: Boolean, required: true },
     isAllChecked:          { type: Boolean, required: true },
+    isIndeterminate:       { type: Boolean, default: false },
     sortConfigs:           { type: Array as PropType<SortConfig[]>, required: true },
     getSortEntry:          { type: Function as PropType<(key: string) => SortConfig | undefined>, required: true },
     getSortIndex:          { type: Function as PropType<(key: string) => number>, required: true },
@@ -213,6 +244,15 @@ export default defineComponent({
     checkboxWidth:         { type: Number, required: true },
     rowDragWidth:          { type: Number, required: true },
     detailExpandWidth:     { type: Number, required: true },
+  },
+  setup(props) {
+    const headerCheckboxEl = ref<HTMLInputElement | null>(null);
+    watchEffect(() => {
+      if (headerCheckboxEl.value) {
+        headerCheckboxEl.value.indeterminate = props.isIndeterminate;
+      }
+    });
+    return { headerCheckboxEl };
   },
   emits: [
     'toggle-all',

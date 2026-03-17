@@ -36,10 +36,5 @@ export function useCheckbox(
 
   watch(() => getAllRows(), () => { checkedIds.value = new Set(); }, { deep: false });
 
-  const headerCheckboxEl = ref<HTMLInputElement | null>(null);
-  watchEffect(() => {
-    if (headerCheckboxEl.value) headerCheckboxEl.value.indeterminate = isIndeterminate.value;
-  });
-
-  return { checkedIds, isAllChecked, checkedCount, isRowChecked, toggleAll, toggleRow, headerCheckboxEl };
+  return { checkedIds, isAllChecked, isIndeterminate, checkedCount, isRowChecked, toggleAll, toggleRow };
 }
