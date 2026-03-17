@@ -111,7 +111,7 @@
           ref="editInput" :value="editValue" type="date"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
           @blur="$emit('stop-editing', true)" @keydown.enter="$emit('stop-editing', true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
-          @input="$emit('update:editValue', ($event.target as HTMLInputElement).value)"
+          @input="$emit('update:editValue', getEventValue($event))"
           @change="$emit('stop-editing', true)"
         />
         <input
@@ -119,7 +119,7 @@
           ref="editInput" :value="editValue" type="datetime-local"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
           @blur="$emit('stop-editing', true)" @keydown.enter="$emit('stop-editing', true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
-          @input="$emit('update:editValue', ($event.target as HTMLInputElement).value)"
+          @input="$emit('update:editValue', getEventValue($event))"
           @change="$emit('stop-editing', true)"
         />
         <input
@@ -128,9 +128,9 @@
           :type="col.type === 'number' || col.type === 'currency' ? 'number' : col.type === 'email' ? 'email' : 'text'"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
           @blur="$emit('stop-editing', true)" @keydown.enter="$emit('stop-editing', true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
-          @input="$emit('update:editValue', ($event.target as HTMLInputElement).value); $emit('handle-input', col)"
+          @input="$emit('update:editValue', getEventValue($event)); $emit('handle-input', col)"
         />
-        <select v-else-if="col.type === 'select'" ref="editInput" :value="editValue" class="w-full h-full px-1 text-sm border-2 border-blue-500 outline-none" @blur="$emit('stop-editing', true)" @change="$emit('update:editValue', ($event.target as HTMLSelectElement).value); $emit('stop-editing', true)" @mousedown.stop>
+        <select v-else-if="col.type === 'select'" ref="editInput" :value="editValue" class="w-full h-full px-1 text-sm border-2 border-blue-500 outline-none" @blur="$emit('stop-editing', true)" @change="$emit('update:editValue', getEventValue($event)); $emit('stop-editing', true)" @mousedown.stop>
           <option v-for="opt in col.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
         </select>
       </div>
@@ -230,7 +230,7 @@
             <input
               type="color"
               :value="row?.[col.key] || '#000000'"
-              @change="(e: Event) => { $emit('update-cell-from-item', itemIdx, col.key, (e.target as HTMLInputElement).value) }"
+              @change="(e) => { $emit('update-cell-from-item', itemIdx, col.key, getEventValue(e)) }"
               class="w-6 h-6 rounded cursor-pointer border-0 p-0 bg-transparent"
               style="min-width:1.5rem"
             />
@@ -410,7 +410,12 @@ export default defineComponent({
       return `${sym}${formatted}`;
     };
 
-    return { editInput, renderParentSlot, formatCurrency, formatDatetime };
+    const getEventValue = (e: any): any => {
+      const target = e.target as HTMLInputElement | HTMLSelectElement;
+      return target ? target.value : '';
+    };
+
+    return { editInput, renderParentSlot, formatCurrency, formatDatetime, getEventValue };
   },
 });
 </script>

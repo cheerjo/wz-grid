@@ -246,7 +246,11 @@ const makeRow = (i: number) => ({
 
 const rows = ref(Array.from({ length: 12 }, (_, i) => makeRow(i + 1)));
 
-// ── 이벤트 로그 ───────────────────────────────────────────────────────────
+interface RowData {
+  id: number;
+  [key: string]: any;
+}
+
 interface LogEntry {
   time: string;
   col: string;
@@ -271,7 +275,7 @@ const formatLogValue = (v: unknown): string => {
 const checkedRows = ref<any[]>([]);
 
 const handleCellUpdate = ({ row, colKey, value }: { row: any; colKey: string; value: unknown }) => {
-  const target = rows.value.find(r => r.id === row.id);
+  const target = rows.value.find(r => r.id === row.id) as RowData | undefined;
   if (!target) return;
 
   const col = columns.find(c => c.key === colKey);

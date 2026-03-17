@@ -224,7 +224,7 @@
 
           <!-- text / link / radio / 기타 (편집 불가 타입 및 별도 처리 타입 제외) -->
           <input
-            v-else-if="col.type !== 'image' && col.type !== 'button' && col.type !== 'progress' && col.type !== 'rating' && col.type !== 'datetime'"
+            v-else-if="col.type !== 'image' && col.type !== 'button' && col.type !== 'progress'"
             v-model="filters[col.key].value"
             type="text"
             placeholder="검색..."
