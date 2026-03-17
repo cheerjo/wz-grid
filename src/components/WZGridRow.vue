@@ -226,19 +226,20 @@
           </div>
         </template>
         <template v-else-if="col.type === 'color'">
-          <div class="flex items-center gap-2 w-full overflow-hidden">
-            <span
-              class="w-4 h-4 rounded-sm flex-shrink-0 border border-gray-300 shadow-sm"
-              :style="{ backgroundColor: row?.[col.key] || 'transparent' }"
-            ></span>
-            <span class="truncate text-sm font-mono text-gray-600">{{ row?.[col.key] || '' }}</span>
+          <div class="flex items-center gap-2 w-full overflow-hidden" @mousedown.stop>
+            <input
+              type="color"
+              :value="row?.[col.key] || '#000000'"
+              @change="(e: Event) => { $emit('update-cell-from-item', itemIdx, col.key, (e.target as HTMLInputElement).value) }"
+              class="w-6 h-6 rounded cursor-pointer border-0 p-0 bg-transparent"
+              style="min-width:1.5rem"
+            />
+            <span class="truncate text-xs font-mono text-gray-600">{{ row?.[col.key] }}</span>
           </div>
         </template>
         <template v-else-if="col.type === 'email'">
           <div class="flex items-center w-full overflow-hidden" @mousedown.stop>
-            <a :href="row?.[col.key] ? 'mailto:' + row[col.key] : undefined" class="text-blue-600 hover:underline truncate text-sm">
-              {{ row?.[col.key] || '' }}
-            </a>
+            <a :href="row?.[col.key] ? 'mailto:' + row?.[col.key] : undefined" class="text-blue-600 hover:underline truncate text-sm">{{ row?.[col.key] }}</a>
           </div>
         </template>
         <template v-else-if="col.type === 'radio'">
