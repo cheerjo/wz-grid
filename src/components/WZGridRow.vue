@@ -265,9 +265,8 @@
           </span>
         </template>
         <template v-else-if="col.type === 'sparkline'">
-          <span v-if="!isProLicense" class="text-xs text-gray-400">🔒 Pro</span>
           <svg
-            v-else-if="Array.isArray(row?.[col.key]) && row[col.key].length >= 2"
+            v-if="Array.isArray(row?.[col.key]) && row[col.key].length >= 2"
             :viewBox="'0 0 100 ' + (col.sparklineHeight || 32)"
             preserveAspectRatio="none"
             class="w-full"
@@ -338,8 +337,6 @@ export default defineComponent({
     editingColIdx:      { type: Number, default: -1 },
     // 부모의 $slots 참조 — cell-* 슬롯 포워딩용
     parentSlots:        { type: Object as PropType<Record<string, any> | null>, default: null },
-    // Pro 라이선스 여부 — sparkline 등 Pro 전용 셀 렌더링에 사용
-    isProLicense:       { type: Boolean, default: false },
   },
   emits: [
     'row-click',

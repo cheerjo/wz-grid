@@ -7,9 +7,7 @@
 | `columns` | `Column[]` | 컬럼 정의 배열 |
 | `rows` | `any[]` | 행 데이터 배열. 각 객체는 `id` 필드 필요 |
 
-## Community Props
-
-모든 티어에서 사용 가능한 Props입니다.
+## Props
 
 | Prop | 타입 | 기본값 | 설명 |
 | :--- | :--- | :---: | :--- |
@@ -28,14 +26,6 @@
 | `childrenKey` | `string` | `'children'` | 자식 행 배열 필드명 |
 | `rowClass` | `(row, rowIndex) => any` | `null` | 행에 동적 CSS 클래스를 적용하는 함수 |
 | `cellClass` | `(row, column, rowIndex) => any` | `null` | 셀에 동적 CSS 클래스를 적용하는 함수 |
-
-## Pro Props <Badge type="warning" text="Pro" />
-
-`licenseKey`에 유효한 Pro/Enterprise 키를 전달해야 동작합니다.
-
-| Prop | 타입 | 기본값 | 설명 |
-| :--- | :--- | :---: | :--- |
-| `licenseKey` | `string` | `''` | Pro/Enterprise 라이선스 키 |
 | `showColumnSettings` ⚠️ | `boolean` | `false` | 컬럼 표시/숨기기 설정 버튼 표시. `useColumnSettings` 사용 권장 |
 | `useColumnSettings` | `boolean` | `false` | 컬럼 표시/숨기기 설정 버튼 표시 (`showColumnSettings`의 권장 alias) |
 | `useContextMenu` | `boolean` | `false` | 우클릭 컨텍스트 메뉴 사용 |
@@ -51,8 +41,5 @@
 | `totalRows` | `number` | `0` | 서버사이드 모드에서 전체 행 수. 페이징 UI 계산에 사용 |
 
 ::: tip
-Pro Props는 `licenseKey` 없이 전달해도 오류는 나지 않지만, 해당 기능이 비활성화됩니다.
-Excel 버튼 클릭 시에는 업그레이드 안내 모달이 표시됩니다.
-
 ⚠️ 표시된 prop은 deprecated이며, 권장 이름으로 대체 예정입니다. 두 이름 모두 동작하며, 둘 중 하나라도 `true`이면 기능이 활성화됩니다.
 :::

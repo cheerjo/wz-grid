@@ -4,10 +4,6 @@
     <!-- ── 기능 토글 컨트롤 패널 ─────────────────────────────────────────── -->
     <div class="flex flex-wrap items-center gap-2">
 
-      <!-- Community 기능 -->
-      <div class="flex items-center gap-1.5 mr-1">
-        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Community</span>
-      </div>
       <button
         @click="pagingEnabled = !pagingEnabled"
         :class="pagingEnabled ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300'"
@@ -29,45 +25,27 @@
 
       <div class="w-px h-5 bg-gray-300 mx-1" />
 
-      <!-- Pro 기능 -->
-      <div class="flex items-center gap-1.5 mr-1">
-        <span class="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Pro</span>
-        <span v-if="!isProUser" class="text-[10px] text-gray-400">(잠김 🔒)</span>
-      </div>
-
       <!-- 그룹핑 선택 -->
-      <div class="relative">
-        <select
-          v-model="groupByKey"
-          :disabled="!isProUser || mergeEnabled"
-          class="bg-white border rounded px-2 py-1.5 text-xs outline-none transition-colors"
-          :class="isProUser ? 'border-gray-300 focus:ring-1 focus:ring-blue-400 text-gray-700' : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'"
-        >
-          <option value="">그룹 없음</option>
-          <option value="status">그룹: 상태</option>
-          <option value="dept">그룹: 부서</option>
-          <option value="gender">그룹: 성별</option>
-          <option value="active">그룹: 재직</option>
-        </select>
-        <span v-if="!isProUser" class="absolute -top-1.5 -right-1.5 text-[10px]">🔒</span>
-      </div>
+      <select
+        v-model="groupByKey"
+        :disabled="mergeEnabled"
+        class="bg-white border border-gray-300 rounded px-2 py-1.5 text-xs outline-none transition-colors focus:ring-1 focus:ring-blue-400 text-gray-700"
+      >
+        <option value="">그룹 없음</option>
+        <option value="status">그룹: 상태</option>
+        <option value="dept">그룹: 부서</option>
+        <option value="gender">그룹: 성별</option>
+        <option value="active">그룹: 재직</option>
+      </select>
 
       <!-- 셀 병합 -->
-      <div class="relative">
-        <button
-          @click="isProUser && toggleMerge()"
-          :disabled="!isProUser"
-          :class="[
-            isProUser
-              ? mergeEnabled ? 'bg-purple-500 hover:bg-purple-600 text-white border-purple-500' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300'
-              : 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
-          ]"
-          class="px-3 py-1.5 rounded border shadow-sm text-xs font-semibold transition-colors"
-        >
-          셀 병합 {{ mergeEnabled ? 'ON' : 'OFF' }}
-        </button>
-        <span v-if="!isProUser" class="absolute -top-1.5 -right-1.5 text-[10px]">🔒</span>
-      </div>
+      <button
+        @click="toggleMerge()"
+        :class="mergeEnabled ? 'bg-purple-500 hover:bg-purple-600 text-white border-purple-500' : 'bg-white hover:bg-gray-50 text-gray-600 border-gray-300'"
+        class="px-3 py-1.5 rounded border shadow-sm text-xs font-semibold transition-colors"
+      >
+        셀 병합 {{ mergeEnabled ? 'ON' : 'OFF' }}
+      </button>
     </div>
 
     <!-- 컬럼 타입 범례 -->
@@ -90,44 +68,17 @@
         <div class="flex items-center gap-2 flex-wrap">
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-semibold">정렬/필터 ✓</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-semibold">인쇄/CSV ✓</span>
-          <span
-            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
-            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-          >그룹핑 {{ isProUser ? '✓' : '🔒' }}</span>
-          <span
-            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
-            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-          >셀 병합 {{ isProUser ? '✓' : '🔒' }}</span>
-          <span
-            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
-            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-          >행 드래그 {{ isProUser ? '✓' : '🔒' }}</span>
-          <span
-            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
-            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-          >컬럼 설정 {{ isProUser ? '✓' : '🔒' }}</span>
-          <span
-            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
-            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-          >컨텍스트 메뉴 {{ isProUser ? '✓' : '🔒' }}</span>
-          <span
-            :class="isProUser ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400 line-through'"
-            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-          >Excel {{ isProUser ? '✓' : '🔒' }}</span>
-          <span
-            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
-            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-          >고급 필터 {{ isProUser ? '✓' : '🔒' }}</span>
-          <span
-            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
-            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-          >마스터-디테일 {{ isProUser ? '✓' : '🔒' }}</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">그룹핑 ✓</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">셀 병합 ✓</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">행 드래그 ✓</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">컬럼 설정 ✓</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">컨텍스트 메뉴 ✓</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold">Excel ✓</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">고급 필터 ✓</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">마스터-디테일 ✓</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">셀 슬롯 ✓</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">행 스타일 ✓</span>
-          <span
-            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
-            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-          >Sparkline {{ isProUser ? '✓' : '🔒' }}</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">Sparkline ✓</span>
         </div>
       </div>
 
@@ -213,7 +164,6 @@
           :showDelete="true"
           :showColumnSettings="true"
           :showExcelExport="true"
-          :licenseKey="licenseKey"
           excelFilename="wz-grid-demo.xlsx"
           :useContextMenu="true"
           :useRowDrag="true"
@@ -324,10 +274,6 @@ import WZGrid from '../components/WZGrid.vue';
 import type { Column, SortConfig } from '../types/grid';
 import { downloadCSV } from '../utils/tsv';
 import { printGrid } from '../utils/print';
-import { injectLicense } from './shared/useLicense';
-
-// ── 라이선스 (App.vue에서 provide된 컨텍스트를 inject) ──────────────────────
-const { licenseKey, isProUser } = injectLicense();
 
 // ── 기능 토글 상태 ──────────────────────────────────────────────────────────
 const pagingEnabled   = ref(true);
@@ -424,7 +370,7 @@ const baseColumns = computed<Column[]>(() => [
     key: 'action', title: '관리 [button]', width: w('action', 110), type: 'button', align: 'center',
     options: [{ label: '상세보기' }]
   },
-]);
+] as Column[]);
 
 const columns = computed<Column[]>(() => {
   if (columnOrder.value.length === 0) return baseColumns.value;

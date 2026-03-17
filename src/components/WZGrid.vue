@@ -15,7 +15,6 @@
       :show-add="showAdd"
       :show-delete="showDelete"
       :eff-show-excel-export="effShowExcelExport"
-      :is-pro-license="isProLicense"
       :checked-count="checkedCount"
       :has-toolbar-slot="hasToolbarSlot"
       @toggle-col-settings="colSettingsOpen = !colSettingsOpen"
@@ -176,7 +175,6 @@
                 :editing-row-id="editing.rowId"
                 :editing-col-idx="editing.colIdx"
                 :parent-slots="$slots"
-                :is-pro-license="isProLicense"
                 @row-click="onRowClick"
                 @row-drag-over="onRowDragOver"
                 @row-drop="onRowDrop"
@@ -285,67 +283,12 @@
     @delete-row="ctxDeleteRow"
   />
 
-  <!-- ── Pro 업그레이드 모달 ────────────────────────────────────────── -->
-  <teleport to="body">
-    <div
-      v-if="showProModal"
-      class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      @click.self="showProModal = false"
-    >
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
-        <!-- 헤더 -->
-        <div class="bg-gradient-to-r from-amber-400 to-orange-500 px-6 py-5 text-white text-center">
-          <div class="text-3xl mb-1">&#11088;</div>
-          <h2 class="text-lg font-bold">Pro 기능</h2>
-          <p class="text-sm opacity-90 mt-1">이 기능은 Pro 라이선스가 필요합니다</p>
-        </div>
-        <!-- 본문 -->
-        <div class="px-6 py-5">
-          <ul class="space-y-2 mb-5">
-            <li class="flex items-center gap-2 text-sm text-gray-700">
-              <span class="text-green-500 font-bold">&#10003;</span> Excel(.xlsx) 내보내기
-            </li>
-            <li class="flex items-center gap-2 text-sm text-gray-700">
-              <span class="text-green-500 font-bold">&#10003;</span> 고급 그룹핑 &amp; 소계
-            </li>
-            <li class="flex items-center gap-2 text-sm text-gray-700">
-              <span class="text-green-500 font-bold">&#10003;</span> 셀 병합
-            </li>
-            <li class="flex items-center gap-2 text-sm text-gray-700">
-              <span class="text-green-500 font-bold">&#10003;</span> 우선순위 기술 지원
-            </li>
-          </ul>
-          <p class="text-xs text-gray-500 mb-4">
-            라이선스 키를 <code class="bg-gray-100 px-1 rounded">licenseKey</code> prop으로 전달하세요.
-          </p>
-          <div class="flex gap-2">
-            <button
-              @click="showProModal = false"
-              class="flex-1 px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              닫기
-            </button>
-            <a
-              href="https://cheerjo.github.io/wz-grid/pricing"
-              target="_blank"
-              rel="noopener"
-              class="flex-1 px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-amber-400 to-orange-500 text-white text-center hover:opacity-90 transition-opacity"
-              @click="showProModal = false"
-            >
-              라이선스 구매 &rarr;
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </teleport>
 
 </template>
 
 <script lang="ts">
 import { defineComponent, computed, PropType, ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue-demi';
 import type { Column, SortConfig, GridItem, DataItem, GroupHeader, SubtotalItem, GridRow } from '../types/grid';
-import { validateLicense, isPro } from '../license';
 import { exportExcel } from '../utils/excel';
 import { useSelection }      from '../composables/useSelection';
 import { useClipboard }      from '../composables/useClipboard';
@@ -409,7 +352,6 @@ export default defineComponent({
     useRowDrag:         { type: Boolean, default: false },
     autoMergeCols:      { type: Array as PropType<string[]>, default: () => [] },
     mergeCells:         { type: Function as PropType<(row: any, colKey: string) => { rowspan?: number; colspan?: number } | null | void>, default: null },
-    licenseKey:         { type: String,  default: '' },
     /** @deprecated `useExcelExport`를 사용하세요. 하위 호환을 위해 유지됩니다. */
     showExcelExport:    { type: Boolean, default: false },
     /** showExcelExport의 통일된 네이밍 alias (권장). 두 prop 중 하나라도 true이면 활성화됩니다. */
@@ -433,50 +375,19 @@ export default defineComponent({
     const containerEl = ref<HTMLElement | null>(null);
     const footerEl    = ref<HTMLElement | null>(null);
 
-    // ── 라이선스 ───────────────────────────────────────────────────────
-    const licenseTier  = computed(() => validateLicense(props.licenseKey));
-    const isProLicense = computed(() => isPro(licenseTier.value));
-    const showProModal = ref(false);
-
-    // ── Pro 기능 게이팅 ────────────────────────────────────────────────
-    // warnPro: side-effect는 watch에서만 호출, computed는 순수하게 유지
-    const _warnedPro = new Set<string>();
-    const warnPro = (feature: string) => {
-      if (_warnedPro.has(feature)) return;
-      _warnedPro.add(feature);
-      console.warn(`[WZ-Grid] "${feature}" is a Pro feature. A valid licenseKey is required. https://cheerjo.github.io/wz-grid/pricing`);
-    };
-
-    // ── eff computed: 순수 계산만 수행 (side-effect 없음) ────────────
+    // ── eff computed: alias prop 병합 ────────────────────────────────
     // alias prop(useColumnSettings, useExcelExport, useServerSide)은 기존 prop과 || 로 병합됩니다.
-    const effShowColumnSettings = computed(() => (props.showColumnSettings || props.useColumnSettings) && isProLicense.value);
-    const effUseContextMenu     = computed(() => props.useContextMenu     && isProLicense.value);
-    const effUseRowDrag         = computed(() => props.useRowDrag         && isProLicense.value);
-    const effGroupBy            = computed(() => isProLicense.value ? props.groupBy : '');
-    const effAutoMergeCols      = computed((): string[] => isProLicense.value ? (props.autoMergeCols || []) : []);
-    const effMergeCells         = computed(() => isProLicense.value ? (props.mergeCells || null) : null);
-    // 버그 수정: props.useFilter가 false이면 고급 필터도 false
-    const effUseAdvancedFilter  = computed(() => {
-      if (!props.useFilter) return false;
-      return isProLicense.value;
-    });
-    const effServerSide         = computed(() => (props.serverSide || props.useServerSide) && isProLicense.value);
-    const effShowExcelExport    = computed(() => (props.showExcelExport || props.useExcelExport) && isProLicense.value);
+    const effShowColumnSettings = computed(() => props.showColumnSettings || props.useColumnSettings);
+    const effUseContextMenu     = computed(() => props.useContextMenu);
+    const effUseRowDrag         = computed(() => props.useRowDrag);
+    const effGroupBy            = computed(() => props.groupBy);
+    const effAutoMergeCols      = computed((): string[] => props.autoMergeCols || []);
+    const effMergeCells         = computed(() => props.mergeCells || null);
+    const effUseAdvancedFilter  = computed(() => props.useFilter);
+    const effServerSide         = computed(() => props.serverSide || props.useServerSide);
+    const effShowExcelExport    = computed(() => props.showExcelExport || props.useExcelExport);
     const hasDetailSlot         = computed(() => !!slots.detail);
-    const effUseDetail          = computed(() => hasDetailSlot.value && isProLicense.value);
-
-    // ── Pro 기능 사용 경고 (side-effect는 watch에서만) ────────────────
-    watch(isProLicense, (isValid) => {
-      if (isValid) return;
-      if (props.showColumnSettings || props.useColumnSettings) warnPro('useColumnSettings');
-      if (props.useContextMenu)                                warnPro('useContextMenu');
-      if (props.useRowDrag)                                    warnPro('useRowDrag');
-      if (props.groupBy)                                       warnPro('groupBy');
-      if ((props.autoMergeCols?.length ?? 0) > 0)             warnPro('autoMergeCols');
-      if (props.mergeCells !== null)                           warnPro('mergeCells');
-      if (props.serverSide || props.useServerSide)             warnPro('useServerSide');
-      if (hasDetailSlot.value)                                 warnPro('detail');
-    }, { immediate: true });
+    const effUseDetail          = computed(() => hasDetailSlot.value);
 
     // ── 정렬 (데이터 흐름 최상단: props.rows → sortedRows) ──────────────
     // serverSide=true이면 정렬을 수행하지 않고 원본 rows를 그대로 반환합니다.
@@ -700,7 +611,6 @@ export default defineComponent({
     };
 
     const handleExcelExport = () => {
-      if (!isProLicense.value) { showProModal.value = true; return; }
       exportExcel(props.columns as Column[], props.rows, {
         filename: props.excelFilename,
         checkedOnly: props.useCheckbox,
@@ -1035,9 +945,8 @@ export default defineComponent({
     return {
       containerEl,
       CHECKBOX_WIDTH, ROW_DRAG_WIDTH,
-      // license
-      isProLicense, showProModal, handleExcelExport,
-      // pro feature gates (template에서 사용)
+      handleExcelExport,
+      // eff computed (template에서 사용)
       effShowColumnSettings, effUseContextMenu, effUseRowDrag, effUseAdvancedFilter, effServerSide, effShowExcelExport,
       effUseDetail, expandedRowIds, DETAIL_EXPAND_WIDTH, toggleDetailExpand, isDetailExpanded,
       // toolbar

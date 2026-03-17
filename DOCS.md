@@ -16,12 +16,12 @@
 7. [가상 스크롤](#7-가상-스크롤)
 8. [정렬 (Sort)](#8-정렬-sort)
 9. [필터 (Filter)](#9-필터-filter)
-10. [컬럼 표시/숨기기 ★Pro](#10-컬럼-표시숨기기-pro)
+10. [컬럼 표시/숨기기](#10-컬럼-표시숨기기)
 11. [컬럼 드래그 재배치](#11-컬럼-드래그-재배치)
-12. [행 드래그 재배치 ★Pro](#12-행-드래그-재배치-pro)
-13. [그룹핑 & 소계 ★Pro](#13-그룹핑--소계-pro)
-14. [셀 병합 ★Pro](#14-셀-병합-pro)
-15. [컨텍스트 메뉴 ★Pro](#15-컨텍스트-메뉴-pro)
+12. [행 드래그 재배치](#12-행-드래그-재배치)
+13. [그룹핑 & 소계](#13-그룹핑--소계)
+14. [셀 병합](#14-셀-병합)
+15. [컨텍스트 메뉴](#15-컨텍스트-메뉴)
 16. [셀 선택 & 키보드 단축키](#16-셀-선택--키보드-단축키)
 17. [복사 / 붙여넣기 (Excel 연동)](#17-복사--붙여넣기-excel-연동)
 18. [데이터 검증 (Validation)](#18-데이터-검증-validation)
@@ -32,16 +32,15 @@
 23. [말줄임 & 툴팁](#23-말줄임--툴팁)
 24. [인쇄 (Print)](#24-인쇄-print)
 25. [CSV 내보내기](#25-csv-내보내기)
-26. [Excel 내보내기 (Pro)](#26-excel-내보내기-pro)
-27. [라이선스 키](#27-라이선스-키)
-28. [종합 예제](#28-종합-예제)
+26. [Excel 내보내기](#26-excel-내보내기)
+27. [종합 예제](#27-종합-예제)
 29. [내부 구조 (Architecture)](#29-내부-구조-architecture)
 30. [트리 구조 (Tree Grid)](#30-트리-구조-tree-grid)
 31. [푸터 집계 행](#31-푸터-집계-행)
 32. [셀 커스텀 렌더러 (Custom Cell Renderer)](#32-셀-커스텀-렌더러-custom-cell-renderer)
 33. [행 클릭 & 행/셀 스타일](#33-행-클릭--행셀-스타일)
-34. [서버사이드 모드 ★Pro](#34-서버사이드-모드-pro)
-35. [마스터-디테일 Row Expand ★Pro](#35-마스터-디테일-row-expand-pro)
+34. [서버사이드 모드](#34-서버사이드-모드)
+35. [마스터-디테일 Row Expand](#35-마스터-디테일-row-expand)
 
 ---
 
@@ -104,14 +103,13 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 | `showAdd` | — | `boolean` | `false` | 툴바에 기본 추가 버튼 표시 여부 |
 | `showDelete` | — | `boolean` | `false` | 툴바에 기본 삭제 버튼 표시 여부 |
 | `useFilter` | — | `boolean` | `false` | 컬럼별 필터 입력 행 표시 여부 |
-| `showColumnSettings` ⚠️ | `useColumnSettings` | `boolean` | `false` | ★Pro — 헤더 우측 컬럼 표시/숨기기 설정 버튼 표시 |
-| `groupBy` | — | `string` | `''` | ★Pro — 그룹핑 기준 컬럼 key. 빈 문자열이면 그룹핑 없음 |
-| `useContextMenu` | — | `boolean` | `false` | ★Pro — 우클릭 컨텍스트 메뉴 사용 여부 |
-| `useRowDrag` | — | `boolean` | `false` | ★Pro — 행 드래그 핸들 표시 및 재배치 기능 활성화 |
-| `autoMergeCols` | — | `string[]` | `[]` | ★Pro — 인접한 동일 값 셀을 자동 병합할 컬럼 key 목록 |
-| `mergeCells` | — | `(row, colKey) => { rowspan?, colspan? } \| null` | `null` | ★Pro — 셀별 병합 규칙을 반환하는 함수. 병합하지 않을 경우 `null` 반환 |
-| `licenseKey` | — | `string` | `''` | WZ-Grid 라이선스 키. Pro/Enterprise 기능 활성화에 필요 |
-| `showExcelExport` ⚠️ | `useExcelExport` | `boolean` | `false` | ★Pro — 툴바에 Excel 내보내기 버튼 표시 |
+| `showColumnSettings` ⚠️ | `useColumnSettings` | `boolean` | `false` | 헤더 우측 컬럼 표시/숨기기 설정 버튼 표시 |
+| `groupBy` | — | `string` | `''` | 그룹핑 기준 컬럼 key. 빈 문자열이면 그룹핑 없음 |
+| `useContextMenu` | — | `boolean` | `false` | 우클릭 컨텍스트 메뉴 사용 여부 |
+| `useRowDrag` | — | `boolean` | `false` | 행 드래그 핸들 표시 및 재배치 기능 활성화 |
+| `autoMergeCols` | — | `string[]` | `[]` | 인접한 동일 값 셀을 자동 병합할 컬럼 key 목록 |
+| `mergeCells` | — | `(row, colKey) => { rowspan?, colspan? } \| null` | `null` | 셀별 병합 규칙을 반환하는 함수. 병합하지 않을 경우 `null` 반환 |
+| `showExcelExport` ⚠️ | `useExcelExport` | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시 |
 | `excelFilename` | — | `string` | `'export.xlsx'` | Excel 내보내기 시 저장 파일명 |
 | `showFooter` | — | `boolean` | `false` | 그리드 하단에 집계 행 표시 여부. 컬럼별 `footer` 속성으로 집계 방식 지정 |
 | `useTree` | — | `boolean` | `false` | 트리(계층) 구조 모드 활성화. `rows`에 `children` 배열을 중첩해 사용 |
@@ -119,7 +117,7 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 | `childrenKey` | — | `string` | `'children'` | 자식 행 배열 필드명 |
 | `rowClass` | — | `(row, rowIndex) => any` | `null` | 행에 동적 CSS 클래스를 적용하는 함수 |
 | `cellClass` | — | `(row, column, rowIndex) => any` | `null` | 셀에 동적 CSS 클래스를 적용하는 함수 |
-| `serverSide` ⚠️ | `useServerSide` | `boolean` | `false` | ★Pro — 서버사이드 모드. 정렬/필터/페이징을 서버에 위임 |
+| `serverSide` ⚠️ | `useServerSide` | `boolean` | `false` | 서버사이드 모드. 정렬/필터/페이징을 서버에 위임 |
 | `totalRows` | — | `number` | `0` | 서버사이드 모드에서 전체 행 수 (페이징 UI에 사용) |
 
 > ⚠️ 표시된 prop은 deprecated이며, 권장 이름 컬럼의 alias로 대체 예정입니다.
@@ -153,7 +151,7 @@ interface Column {
   decimals?: number;       // 소수점 자릿수 (기본: 0)
   // rating 타입 전용 옵션
   maxRating?: number;      // 최대 별점 수 (기본: 5)
-  // sparkline 타입 전용 옵션 (Pro)
+  // sparkline 타입 전용 옵션
   sparklineColor?: string;  // 라인 색상 (기본: '#3b82f6')
   sparklineHeight?: number; // SVG 높이 px (기본: 32)
 }
@@ -167,7 +165,7 @@ interface Option {
 type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'select'
                 | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio'
                 | 'tag' | 'currency' | 'rating' | 'datetime' | 'color' | 'email'
-                | 'sparkline';  // Pro 전용 — 숫자 배열을 SVG 미니 라인 차트로 렌더링
+                | 'sparkline';  // 숫자 배열을 SVG 미니 라인 차트로 렌더링
 
 type Align = 'left' | 'center' | 'right';
 ```
@@ -355,10 +353,9 @@ CSS 색상 문자열을 색상 박스로 표시. 색상 피커 클릭 즉시 `@u
 { key: 'email', title: '이메일', type: 'email', width: 200 }
 ```
 
-### `sparkline` (Pro)
+### `sparkline`
 
-숫자 배열 데이터를 SVG polyline 미니 라인 차트로 렌더링합니다.
-**Pro 라이선스가 없으면 🔒 아이콘만 표시**됩니다. 편집 불가.
+숫자 배열 데이터를 SVG polyline 미니 라인 차트로 렌더링합니다. 편집 불가.
 
 | 옵션 | 타입 | 기본값 | 설명 |
 |:-----|:-----|:-------|:-----|
@@ -551,11 +548,9 @@ const handleSort = (configs: SortConfig[]) => {
 - 여러 컬럼에 동시에 필터 적용 가능 (AND 조건)
 - 필터 결과는 페이징과 연동되며, 필터 변경 시 1페이지로 자동 이동
 
-### 고급 필터 모드 (Pro)
+### 고급 필터 모드
 
-> **Pro 라이선스** 전용 기능입니다. 유효한 `licenseKey` 없이 사용하면 모든 컬럼에서 기본 텍스트 필터만 제공됩니다.
-
-Pro 라이선스가 활성화되면 컬럼 타입에 따라 고급 필터 UI가 자동으로 적용됩니다:
+컬럼 타입에 따라 고급 필터 UI가 자동으로 적용됩니다:
 
 | 컬럼 타입 | 필터 UI | 설명 |
 |:----------|:--------|:-----|
@@ -578,28 +573,12 @@ Pro 라이선스가 활성화되면 컬럼 타입에 따라 고급 필터 UI가 
   :columns="columns"
   :rows="rows"
   :useFilter="true"
-  :licenseKey="myLicenseKey"
 />
 ```
 
-**Community 모드 폴백:** Pro 라이선스 없이 `useFilter`만 활성화하면 컬럼 타입에 맞는 기본 필터 UI가 제공됩니다:
-
-| 컬럼 타입 | Community 필터 UI |
-|:----------|:-----------------|
-| `text`, `link`, `radio`, 기타 | 텍스트 입력 (부분 일치) |
-| `number` | 최소~최대 범위 숫자 입력 |
-| `date` | 시작일~종료일 날짜 입력 |
-| `select`, `badge` | 텍스트 입력 (값 부분 일치 검색) |
-| `boolean` | 전체/예/아니요 드롭다운 |
-| `image`, `button`, `progress` | 필터 없음 |
-
-> Community 모드에서는 `useFilter`를 사용해도 Pro 경고가 출력되지 않습니다. `groupBy`, `autoMergeCols` 등 실제 Pro 전용 기능에만 경고가 출력됩니다.
-
 ---
 
-## 10. 컬럼 표시/숨기기 (Pro)
-
-> **Pro 라이선스** 전용 기능입니다. 유효한 `licenseKey` 없이 `showColumnSettings="true"`를 설정하면 기능이 비활성화되고 콘솔 경고가 출력됩니다.
+## 10. 컬럼 표시/숨기기
 
 `showColumnSettings` prop을 `true`로 설정하면 헤더 영역 우측에 설정 아이콘이 나타납니다.
 
@@ -639,9 +618,7 @@ const handleReorderColumns = ({ srcKey, targetKey }: { srcKey: string; targetKey
 
 ---
 
-## 12. 행 드래그 재배치 (Pro)
-
-> **Pro 라이선스** 전용 기능입니다.
+## 12. 행 드래그 재배치
 
 `useRowDrag` prop을 `true`로 설정하면 각 행 좌측에 드래그 핸들(⠿)이 나타납니다.
 
@@ -668,9 +645,7 @@ const handleReorderRows = ({ from, to, position }: { from: any; to: any; positio
 
 ---
 
-## 13. 그룹핑 & 소계 (Pro)
-
-> **Pro 라이선스** 전용 기능입니다.
+## 13. 그룹핑 & 소계
 
 `groupBy` prop에 컬럼 key를 지정하면 해당 컬럼 값 기준으로 행을 그룹화합니다.
 
@@ -685,9 +660,7 @@ const handleReorderRows = ({ from, to, position }: { from: any; to: any; positio
 
 ---
 
-## 14. 셀 병합 (Pro)
-
-> **Pro 라이선스** 전용 기능입니다.
+## 14. 셀 병합
 
 ### 자동 병합 (`autoMergeCols`)
 
@@ -718,9 +691,7 @@ type MergeCell = {
 
 ---
 
-## 15. 컨텍스트 메뉴 (Pro)
-
-> **Pro 라이선스** 전용 기능입니다.
+## 15. 컨텍스트 메뉴
 
 `useContextMenu` prop을 `true`로 설정하면 행을 우클릭 시 컨텍스트 메뉴가 나타납니다.
 
@@ -1219,7 +1190,7 @@ src/
 > |:---|:-----|
 > | 종합 데모 | 페이징, 필터, 정렬, 그룹핑 등 주요 기능 종합 체험 |
 > | 트리 그리드 | 계층 데이터 트리 모드 & 펼치기/접기 |
-> | **컬럼 타입** | 편집 가능 7종 · 클릭 즉시 반영 4종 · 읽기 전용 6종 · Pro 전용 1종(sparkline), 총 18종 컬럼 타입 인터랙티브 데모 + 이벤트 로그 패널 |
+> | **컬럼 타입** | 편집 가능 7종 · 클릭 즉시 반영 4종 · 읽기 전용 7종(sparkline 포함), 총 18종 컬럼 타입 인터랙티브 데모 + 이벤트 로그 패널 |
 
 ### WZGrid 내부 데이터 흐름
 
@@ -1433,9 +1404,7 @@ const columns = [
 
 ---
 
-## 26. Excel 내보내기 (Pro)
-
-> **Pro 라이선스** 전용 기능입니다.
+## 26. Excel 내보내기
 
 툴바에 Excel 내보내기 버튼을 추가합니다. 버튼 클릭 시 현재 그리드 데이터를 `.xlsx` 파일로 저장합니다.
 
@@ -1443,7 +1412,6 @@ const columns = [
 <WZGrid
   :columns="columns"
   :rows="rows"
-  :license-key="myLicenseKey"
   :show-excel-export="true"
   excel-filename="report.xlsx"
   :use-checkbox="true"
@@ -1455,55 +1423,9 @@ const columns = [
 | `showExcelExport` | `true` 시 툴바에 Excel 버튼 표시 |
 | `excelFilename` | 저장 파일명 (기본: `export.xlsx`) |
 
-- 유효한 Pro 라이선스가 없으면 클릭 시 업그레이드 모달이 표시됩니다.
 - `useCheckbox: true` + 체크된 행이 있을 경우 → 체크된 행만 내보냅니다.
 - `image`, `button` 타입 컬럼은 자동으로 제외됩니다.
 - `select`, `badge`, `radio` 타입은 `options`의 `label` 값으로 변환됩니다.
-
----
-
-## 27. 라이선스 키
-
-WZ-Grid는 Community / Pro / Enterprise 3가지 티어를 제공합니다.
-
-```vue
-<WZGrid :license-key="'WZGRID-PRO-A1B2C3D4-XXXXXXX'" ... />
-```
-
-| 기능 | Community | Pro | Enterprise |
-|------|:---:|:---:|:---:|
-| 기본 그리드, 가상 스크롤 | ✓ | ✓ | ✓ |
-| 정렬, 필터, 페이징 | ✓ | ✓ | ✓ |
-| 체크박스, 셀 선택, 클립보드 | ✓ | ✓ | ✓ |
-| 인쇄, CSV 내보내기 | ✓ | ✓ | ✓ |
-| 트리 구조 (Tree Grid) | ✓ | ✓ | ✓ |
-| 푸터 집계 행 | ✓ | ✓ | ✓ |
-| 컬럼 설정 (표시/숨기기) | ✗ | ✓ | ✓ |
-| 컨텍스트 메뉴 | ✗ | ✓ | ✓ |
-| 행 드래그 재배치 | ✗ | ✓ | ✓ |
-| 그룹핑 & 소계 | ✗ | ✓ | ✓ |
-| 셀 병합 | ✗ | ✓ | ✓ |
-| Excel (.xlsx) 내보내기 | ✗ | ✓ | ✓ |
-| 고급 필터 (숫자 범위, 날짜 범위, 다중 선택) | ✗ | ✓ | ✓ |
-| 서버사이드 모드 | ✗ | ✓ | ✓ |
-| 마스터-디테일 Row Expand | ✗ | ✓ | ✓ |
-| 기술 지원 | 커뮤니티 | 이메일 | 전담 |
-| 소스코드 접근 | ✗ | ✗ | ✓ |
-
-라이선스 키는 오프라인 검증(FNV-1a 해시)으로 동작하며 외부 서버 통신이 없습니다.
-
-### Pro 기능 내부 강제 적용
-
-Pro 기능 prop을 `true`로 설정하더라도 유효한 `licenseKey`가 없으면 **WZGrid 컴포넌트 내부에서 자동으로 비활성화**됩니다.
-
-- 기능은 조용히 꺼지며 UI에 표시되지 않습니다.
-- 개발 콘솔에 한 번만 경고 메시지가 출력됩니다:
-  ```
-  [WZ-Grid] "useRowDrag" is a Pro feature. A valid licenseKey is required.
-  ```
-- 같은 기능에 대한 경고는 중복 출력되지 않습니다 (세션당 1회).
-
-대상 기능: `showColumnSettings`, `useContextMenu`, `useRowDrag`, `groupBy`, `autoMergeCols`, `mergeCells`, `advancedFilter`, `serverSide`, `detail`
 
 ---
 
@@ -1563,7 +1485,6 @@ Pro 기능 prop을 `true`로 설정하더라도 유효한 `licenseKey`가 없으
 
 - **편집 모드**: 셀이 편집 모드일 때는 커스텀 슬롯이 아닌 기존 편집 UI(input/select)가 표시됩니다.
 - **트리 모드**: 트리 컬럼(`treeKey`)에 커스텀 슬롯을 사용해도 접기/펼치기 토글 버튼은 독립적으로 유지됩니다.
-- **라이선스**: Community 기능이므로 라이선스 키 없이 사용 가능합니다.
 - **기존 타입과의 관계**: 슬롯이 제공되면 해당 컬럼의 `type`에 의한 기본 렌더링(badge, progress 등)은 무시됩니다.
 
 ---
@@ -1620,13 +1541,9 @@ const handleRowClick = ({ rowIdx, row }: { rowIdx: number; row: any }) => {
 />
 ```
 
-> `rowClass`와 `cellClass`는 Community 기능이므로 라이선스 키 없이 사용 가능합니다.
-
 ---
 
-## 34. 서버사이드 모드 (Pro)
-
-> **Pro 라이선스** 전용 기능입니다.
+## 34. 서버사이드 모드
 
 `serverSide` prop을 `true`로 설정하면 정렬, 필터링, 페이징을 클라이언트에서 처리하지 않고 이벤트를 통해 서버에 위임합니다.
 
@@ -1638,7 +1555,6 @@ const handleRowClick = ({ rowIdx, row }: { rowIdx: number; row: any }) => {
   :totalRows="serverTotalCount"
   :usePaging="true"
   :useFilter="true"
-  :licenseKey="myLicenseKey"
   v-model:currentPage="currentPage"
   v-model:pageSize="pageSize"
   @sort="handleServerSort"
@@ -1706,9 +1622,7 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ---
 
-## 35. 마스터-디테일 Row Expand (Pro)
-
-> **Pro 라이선스** 전용 기능입니다.
+## 35. 마스터-디테일 Row Expand
 
 `#detail` 스코프드 슬롯을 제공하면 각 행에 확장/축소 토글 버튼이 나타납니다. 행을 확장하면 해당 행 아래에 디테일 영역이 표시됩니다.
 
@@ -1716,7 +1630,6 @@ const handleServerFilter = (filters: Record<string, any>) => {
 <WZGrid
   :columns="columns"
   :rows="rows"
-  :licenseKey="myLicenseKey"
 >
   <template #detail="{ row, rowIndex }">
     <div class="grid grid-cols-2 gap-4 text-sm">
@@ -1744,7 +1657,7 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ### 동작
 
-- `#detail` 슬롯이 제공되고 Pro 라이선스가 유효하면, 각 데이터 행 왼쪽에 화살표(▶) 토글 버튼이 자동으로 표시됩니다.
+- `#detail` 슬롯이 제공되면 각 데이터 행 왼쪽에 화살표(▶) 토글 버튼이 자동으로 표시됩니다.
 - 버튼 클릭 시 행이 확장되어 디테일 영역이 나타나고, 다시 클릭하면 축소됩니다.
 - 확장된 행의 화살표는 90도 회전(▼)하여 확장 상태를 표시합니다.
 - 디테일 영역은 전체 컬럼 너비를 차지합니다.
@@ -1753,9 +1666,8 @@ const handleServerFilter = (filters: Record<string, any>) => {
 ### 주의사항
 
 - `#detail` 슬롯을 제공하지 않으면 확장 버튼이 표시되지 않습니다.
-- Pro 라이선스 없이 `#detail` 슬롯을 제공하면 슬롯이 무시되고 콘솔 경고가 출력됩니다.
 - 가상 스크롤, 페이징, 체크박스 등 기존 기능과 함께 사용 가능합니다.
 
 ---
 
-*최종 업데이트: 2026-03-17 — sparkline 컬럼 타입 추가 (Pro 기능): `ColumnType`에 `'sparkline'` 추가, Column 인터페이스에 `sparklineColor`/`sparklineHeight` 옵션 추가, WZGridRow에 `isProLicense` prop 추가 및 sparkline SVG 렌더링, WZGrid startEditing·Delete키 차단 목록에 `'sparkline'` 포함, mocks/data.ts에 `trend` 필드 추가, DemoBasic·DemoColumnTypes 데모 반영*
+*최종 업데이트: 2026-03-17 — 라이선스 시스템 제거, 전 기능 오픈소스 공개: `licenseKey` prop 제거, `eff*` computed에서 Pro 게이팅 제거, WZGridRow `isProLicense` prop 제거, sparkline 🔒 제거, Pro 모달 제거, `src/license.ts` 및 `src/demos/shared/useLicense.ts` 삭제*

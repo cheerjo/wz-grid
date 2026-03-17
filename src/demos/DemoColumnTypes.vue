@@ -5,16 +5,13 @@
     <div class="flex flex-wrap items-center gap-3 text-xs">
       <span class="font-bold text-gray-500 uppercase tracking-wide text-[10px]">편집 정책</span>
       <span class="px-2.5 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-200 font-semibold">
-        🖊 편집 가능 — text, number, currency, email, date, datetime, select
+        편집 가능 — text, number, currency, email, date, datetime, select
       </span>
       <span class="px-2.5 py-1 rounded-full border bg-green-50 text-green-700 border-green-200 font-semibold">
-        ⚡ 클릭 즉시 반영 — boolean, radio, rating, color
+        클릭 즉시 반영 — boolean, radio, rating, color
       </span>
       <span class="px-2.5 py-1 rounded-full border bg-gray-100 text-gray-500 border-gray-300 font-semibold">
-        🔒 읽기 전용 — badge, tag, progress, image, link, button
-      </span>
-      <span class="px-2.5 py-1 rounded-full border bg-amber-50 text-amber-700 border-amber-200 font-semibold">
-        Pro — sparkline
+        읽기 전용 — badge, tag, progress, image, link, button, sparkline
       </span>
     </div>
 
@@ -32,7 +29,6 @@
           :columns="columns"
           :rows="rows"
           :height="560"
-          :licenseKey="licenseKey"
           :useCheckbox="true"
           :useFilter="true"
           @update:cell="handleCellUpdate"
@@ -81,12 +77,8 @@
 import { ref } from 'vue';
 import WZGrid from '../components/WZGrid.vue';
 import type { Column } from '../types/grid';
-import { injectLicense } from './shared/useLicense';
 
-// ── 라이선스 ──────────────────────────────────────────────────────────────
-const { licenseKey } = injectLicense();
-
-// ── 컬럼 정의 (17종) ──────────────────────────────────────────────────────
+// ── 컬럼 정의 (18종) ──────────────────────────────────────────────────────
 const columns: Column[] = [
   // ── 편집 가능
   {
@@ -221,7 +213,7 @@ const columns: Column[] = [
   },
   {
     key: 'colSparkline',
-    title: 'sparkline 🔒Pro',
+    title: 'sparkline',
     type: 'sparkline',
     width: 120,
     sparklineColor: '#3b82f6',

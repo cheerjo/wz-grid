@@ -24,14 +24,6 @@ export default defineConfig({
       { text: '가이드', link: '/guide/getting-started' },
       { text: 'API', link: '/api/props' },
       { text: '데모', link: '/demo' },
-      {
-        text: '구매',
-        items: [
-          { text: 'Community (무료)', link: '/pricing' },
-          { text: 'Pro 라이선스', link: '/pricing' },
-          { text: 'Enterprise 문의', link: '/pricing' },
-        ],
-      },
     ],
 
     sidebar: {
@@ -59,13 +51,13 @@ export default defineConfig({
             { text: '셀 병합', link: '/guide/merge' },
             { text: '셀 커스텀 렌더러', link: '/guide/cell-slot' },
             { text: '행 클릭 & 스타일', link: '/guide/row-style' },
-            { text: '고급 필터 (Pro)', link: '/guide/advanced-filter' },
+            { text: '고급 필터', link: '/guide/advanced-filter' },
             { text: '컨텍스트 메뉴', link: '/guide/context-menu' },
-            { text: '서버사이드 모드 (Pro)', link: '/guide/server-side' },
-            { text: '마스터-디테일 (Pro)', link: '/guide/master-detail' },
+            { text: '서버사이드 모드', link: '/guide/server-side' },
+            { text: '마스터-디테일', link: '/guide/master-detail' },
             { text: '인쇄 & 내보내기', link: '/guide/export' },
-            { text: 'Excel 내보내기 (Pro)', link: '/guide/export#excel-내보내기' },
-            { text: '라이선스 키', link: '/guide/license' },
+            { text: 'Excel 내보내기', link: '/guide/export#excel-내보내기' },
+            { text: '라이선스', link: '/guide/license' },
           ],
         },
       ],
@@ -86,7 +78,7 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'Released under the Commercial License.',
+      message: 'Released under the MIT License.',
       copyright: 'Copyright © 2024 WZ-Grid',
     },
 

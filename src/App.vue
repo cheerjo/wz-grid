@@ -1,33 +1,12 @@
 <template>
   <div class="min-h-screen bg-gray-50 flex flex-col">
 
-    <!-- ── 상단: 타이틀 + 라이선스 입력 바 ─────────────────────────────── -->
+    <!-- ── 상단: 타이틀 ─────────────────────────────────────────────── -->
     <header class="bg-white border-b border-gray-200 shadow-sm">
       <div class="flex justify-between items-center flex-wrap gap-3 px-6 py-3">
         <div>
           <h1 class="text-xl font-bold text-gray-800">WZ-Grid Demo</h1>
           <p class="text-xs text-gray-500 mt-0.5">전체 기능 · 컬럼 타입 예제</p>
-        </div>
-
-        <!-- 라이선스 키 입력 -->
-        <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-          <span class="text-xs font-semibold text-gray-500 whitespace-nowrap">라이선스 키</span>
-          <input
-            v-model="licenseKey"
-            type="text"
-            placeholder="WZGRID-PRO-XXXXXXXX-XXXXXXX"
-            class="text-xs font-mono border border-gray-300 rounded px-2 py-1 w-64 outline-none focus:ring-1 focus:ring-blue-400"
-          />
-          <span
-            :class="licenseTierLabel.class"
-            class="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
-          >{{ licenseTierLabel.text }}</span>
-          <button
-            @click="applyDemoKey"
-            class="text-[10px] font-semibold px-2 py-1 bg-amber-400 hover:bg-amber-500 text-white rounded transition-colors whitespace-nowrap"
-          >
-            데모키 입력
-          </button>
         </div>
       </div>
 
@@ -58,11 +37,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { provideLicense } from './demos/shared/useLicense';
 import { demos } from './demos/index';
-
-// ── 라이선스 (provide → 하위 데모 컴포넌트에서 inject 가능) ─────────────────
-const { licenseKey, licenseTierLabel, applyDemoKey } = provideLicense();
 
 // ── 탭 정의 (demos 레지스트리 기반) ─────────────────────────────────────────
 const tabs = demos.map(d => ({ hash: `#${d.id}` as const, label: d.label }));
