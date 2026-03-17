@@ -17,6 +17,12 @@ npm run dev
 - **트리 그리드** (`#tree`): 계층형 데이터를 트리 뷰로 표시
 - **컬럼 타입** (`#column-types`): 19종 컬럼 타입 인터랙티브 데모
 
+## 라이브 데모
+
+<ClientOnly>
+  <DemoGettingStarted />
+</ClientOnly>
+
 ## 기본 예제
 
 ```vue

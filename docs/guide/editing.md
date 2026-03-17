@@ -1,5 +1,11 @@
 # 편집 & 검증
 
+## 라이브 데모
+
+<ClientOnly>
+  <DemoEditing />
+</ClientOnly>
+
 ## 셀 편집
 
 `text`, `number`, `date`, `datetime`, `select`, `currency`, `email`, `textarea` 타입 컬럼은 더블 클릭 또는 키 입력으로 편집 가능합니다.

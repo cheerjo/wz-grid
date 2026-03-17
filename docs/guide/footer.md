@@ -3,6 +3,12 @@
 `showFooter` prop을 활성화하면 그리드 하단에 집계 행이 표시됩니다.
 컬럼별로 `footer` 속성을 통해 집계 방식을 지정하며, 필터 결과에 실시간으로 반응합니다.
 
+## 라이브 데모
+
+<ClientOnly>
+  <DemoFooter />
+</ClientOnly>
+
 ## 기본 사용
 
 ```vue

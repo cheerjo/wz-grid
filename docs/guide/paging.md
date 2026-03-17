@@ -1,5 +1,11 @@
 # 페이징 & 가상 스크롤
 
+## 라이브 데모
+
+<ClientOnly>
+  <DemoPaging />
+</ClientOnly>
+
 ## 페이징
 
 `usePaging`을 `true`로 설정하면 하단에 페이징 UI가 나타납니다.

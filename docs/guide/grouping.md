@@ -1,5 +1,11 @@
 # 그룹핑 & 소계
 
+## 라이브 데모
+
+<ClientOnly>
+  <DemoGrouping />
+</ClientOnly>
+
 ## 그룹핑
 
 `groupBy` prop에 컬럼 key를 지정하면 해당 컬럼 값 기준으로 행을 그룹화합니다.

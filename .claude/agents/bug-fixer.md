@@ -72,6 +72,20 @@ For each changed file, systematically check:
 - [ ] No memory leaks from event listeners (onBeforeUnmount cleanup)
 - [ ] Keyboard/mouse handlers have proper guards
 
+### 8. Vue Template Parsing Errors
+Vue 템플릿 파서는 `:` 문자를 특별히 취급하므로, 템플릿 표현식 내에서 콜론이 포함된 코드는 파싱 에러를 유발한다. `[vue/no-parsing-error] Parsing error: Unexpected token :` 오류를 반드시 확인한다.
+
+**반드시 검출해야 하는 패턴:**
+- [ ] `:style` 또는 `:class` 내 삼항 연산자 (`:style="{ color: cond ? a : b }"` — 콜론이 객체 key-value와 삼항 연산자에서 중복되어 파서 혼동)
+- [ ] 템플릿 내 TypeScript 타입 어노테이션 (`(sum: number, item: any) =>` — 타입의 콜론을 파서가 해석 불가)
+- [ ] 템플릿 내 중첩 삼항 연산자 (`cond1 ? a : cond2 ? b : c`)
+- [ ] 인라인 객체 리터럴 내 복잡한 표현식
+
+**수정 방법:**
+- 복잡한 인라인 표현식 → `<script setup>`의 함수/computed로 추출
+- 타입 어노테이션은 템플릿이 아닌 script 영역에서만 사용
+- 삼항 연산자가 포함된 스타일 바인딩 → 헬퍼 함수로 추출 (예: `getTabStyle(tabId)`)
+
 ## Fix Application Rules
 
 When fixing bugs:

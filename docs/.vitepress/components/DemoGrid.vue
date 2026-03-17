@@ -6,16 +6,7 @@
         v-for="tab in tabs"
         :key="tab.id"
         @click="activeTab = tab.id"
-        :style="{
-          padding: '6px 16px',
-          borderRadius: '6px',
-          border: 'none',
-          cursor: 'pointer',
-          fontWeight: activeTab === tab.id ? 600 : 400,
-          background: activeTab === tab.id ? '#3b82f6' : '#e5e7eb',
-          color: activeTab === tab.id ? '#fff' : '#374151',
-          fontSize: '13px',
-        }"
+        :style="getTabStyle(tab.id)"
       >{{ tab.label }}</button>
     </div>
 
@@ -89,6 +80,17 @@
 import { ref } from 'vue';
 
 const activeTab = ref('basic');
+
+const getTabStyle = (tabId: string) => ({
+  padding: '6px 16px',
+  borderRadius: '6px',
+  border: 'none',
+  cursor: 'pointer',
+  fontWeight: activeTab.value === tabId ? 600 : 400,
+  background: activeTab.value === tabId ? '#3b82f6' : '#e5e7eb',
+  color: activeTab.value === tabId ? '#fff' : '#374151',
+  fontSize: '13px',
+});
 const tabs = [
   { id: 'basic',  label: '기본 기능' },
   { id: 'types',  label: '컬럼 타입' },

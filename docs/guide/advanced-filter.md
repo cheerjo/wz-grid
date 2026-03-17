@@ -2,6 +2,12 @@
 
 기본 텍스트 필터 외에 컬럼 타입에 맞는 전용 필터 UI를 제공합니다. `useFilter="true"` 설정 시 자동으로 고급 필터 모드가 활성화됩니다.
 
+## 라이브 데모
+
+<ClientOnly>
+  <DemoAdvancedFilter />
+</ClientOnly>
+
 ## 컬럼 타입별 필터 UI
 
 | 컬럼 타입 | 필터 UI | 설명 |

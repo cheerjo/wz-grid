@@ -1,5 +1,11 @@
 # 컬럼 설정
 
+## 라이브 데모
+
+<ClientOnly>
+  <DemoColumns />
+</ClientOnly>
+
 ## 컬럼 고정 (Pinned)
 
 `pinned: true`를 설정하면 해당 컬럼이 좌측에 고정(sticky)됩니다. 수평 스크롤 시에도 항상 화면에 표시됩니다.

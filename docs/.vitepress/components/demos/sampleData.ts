@@ -41,26 +41,26 @@ export const basicRows = [
 // 트리 구조 — 조직도 형태 (대표이사 > 팀장 > 팀원)
 export const treeRows = [
   {
-    name: '홍길동', role: '대표이사', dept: '경영진', salary: 120000000,
+    id: 1, name: '홍길동', role: '대표이사', dept: '경영진', salary: 120000000,
     children: [
       {
-        name: '김개발', role: '개발팀장', dept: '개발팀', salary: 80000000,
+        id: 2, name: '김개발', role: '개발팀장', dept: '개발팀', salary: 80000000,
         children: [
-          { name: '이주니어', role: '개발자',         dept: '개발팀', salary: 45000000 },
-          { name: '박시니어', role: '시니어 개발자',  dept: '개발팀', salary: 65000000 },
+          { id: 5, name: '이주니어', role: '개발자',         dept: '개발팀', salary: 45000000 },
+          { id: 6, name: '박시니어', role: '시니어 개발자',  dept: '개발팀', salary: 65000000 },
         ],
       },
       {
-        name: '최디자인', role: '디자인팀장', dept: '디자인팀', salary: 75000000,
+        id: 3, name: '최디자인', role: '디자인팀장', dept: '디자인팀', salary: 75000000,
         children: [
-          { name: '정UX', role: 'UX 디자이너', dept: '디자인팀', salary: 50000000 },
+          { id: 7, name: '정UX', role: 'UX 디자이너', dept: '디자인팀', salary: 50000000 },
         ],
       },
       {
-        name: '강마케팅', role: '마케팅팀장', dept: '마케팅팀', salary: 72000000,
+        id: 4, name: '강마케팅', role: '마케팅팀장', dept: '마케팅팀', salary: 72000000,
         children: [
-          { name: '오기획', role: '기획자',     dept: '마케팅팀', salary: 48000000 },
-          { name: '한홍보', role: '홍보 담당',  dept: '마케팅팀', salary: 44000000 },
+          { id: 8, name: '오기획', role: '기획자',     dept: '마케팅팀', salary: 48000000 },
+          { id: 9, name: '한홍보', role: '홍보 담당',  dept: '마케팅팀', salary: 44000000 },
         ],
       },
     ],

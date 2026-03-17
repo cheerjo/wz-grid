@@ -2,6 +2,12 @@
 
 `#detail` 스코프드 슬롯을 제공하면 각 행에 확장/축소 토글 버튼이 나타납니다. 행을 확장하면 해당 행 아래에 디테일 영역이 표시됩니다.
 
+## 라이브 데모
+
+<ClientOnly>
+  <DemoMasterDetail />
+</ClientOnly>
+
 ## 기본 사용법
 
 ```vue

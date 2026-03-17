@@ -2,6 +2,12 @@
 
 행 클릭 이벤트와 동적 스타일 적용 방법을 설명합니다.
 
+## 라이브 데모
+
+<ClientOnly>
+  <DemoRowStyle />
+</ClientOnly>
+
 ## @click:row 이벤트
 
 데이터 행을 클릭하면 `@click:row` 이벤트가 발생합니다.

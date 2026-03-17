@@ -1,5 +1,11 @@
 # 인쇄 & 내보내기
 
+## 라이브 데모
+
+<ClientOnly>
+  <DemoExport />
+</ClientOnly>
+
 ## 인쇄 (Print)
 
 `printGrid` 유틸 함수로 새 탭에 인쇄 레이아웃을 생성합니다.

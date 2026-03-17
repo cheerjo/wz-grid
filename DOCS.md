@@ -1683,4 +1683,30 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ---
 
-*최종 업데이트: 2026-03-17 — 라이선스 시스템 제거, 전 기능 오픈소스 공개: `licenseKey` prop 제거, `eff*` computed에서 Pro 게이팅 제거, WZGridRow `isProLicense` prop 제거, sparkline 🔒 제거, Pro 모달 제거, `src/license.ts` 및 `src/demos/shared/useLicense.ts` 삭제; `textarea` 컬럼 타입 추가 (멀티라인 편집, Enter 다음 행 이동, Shift+Enter 줄바꿈); 편집 중 Enter 키로 동일 컬럼 다음 행 이동(Excel 동작) 추가; docs/pricing.md·guide/introduction.md에서 Pro/Enterprise 티어 관련 내용 제거 (MIT 오픈소스 전환 반영); 엑셀 내보내기 라이브러리를 SheetJS(xlsx)에서 ExcelJS로 마이그레이션 — peerDependency 변경, progress 컬럼 data bar 조건부 서식 정상 지원*
+## 36. VitePress 라이브 데모
+
+VitePress 가이드 문서 각 페이지에는 `<ClientOnly>` 래퍼로 감싼 인터랙티브 데모 컴포넌트가 삽입되어 있습니다. 데모 컴포넌트는 `docs/.vitepress/components/demos/`에 위치하며 `docs/.vitepress/theme/index.ts`에서 전역 등록됩니다.
+
+| 가이드 페이지 | 데모 컴포넌트 | 위치 |
+| :--- | :--- | :--- |
+| `guide/getting-started.md` | `DemoGettingStarted` | "라이브 데모" — 기본 예제 앞 |
+| `guide/tree.md` | `DemoTree` | "라이브 데모" — 기본 사용 앞 |
+| `guide/merge.md` | `DemoMerge` | "라이브 데모" — 자동 병합 앞 |
+| `guide/master-detail.md` | `DemoMasterDetail` | "라이브 데모" — 기본 사용법 앞 |
+| `guide/editing.md` | `DemoEditing` | "라이브 데모" — 셀 편집 앞 |
+| `guide/column-types.md` | `DemoColumnTypes` | "라이브 데모" — 편집 가능 여부 요약 앞 |
+| `guide/cell-slot.md` | `DemoCellSlot` | "라이브 데모" — 슬롯 이름 규칙 앞 |
+| `guide/footer.md` | `DemoFooter` | "라이브 데모" — 기본 사용 앞 |
+| `guide/selection.md` | `DemoSelection` | "라이브 데모" — 셀 선택 앞 |
+| `guide/row-style.md` | `DemoRowStyle` | "라이브 데모" — @click:row 이벤트 앞 |
+| `guide/advanced-filter.md` | `DemoAdvancedFilter` | "라이브 데모" — 컬럼 타입별 필터 UI 앞 |
+| `guide/columns.md` | `DemoColumns` | "라이브 데모" — 컬럼 고정 앞 |
+| `guide/sort-filter.md` | `DemoSortFilter` | "라이브 데모" — 정렬 앞 |
+| `guide/paging.md` | `DemoPaging` | "라이브 데모" — 페이징 앞 |
+| `guide/grouping.md` | `DemoGrouping` | "라이브 데모" — 그룹핑 앞 |
+| `guide/context-menu.md` | `DemoContextMenu` | "라이브 데모" — 메뉴 항목 앞 |
+| `guide/export.md` | `DemoExport` | "라이브 데모" — 인쇄(Print) 앞 |
+
+---
+
+*최종 업데이트: 2026-03-17 — 라이선스 시스템 제거, 전 기능 오픈소스 공개: `licenseKey` prop 제거, `eff*` computed에서 Pro 게이팅 제거, WZGridRow `isProLicense` prop 제거, sparkline 🔒 제거, Pro 모달 제거, `src/license.ts` 및 `src/demos/shared/useLicense.ts` 삭제; `textarea` 컬럼 타입 추가 (멀티라인 편집, Enter 다음 행 이동, Shift+Enter 줄바꿈); 편집 중 Enter 키로 동일 컬럼 다음 행 이동(Excel 동작) 추가; docs/pricing.md·guide/introduction.md에서 Pro/Enterprise 티어 관련 내용 제거 (MIT 오픈소스 전환 반영); 엑셀 내보내기 라이브러리를 SheetJS(xlsx)에서 ExcelJS로 마이그레이션 — peerDependency 변경, progress 컬럼 data bar 조건부 서식 정상 지원; VitePress 가이드 페이지 7개에 인터랙티브 라이브 데모 컴포넌트 삽입 (DemoGettingStarted, DemoTree, DemoMerge, DemoMasterDetail, DemoEditing, DemoColumnTypes, DemoCellSlot); Phase 2 가이드 페이지 6개에 추가 데모 삽입 (DemoFooter, DemoSelection, DemoRowStyle, DemoAdvancedFilter, DemoColumns, DemoSortFilter); Phase 3 가이드 페이지 4개에 추가 데모 삽입 (DemoPaging, DemoGrouping, DemoContextMenu, DemoExport)*

@@ -1,5 +1,11 @@
 # 셀 병합
 
+## 라이브 데모
+
+<ClientOnly>
+  <DemoMerge />
+</ClientOnly>
+
 ## 자동 병합 (autoMergeCols)
 
 지정한 컬럼에서 인접한 동일 값 셀을 위아래로 자동 병합(rowspan)합니다.

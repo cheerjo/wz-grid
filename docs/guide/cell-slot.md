@@ -2,6 +2,12 @@
 
 `#cell-{colKey}` 스코프드 슬롯을 사용하면 특정 컬럼의 셀 내용을 자유롭게 커스터마이즈할 수 있습니다.
 
+## 라이브 데모
+
+<ClientOnly>
+  <DemoCellSlot />
+</ClientOnly>
+
 ## 슬롯 이름 규칙
 
 슬롯 이름은 `cell-` 접두어 + 컬럼의 `key` 값입니다.
