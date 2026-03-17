@@ -11,8 +11,8 @@ export function useFilter(
 
   const initFilter = (col: Column) => {
     if (filters[col.key] !== undefined) return;
-    if (col.type === 'number')                          filters[col.key] = { min: '', max: '' };
-    else if (col.type === 'date')                       filters[col.key] = { from: '', to: '' };
+    if (col.type === 'number' || col.type === 'rating') filters[col.key] = { min: '', max: '' };
+    else if (col.type === 'date' || col.type === 'datetime') filters[col.key] = { from: '', to: '' };
     else if (col.type === 'select' || col.type === 'badge') filters[col.key] = { values: [] as any[], value: '' };
     else                                                filters[col.key] = { value: '' };
   };
@@ -53,12 +53,17 @@ export function useFilter(
         const f   = filters[col.key];
         const val = row[col.key];
 
-        if (col.type === 'number') {
+        if (col.type === 'number' || col.type === 'rating') {
           const n = Number(val ?? 0);
           if (f.min !== '' && n < Number(f.min)) return false;
           if (f.max !== '' && n > Number(f.max)) return false;
         } else if (col.type === 'date') {
           const s = String(val ?? '');
+          if (f.from && s < f.from) return false;
+          if (f.to   && s > f.to)   return false;
+        } else if (col.type === 'datetime') {
+          // ISO 문자열 앞 16자리(YYYY-MM-DDTHH:mm)로 비교
+          const s = String(val ?? '').substring(0, 16);
           if (f.from && s < f.from) return false;
           if (f.to   && s > f.to)   return false;
         } else if (col.type === 'boolean') {

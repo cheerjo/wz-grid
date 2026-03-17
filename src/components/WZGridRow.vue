@@ -115,6 +115,14 @@
           @change="$emit('stop-editing', true)"
         />
         <input
+          v-else-if="col.type === 'datetime'"
+          ref="editInput" :value="editValue" type="datetime-local"
+          class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
+          @blur="$emit('stop-editing', true)" @keydown.enter="$emit('stop-editing', true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
+          @input="$emit('update:editValue', ($event.target as HTMLInputElement).value)"
+          @change="$emit('stop-editing', true)"
+        />
+        <input
           v-else-if="col.type !== 'select' && col.type !== 'boolean'"
           ref="editInput" :value="editValue" :type="col.type === 'number' ? 'number' : 'text'"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
@@ -166,6 +174,23 @@
           <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">
             {{ col.type === 'number' ? Number(row?.[col.key] || 0).toLocaleString() : (row?.[col.key] || '') }}
           </span>
+        </template>
+        <template v-else-if="col.type === 'datetime'">
+          <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">
+            {{ formatDatetime(row?.[col.key]) }}
+          </span>
+        </template>
+        <template v-else-if="col.type === 'rating'">
+          <div class="flex items-center gap-0.5" @mousedown.stop>
+            <span
+              v-for="star in (col.maxRating || 5)"
+              :key="star"
+              class="cursor-pointer leading-none select-none transition-colors"
+              :class="star <= (row?.[col.key] || 0) ? 'text-yellow-400' : 'text-gray-300'"
+              style="font-size: 16px;"
+              @click="$emit('update-cell-from-item', itemIdx, col.key, star)"
+            >&#9733;</span>
+          </div>
         </template>
         <template v-else-if="col.type === 'select'">
           <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">{{ getOptionLabel(itemIdx, col) }}</span>
@@ -309,6 +334,20 @@ export default defineComponent({
      * Vue 2/3 모두 $slots[name]은 함수(Vue 3) 또는 VNode 배열(Vue 2)이므로
      * vue-demi의 h를 통해 감싸서 반환합니다.
      */
+    /**
+     * ISO 8601 / "YYYY-MM-DDTHH:mm..." 문자열을 "YYYY-MM-DD HH:mm" 포맷으로 변환.
+     */
+    const formatDatetime = (val: any): string => {
+      if (!val) return '';
+      const s = String(val);
+      // "T" 구분자가 있으면 날짜/시간 분리, 없으면 그대로 반환
+      const tIdx = s.indexOf('T');
+      if (tIdx === -1) return s;
+      const datePart = s.substring(0, tIdx);
+      const timePart = s.substring(tIdx + 1, tIdx + 6); // HH:mm
+      return `${datePart} ${timePart}`;
+    };
+
     const renderParentSlot = (name: string, slotProps: Record<string, any>) => {
       if (!props.parentSlots) return null;
       const slotFn = props.parentSlots[name];
@@ -323,7 +362,7 @@ export default defineComponent({
       }
     };
 
-    return { editInput, renderParentSlot };
+    return { editInput, formatDatetime, renderParentSlot };
   },
 });
 </script>

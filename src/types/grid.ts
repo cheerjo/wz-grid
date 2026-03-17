@@ -1,5 +1,5 @@
 // src/types/grid.ts
-export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'select' | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio';
+export type ColumnType = 'text' | 'number' | 'date' | 'datetime' | 'boolean' | 'select' | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio' | 'rating';
 export type Align = 'left' | 'center' | 'right';
 
 /**
@@ -29,6 +29,8 @@ export type Column = {
   tooltip?: boolean;    // 호버 시 전체 내용을 툴팁으로 표시
   footer?: FooterAggr;  // 푸터 집계 방식
   footerLabel?: string; // 집계 값 앞에 표시할 레이블 (예: '합계')
+  // rating 타입 전용
+  maxRating?: number;   // 최대 별점 (기본: 5)
 }
 
 export type SortConfig = {
