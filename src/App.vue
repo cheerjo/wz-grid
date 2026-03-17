@@ -57,19 +57,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineAsyncComponent, markRaw } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { provideLicense } from './demos/shared/useLicense';
+import { demos } from './demos/index';
 
 // ── 라이선스 (provide → 하위 데모 컴포넌트에서 inject 가능) ─────────────────
 const { licenseKey, licenseTierLabel, applyDemoKey } = provideLicense();
 
-// ── 탭 정의 ─────────────────────────────────────────────────────────────────
-const tabs = [
-  { hash: '#basic', label: '기본 데모 (Basic)' },
-  { hash: '#tree',  label: '트리 데모 (Tree)' },
-] as const;
-
-type TabHash = typeof tabs[number]['hash'];
+// ── 탭 정의 (demos 레지스트리 기반) ─────────────────────────────────────────
+const tabs = demos.map(d => ({ hash: `#${d.id}` as const, label: d.label }));
+type TabHash = `#${typeof demos[number]['id']}`;
 
 // ── URL 해시 기반 탭 상태 ────────────────────────────────────────────────────
 const currentHash = ref<TabHash>('#basic');
@@ -89,14 +86,9 @@ onMounted(() => {
   window.addEventListener('hashchange', syncHash);
 });
 
-// ── 동적 컴포넌트 매핑 ────────────────────────────────────────────────────────
-const DemoBasic = markRaw(defineAsyncComponent(() => import('./demos/DemoBasic.vue')));
-const DemoTree  = markRaw(defineAsyncComponent(() => import('./demos/DemoTree.vue')));
-
-const demoMap: Record<TabHash, ReturnType<typeof markRaw>> = {
-  '#basic': DemoBasic,
-  '#tree':  DemoTree,
-};
-
-const currentDemo = computed(() => demoMap[currentHash.value]);
+// ── 동적 컴포넌트 (레지스트리에서 조회) ──────────────────────────────────────
+const currentDemo = computed(() => {
+  const id = currentHash.value.slice(1);
+  return demos.find(d => d.id === id)?.component ?? demos[0].component;
+});
 </script>
