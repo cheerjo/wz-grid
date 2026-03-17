@@ -148,6 +148,11 @@ interface Column {
   tooltip?: boolean;     // hover 시 전체 내용을 툴팁으로 표시
   footer?: FooterAggr;   // 푸터 집계 방식: 'sum' | 'avg' | 'count' | 'min' | 'max' | 함수
   footerLabel?: string;  // 집계값 앞에 표시할 레이블 (예: '합계')
+  // currency 타입 전용 옵션
+  currencySymbol?: string; // 통화 기호 (기본: '₩')
+  decimals?: number;       // 소수점 자릿수 (기본: 0)
+  // rating 타입 전용 옵션
+  maxRating?: number;      // 최대 별점 수 (기본: 5)
 }
 
 interface Option {
@@ -157,7 +162,8 @@ interface Option {
 }
 
 type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'select'
-                | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio';
+                | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio'
+                | 'tag' | 'currency' | 'rating' | 'datetime' | 'color' | 'email';
 
 type Align = 'left' | 'center' | 'right';
 ```
@@ -280,6 +286,69 @@ URL 값을 클릭 가능한 하이퍼링크로 표시. `target="_blank"`로 새 
     { label: '여', value: 'F' },
   ]
 }
+```
+
+### `tag`
+
+`string[]` 배열 데이터를 칩(chip) UI로 렌더링. 직접 편집 불가.
+필터는 텍스트 포함 여부로 동작하며, 정렬은 태그 개수 기준으로 처리됩니다.
+
+```ts
+{ key: 'tags', title: '태그', type: 'tag', width: 200 }
+// row.tags 예: ['긴급', '검토중']
+```
+
+### `currency`
+
+숫자 데이터를 통화 기호 + 천 단위 포맷으로 표시. 편집 시 `<input type="number">`.
+`currencySymbol`(기본 `'₩'`)과 `decimals`(기본 `0`) 컬럼 옵션을 지원합니다.
+필터는 min/max 숫자 범위로 동작합니다.
+
+```ts
+{
+  key: 'price', title: '가격', type: 'currency', align: 'right', width: 140,
+  currencySymbol: '₩',
+  decimals: 0,
+}
+```
+
+### `rating`
+
+숫자 값(1~N)을 별점(★) UI로 표시. 클릭 즉시 `@update:cell` 이벤트 발생.
+`maxRating` 컬럼 옵션으로 최대 별 수를 지정합니다(기본 `5`).
+필터는 min/max 숫자 범위로 동작합니다.
+
+```ts
+{ key: 'score', title: '평점', type: 'rating', align: 'center', width: 140, maxRating: 5 }
+```
+
+### `datetime`
+
+날짜+시간 문자열. 편집 시 `<input type="datetime-local">` 사용.
+표시 형식: `YYYY-MM-DD HH:mm`. 필터는 from/to 날짜+시간 범위로 동작합니다.
+
+```ts
+{ key: 'createdAt', title: '등록일시', type: 'datetime', width: 160, align: 'center' }
+// row.createdAt 예: '2026-03-17 09:30'
+```
+
+### `color`
+
+CSS 색상 문자열을 색상 박스로 표시. 색상 피커 클릭 즉시 `@update:cell` 이벤트 발생.
+필터는 텍스트 포함 여부로 동작합니다.
+
+```ts
+{ key: 'labelColor', title: '색상', type: 'color', align: 'center', width: 80 }
+// row.labelColor 예: '#3b82f6'
+```
+
+### `email`
+
+이메일 문자열을 `mailto:` 링크로 표시. 편집 시 `<input type="email">`.
+필터는 텍스트 포함 여부로 동작합니다.
+
+```ts
+{ key: 'email', title: '이메일', type: 'email', width: 200 }
 ```
 
 ---
@@ -464,9 +533,10 @@ Pro 라이선스가 활성화되면 컬럼 타입에 따라 고급 필터 UI가 
 
 | 컬럼 타입 | 필터 UI | 설명 |
 |:----------|:--------|:-----|
-| `text`, `link`, `radio` | 텍스트 입력 | 부분 일치 검색 |
-| `number` | 최소~최대 범위 입력 | 숫자 범위 필터링 |
+| `text`, `link`, `radio`, `tag`, `color`, `email` | 텍스트 입력 | 부분 일치 검색 |
+| `number`, `currency`, `rating` | 최소~최대 범위 입력 | 숫자 범위 필터링 |
 | `date` | 시작일~종료일 | 날짜 범위 필터링 |
+| `datetime` | from~to 날짜+시간 범위 | 날짜+시간 범위 필터링 |
 | `select`, `badge` | 다중 선택 체크박스 드롭다운 | 여러 값을 동시 선택 (OR 조건) |
 | `boolean` | 전체/예/아니요 드롭다운 | 불리언 필터 |
 
@@ -1649,4 +1719,4 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ---
 
-*최종 업데이트: 2026-03-17 — `mergeCells` prop 타입 수정 (`MergeCell[]` → 함수 시그니처); 인쇄(섹션 24) `printGrid`가 라이브러리 패키지 export에 미포함임을 명시; CSV(섹션 25) import 경로를 패키지 이름(`wz-grid`)으로 수정*
+*최종 업데이트: 2026-03-17 — 컬럼 타입 6종 추가: `tag`, `currency`, `rating`, `datetime`, `color`, `email`; Column 인터페이스에 `currencySymbol`, `decimals`, `maxRating` 옵션 추가; 고급 필터 타입 매핑 테이블 업데이트*

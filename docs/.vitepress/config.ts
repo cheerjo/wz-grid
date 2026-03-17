@@ -48,6 +48,7 @@ export default defineConfig({
           text: '기능',
           items: [
             { text: '컬럼 설정', link: '/guide/columns' },
+            { text: '컬럼 타입', link: '/guide/column-types' },
             { text: '정렬 & 필터', link: '/guide/sort-filter' },
             { text: '페이징 & 가상스크롤', link: '/guide/paging' },
             { text: '편집 & 검증', link: '/guide/editing' },
