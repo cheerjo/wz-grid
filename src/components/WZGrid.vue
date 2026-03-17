@@ -838,7 +838,6 @@ export default defineComponent({
           if (nextPagedIdx !== -1) {
             editing.rowId = null; editing.colIdx = -1;
             scrollToCell(nextPagedIdx, currentColIdx);
-            startEditing(nextPagedIdx, currentColIdx);
             startSelection(nextPagedIdx, currentColIdx);
             return;
           }
