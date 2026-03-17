@@ -14,6 +14,8 @@
 | `@click:insert` | `{ position, row }` | 컨텍스트 메뉴 행 추가 |
 | `@click:delete` | `any[]` | 삭제 버튼 또는 컨텍스트 메뉴 행 삭제 |
 | `@click:button` | `{ rowIdx, row, colKey }` | `button` 타입 셀 클릭 |
+| `@click:row` | `{ rowIdx, row }` | 데이터 행 클릭 |
+| `@update:filters` | `Record<string, any>` | 서버사이드 모드에서 필터 변경 시 발생 |
 
 ## 예제
 

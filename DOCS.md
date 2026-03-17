@@ -109,7 +109,7 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 | `useContextMenu` | — | `boolean` | `false` | ★Pro — 우클릭 컨텍스트 메뉴 사용 여부 |
 | `useRowDrag` | — | `boolean` | `false` | ★Pro — 행 드래그 핸들 표시 및 재배치 기능 활성화 |
 | `autoMergeCols` | — | `string[]` | `[]` | ★Pro — 인접한 동일 값 셀을 자동 병합할 컬럼 key 목록 |
-| `mergeCells` | — | `MergeCell[]` | `[]` | ★Pro — 수동으로 정의한 셀 병합 규칙 목록 |
+| `mergeCells` | — | `(row, colKey) => { rowspan?, colspan? } \| null` | `null` | ★Pro — 셀별 병합 규칙을 반환하는 함수. 병합하지 않을 경우 `null` 반환 |
 | `licenseKey` | — | `string` | `''` | WZ-Grid 라이선스 키. Pro/Enterprise 기능 활성화에 필요 |
 | `showExcelExport` ⚠️ | `useExcelExport` | `boolean` | `false` | ★Pro — 툴바에 Excel 내보내기 버튼 표시 |
 | `excelFilename` | — | `string` | `'export.xlsx'` | Excel 내보내기 시 저장 파일명 |
@@ -878,6 +878,10 @@ const handleResize = ({ colKey, width }: { colKey: string; width: number }) => {
 
 `src/utils/print.ts`의 `printGrid` 유틸 함수로 새 탭에 인쇄 레이아웃을 생성합니다.
 
+> **주의:** `printGrid`는 현재 라이브러리 패키지(`wz-grid`)의 public export에 포함되지 않습니다.
+> npm 패키지로 설치한 경우에는 직접 사용할 수 없으며, 소스 코드를 직접 복사하거나 별도로 구현해야 합니다.
+> 소스 저장소를 직접 사용하는 경우에는 아래와 같이 상대 경로로 import합니다.
+
 ```ts
 import { printGrid } from './utils/print';
 
@@ -908,10 +912,14 @@ printGrid(columns.value, rows.value, {
 
 ## 25. CSV 내보내기
 
-`src/utils/tsv.ts`의 `downloadCSV` 유틸 함수를 사용합니다.
+`downloadCSV` 유틸 함수를 사용합니다. `parseTSV`, `stringifyTSV`와 함께 라이브러리 패키지에서 export됩니다.
 
 ```ts
-import { downloadCSV } from './utils/tsv';
+// npm 패키지로 설치한 경우
+import { downloadCSV } from 'wz-grid';
+
+// 소스 저장소를 직접 사용하는 경우
+// import { downloadCSV } from './utils/tsv';
 
 const exportCSV = () => {
   downloadCSV(rows.value, columns.value, 'export.csv');
@@ -1641,4 +1649,4 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ---
 
-*최종 업데이트: 2026-03-16 — Props 네이밍 alias 추가: `showColumnSettings`→`useColumnSettings`, `showExcelExport`→`useExcelExport`, `serverSide`→`useServerSide` (기존 이름 하위 호환 유지); 셀 커스텀 렌더러(섹션 32), 고급 필터 모드(섹션 9), 행 클릭 & 행/셀 스타일(섹션 33), 서버사이드 모드(섹션 34), 마스터-디테일 Row Expand(섹션 35) 추가; 클라이언트 사이드 기본 정렬(섹션 8) 추가 및 GridRow 인터페이스(섹션 29) 도입*
+*최종 업데이트: 2026-03-17 — `mergeCells` prop 타입 수정 (`MergeCell[]` → 함수 시그니처); 인쇄(섹션 24) `printGrid`가 라이브러리 패키지 export에 미포함임을 명시; CSV(섹션 25) import 경로를 패키지 이름(`wz-grid`)으로 수정*

@@ -26,6 +26,8 @@
 | `useTree` | `boolean` | `false` | 트리(계층) 구조 모드. `rows`에 `children` 배열을 중첩해 사용 |
 | `treeKey` | `string` | `''` | 트리 인덴트·토글을 표시할 컬럼 key. 미지정 시 첫 번째 컬럼 |
 | `childrenKey` | `string` | `'children'` | 자식 행 배열 필드명 |
+| `rowClass` | `(row, rowIndex) => any` | `null` | 행에 동적 CSS 클래스를 적용하는 함수 |
+| `cellClass` | `(row, column, rowIndex) => any` | `null` | 셀에 동적 CSS 클래스를 적용하는 함수 |
 
 ## Pro Props <Badge type="warning" text="Pro" />
 
@@ -34,16 +36,23 @@
 | Prop | 타입 | 기본값 | 설명 |
 | :--- | :--- | :---: | :--- |
 | `licenseKey` | `string` | `''` | Pro/Enterprise 라이선스 키 |
-| `showColumnSettings` | `boolean` | `false` | 컬럼 표시/숨기기 설정 버튼 표시 |
+| `showColumnSettings` ⚠️ | `boolean` | `false` | 컬럼 표시/숨기기 설정 버튼 표시. `useColumnSettings` 사용 권장 |
+| `useColumnSettings` | `boolean` | `false` | 컬럼 표시/숨기기 설정 버튼 표시 (`showColumnSettings`의 권장 alias) |
 | `useContextMenu` | `boolean` | `false` | 우클릭 컨텍스트 메뉴 사용 |
 | `useRowDrag` | `boolean` | `false` | 행 드래그 재배치 활성화 |
 | `groupBy` | `string` | `''` | 그룹핑 기준 컬럼 key |
 | `autoMergeCols` | `string[]` | `[]` | 인접한 동일 값 셀을 자동 병합할 컬럼 key 목록 |
-| `mergeCells` | `MergeCell[]` | `[]` | 수동 셀 병합 규칙 목록 |
-| `showExcelExport` | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시 |
+| `mergeCells` | `(row, colKey) => \{ rowspan?, colspan? \} \| null` | `null` | 셀별 병합 규칙을 반환하는 함수. 병합하지 않을 경우 `null` 반환 |
+| `showExcelExport` ⚠️ | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시. `useExcelExport` 사용 권장 |
+| `useExcelExport` | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시 (`showExcelExport`의 권장 alias) |
 | `excelFilename` | `string` | `'export.xlsx'` | Excel 저장 파일명 |
+| `serverSide` ⚠️ | `boolean` | `false` | 서버사이드 모드. `useServerSide` 사용 권장 |
+| `useServerSide` | `boolean` | `false` | 서버사이드 모드. 정렬/필터/페이징을 서버에 위임 (`serverSide`의 권장 alias) |
+| `totalRows` | `number` | `0` | 서버사이드 모드에서 전체 행 수. 페이징 UI 계산에 사용 |
 
 ::: tip
 Pro Props는 `licenseKey` 없이 전달해도 오류는 나지 않지만, 해당 기능이 비활성화됩니다.
 Excel 버튼 클릭 시에는 업그레이드 안내 모달이 표시됩니다.
+
+⚠️ 표시된 prop은 deprecated이며, 권장 이름으로 대체 예정입니다. 두 이름 모두 동작하며, 둘 중 하나라도 `true`이면 기능이 활성화됩니다.
 :::
