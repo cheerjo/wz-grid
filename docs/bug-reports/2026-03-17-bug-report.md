@@ -1,12 +1,13 @@
 # Bug Report — 2026-03-17
 
 ## Summary
-총 3개의 버그 발견, 3개 수정 완료
+총 4개의 버그 발견, 4개 수정 완료
 
 ## 검토 대상 파일
 - `src/demos/DemoColumnTypes.vue`
 - `src/demos/index.ts`
 - `src/components/WZGridRow.vue` (sparkline 검토)
+- `src/components/WZGrid.vue` (stopEditing 포커스/isDragging)
 
 ## 발견된 버그
 
@@ -79,6 +80,34 @@
     v-else-if="Array.isArray(row?.[col.key]) && row[col.key].length >= 2"
     :viewBox="'0 0 100 ' + (col.sparklineHeight || 32)"
     preserveAspectRatio="none"
+  ```
+
+### BUG-004: 편집 모드 Enter 이동 후 방향키 미작동
+- **파일**: `src/components/WZGrid.vue`
+- **위치**: 라인 838-843, 함수 `stopEditing`
+- **심각도**: 🔴 Critical
+- **설명**: `stopEditing(save, moveNext=true)` 실행 후 방향키로 셀 이동이 되지 않음. 두 가지 원인이 복합 작용함. 첫째, `startSelection` 호출 후 `endSelection`이 호출되지 않아 `isDragging=true` 상태가 남아 다음 방향키 이벤트에서 드래그 선택 로직이 실행되어 단순 이동이 차단됨. 둘째, 편집 input이 blur될 때 포커스가 그리드 컨테이너 밖으로 나가 `handleKeyDown` 이벤트 핸들러가 방향키를 수신하지 못함.
+- **원인**: `startSelection`은 `isDragging=true`로 설정하는데, `stopEditing` 경로에서는 마우스 이벤트가 없으므로 `endSelection`이 자동으로 호출되지 않아 드래그 상태가 영구적으로 남음. 또한 `editing.rowId = null` 처리 후 포커스를 `containerEl`로 명시적으로 복귀시키지 않아 `keydown` 이벤트가 소실됨.
+- **수정 내용**: `nextPagedIdx !== -1` 분기에서 `startSelection` 직후 `endSelection()` 및 `containerEl.value?.focus()` 호출 추가
+- **수정 전**:
+  ```typescript
+  if (nextPagedIdx !== -1) {
+    editing.rowId = null; editing.colIdx = -1;
+    scrollToCell(nextPagedIdx, currentColIdx);
+    startSelection(nextPagedIdx, currentColIdx);
+    return;
+  }
+  ```
+- **수정 후**:
+  ```typescript
+  if (nextPagedIdx !== -1) {
+    editing.rowId = null; editing.colIdx = -1;
+    scrollToCell(nextPagedIdx, currentColIdx);
+    startSelection(nextPagedIdx, currentColIdx);
+    endSelection();
+    containerEl.value?.focus();
+    return;
+  }
   ```
 
 ## 수정 없이 넘어간 항목
