@@ -1426,6 +1426,8 @@ const columns = [
 - `useCheckbox: true` + 체크된 행이 있을 경우 → 체크된 행만 내보냅니다.
 - `image`, `button` 타입 컬럼은 자동으로 제외됩니다.
 - `select`, `badge`, `radio` 타입은 `options`의 `label` 값으로 변환됩니다.
+- `boolean` 타입은 `✓` / `✗` 문자로 출력됩니다.
+- `progress` 타입은 숫자(0~100)로 출력되며 셀 포맷 `0"%"`가 적용됩니다. Excel에서 `75%` 형태로 표시되고, SheetJS Pro / xlsx-js-style 환경에서는 data bar conditional formatting도 적용됩니다.
 
 ---
 
