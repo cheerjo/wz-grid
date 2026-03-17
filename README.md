@@ -7,7 +7,7 @@
 [![bundle size](https://img.shields.io/bundlephobia/minzip/wz-grid.svg)](https://bundlephobia.com/package/wz-grid)
 [![Vue 2 & 3](https://img.shields.io/badge/Vue-2%20%26%203-42b883.svg)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6.svg)](https://www.typescriptlang.org/)
-[![License](https://img.shields.io/badge/license-Commercial-blue.svg)](./LICENSE.md)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE.md)
 
 ---
 
@@ -147,9 +147,6 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 
 ## 라이선스
 
-- **개인 / 오픈소스**: 무료 (Community License)
-- **상업적 사용**: Pro 또는 Enterprise 라이선스 필요
-
-자세한 내용은 [LICENSE.md](./LICENSE.md) 및 [가격 페이지](https://cheerjo.github.io/wz-grid/pricing.html)를 참고하세요.
+[MIT License](./LICENSE.md) — 개인, 상업적 사용 모두 무료입니다.
 
 문의: **jmcho@wezon.com**
