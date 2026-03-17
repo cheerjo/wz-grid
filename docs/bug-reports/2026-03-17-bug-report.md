@@ -1,7 +1,7 @@
 # Bug Report — 2026-03-17
 
 ## Summary
-총 1개의 버그 발견, 1개 수정 완료
+총 2개의 버그 발견, 2개 수정 완료
 
 ## 검토 대상 파일
 - `src/demos/DemoColumnTypes.vue`
@@ -40,6 +40,22 @@
     @update:cell="handleCellUpdate"
     @update:checked="checkedRows = $event"
   />
+  ```
+
+### BUG-002: `color`/`tag` 타입 셀 더블클릭 시 값 소실
+- **파일**: `src/components/WZGrid.vue`
+- **위치**: 라인 896, 함수 `startEditing`
+- **심각도**: 🔴 Critical
+- **설명**: `color`와 `tag` 타입 셀을 더블클릭하면 편집 모드로 진입하고, `editValue`가 빈 문자열로 초기화됩니다. 편집 모드 UI에 이 두 타입에 대한 input이 없으므로 포커스 이탈 시 `stopEditing(true)`가 호출되어 빈 값이 원래 값을 덮어씁니다.
+- **원인**: `startEditing` 내부 진입 차단 목록에 `color`와 `tag`가 누락됨. `boolean`, `radio`, `rating` 등은 이미 차단되어 있었으나 두 타입은 빠져 있었습니다.
+- **수정 내용**: 차단 타입 배열에 `'color'`와 `'tag'` 추가
+- **수정 전**:
+  ```typescript
+  if (!row || !col || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating'].includes(col.type || '')) return;
+  ```
+- **수정 후**:
+  ```typescript
+  if (!row || !col || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating', 'color', 'tag'].includes(col.type || '')) return;
   ```
 
 ## 수정 없이 넘어간 항목

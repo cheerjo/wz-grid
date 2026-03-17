@@ -893,7 +893,7 @@ export default defineComponent({
     const startEditing = (rIdx: number, cIdx: number, initialValue?: string) => {
       const row = getRow(rIdx);
       const col = visibleColumns.value[cIdx];
-      if (!row || !col || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating'].includes(col.type || '')) return;
+      if (!row || !col || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating', 'color', 'tag'].includes(col.type || '')) return;
       editing.rowId = row.id; editing.colIdx = cIdx;
       const useInitial = initialValue !== undefined && col.type !== 'date' && col.type !== 'datetime';
       editValue.value = useInitial ? initialValue : row[col.key];
