@@ -28,8 +28,8 @@ export function useVirtualScroll(
     (totalRows.value - visibleRange.value.endIdx) * getRowHeight()
   );
 
-  const onScroll = (e: Event) => {
-    const target = e.target as HTMLElement;
+  const onScroll = (e: Event | { target: HTMLElement }) => {
+    const target = (e as any).target as HTMLElement;
     scrollTop.value = target.scrollTop;
   };
 

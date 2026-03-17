@@ -868,10 +868,10 @@ export default defineComponent({
       const rowBottom = rowTop + props.rowHeight;
       if (rowTop < el.scrollTop) {
         el.scrollTop = rowTop;
-        _vs.onScroll({ target: el } as Event);
+        _vs.onScroll({ target: el } as unknown as Event);
       } else if (headerHeight + rowBottom > el.scrollTop + visibleHeight) {
         el.scrollTop = headerHeight + rowBottom - visibleHeight;
-        _vs.onScroll({ target: el } as Event);
+        _vs.onScroll({ target: el } as unknown as Event);
       }
 
       // 수평 스크롤 — 실제 DOM TH 위치 기반으로 정확하게 계산
