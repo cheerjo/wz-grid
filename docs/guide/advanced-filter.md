@@ -1,8 +1,6 @@
-# 고급 필터 (Advanced Filter) <Badge type="warning" text="Pro" />
+# 고급 필터 (Advanced Filter)
 
-> **Pro 라이선스** 전용 기능입니다.
-
-기본 텍스트 필터 외에 컬럼 타입에 맞는 전용 필터 UI를 제공합니다. `useFilter="true"` 설정 시 Pro 라이선스가 있으면 자동으로 고급 필터 모드가 활성화됩니다.
+기본 텍스트 필터 외에 컬럼 타입에 맞는 전용 필터 UI를 제공합니다. `useFilter="true"` 설정 시 자동으로 고급 필터 모드가 활성화됩니다.
 
 ## 컬럼 타입별 필터 UI
 
@@ -21,11 +19,10 @@
   :columns="columns"
   :rows="rows"
   :useFilter="true"
-  :licenseKey="myLicenseKey"
 />
 ```
 
-Pro 라이선스가 유효하면 `number` 타입 컬럼에는 min/max 범위 입력, `date` 타입에는 날짜 범위 선택, `select`/`badge` 타입에는 다중 선택 드롭다운이 자동으로 나타납니다.
+`number` 타입 컬럼에는 min/max 범위 입력, `date` 타입에는 날짜 범위 선택, `select`/`badge` 타입에는 다중 선택 드롭다운이 자동으로 나타납니다.
 
 ## 숫자 범위 필터
 
@@ -67,6 +64,5 @@ Pro 라이선스가 유효하면 `number` 타입 컬럼에는 min/max 범위 입
 
 ## 주의사항
 
-- Pro 라이선스 없이 사용하면 기본 텍스트 필터로 자동 폴백됩니다.
 - 여러 컬럼에 동시에 필터를 적용하면 AND 조건으로 결합됩니다.
 - 필터 변경 시 1페이지로 자동 이동합니다.

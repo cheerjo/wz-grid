@@ -744,7 +744,8 @@ type MergeCell = {
 | :--- | :--- |
 | `↑` `↓` `←` `→` | 선택 셀 이동 |
 | `Shift + 방향키` | 범위 선택 확장 |
-| `Enter` | 선택 셀 편집 모드 진입 |
+| `Enter` | 비편집 상태: 선택 셀 편집 모드 진입 / 편집 상태: 저장 후 동일 컬럼 다음 행으로 포커스 이동 |
+| `Shift + Enter` | `textarea` 타입 편집 중 줄바꿈 입력 |
 | `Esc` | 편집 취소 / 선택 해제 |
 | `Backspace` / `Delete` | 선택 셀 값 삭제 |
 | 알파벳/숫자 키 | 즉시 편집 시작 (입력한 문자로 값 덮어쓰기) |
@@ -1184,7 +1185,7 @@ src/
 ├── demos/
 │   ├── DemoBasic.vue           # 종합 데모 탭 — 주요 기능 한 번에 체험
 │   ├── DemoTree.vue            # 트리 그리드 탭 — 계층 데이터 & 토글
-│   ├── DemoColumnTypes.vue     # 컬럼 타입 탭 — 18종 컬럼 타입 + 이벤트 로그
+│   ├── DemoColumnTypes.vue     # 컬럼 타입 탭 — 19종 컬럼 타입 + 이벤트 로그
 │   └── index.ts                # 데모 탭 레지스트리 (id / label / component)
 ├── types/
 │   └── grid.ts                 # Column, SortConfig, GridItem 등 타입 정의
@@ -1682,4 +1683,4 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ---
 
-*최종 업데이트: 2026-03-17 — 라이선스 시스템 제거, 전 기능 오픈소스 공개: `licenseKey` prop 제거, `eff*` computed에서 Pro 게이팅 제거, WZGridRow `isProLicense` prop 제거, sparkline 🔒 제거, Pro 모달 제거, `src/license.ts` 및 `src/demos/shared/useLicense.ts` 삭제*
+*최종 업데이트: 2026-03-17 — 라이선스 시스템 제거, 전 기능 오픈소스 공개: `licenseKey` prop 제거, `eff*` computed에서 Pro 게이팅 제거, WZGridRow `isProLicense` prop 제거, sparkline 🔒 제거, Pro 모달 제거, `src/license.ts` 및 `src/demos/shared/useLicense.ts` 삭제; `textarea` 컬럼 타입 추가 (멀티라인 편집, Enter 다음 행 이동, Shift+Enter 줄바꿈); 편집 중 Enter 키로 동일 컬럼 다음 행 이동(Excel 동작) 추가*

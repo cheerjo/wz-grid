@@ -43,20 +43,13 @@ props.rows
   → visibleRowsRange   (useVirtualScroll: 셀 병합 활성 시 전체 렌더링)
 ```
 
-### Pro 기능 게이팅
+### eff computed (prop alias 레이어)
 
-`WZGrid.vue` setup() 내부에서 `eff` 접두어 computed로 강제 처리한다:
+`WZGrid.vue` setup() 내부에서 `eff` 접두어 computed를 사용한다:
 - `effShowColumnSettings`, `effUseContextMenu`, `effUseRowDrag`, `effGroupBy`, `effAutoMergeCols`, `effMergeCells`, `effUseAdvancedFilter`, `effServerSide`, `effUseDetail`, `effShowExcelExport`
-- `eff` computed는 순수 계산만 수행. Pro 경고 `console.warn`은 별도 `watch(isProLicense, ...)` 에서 세션당 1회 출력
+- 라이선스 시스템 제거(오픈소스 전환) 이후 `eff` computed는 prop alias 역할만 수행 (Pro 게이팅 없음)
 - 템플릿에서 props 직접 참조 대신 이 `eff` computed를 사용해야 한다 (shadowing 방지)
 - Prop alias: `useColumnSettings`(←showColumnSettings), `useExcelExport`(←showExcelExport), `useServerSide`(←serverSide) — 기존 이름도 하위 호환 유지
-- `useTree`, `showFooter`는 **Community** 기능 — 게이팅 없음
-
-### 라이선스 시스템 (`src/license.ts`)
-
-키 형식: `WZGRID-{TIER}-{KEY_ID}-{CHECKSUM}` (TIER: `PRO` | `ENT`)
-검증: FNV-1a 32bit 해시로 오프라인 검증, 외부 서버 통신 없음.
-데모 키 생성: `generateKey('PRO', 'DEMO0001')`
 
 ### 컴포넌트 구조
 

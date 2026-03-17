@@ -1,6 +1,4 @@
-# 마스터-디테일 Row Expand <Badge type="warning" text="Pro" />
-
-> **Pro 라이선스** 전용 기능입니다.
+# 마스터-디테일 Row Expand
 
 `#detail` 스코프드 슬롯을 제공하면 각 행에 확장/축소 토글 버튼이 나타납니다. 행을 확장하면 해당 행 아래에 디테일 영역이 표시됩니다.
 
@@ -10,7 +8,6 @@
 <WZGrid
   :columns="columns"
   :rows="rows"
-  :licenseKey="myLicenseKey"
 >
   <template #detail="{ row, rowIndex }">
     <div class="grid grid-cols-2 gap-4 text-sm">
@@ -38,7 +35,7 @@
 
 ## 동작 방식
 
-- `#detail` 슬롯이 제공되고 Pro 라이선스가 유효하면, 각 데이터 행 왼쪽에 화살표 토글 버튼이 자동으로 표시됩니다.
+- `#detail` 슬롯이 제공되면, 각 데이터 행 왼쪽에 화살표 토글 버튼이 자동으로 표시됩니다.
 - 버튼 클릭 시 행이 확장되어 디테일 영역이 나타나고, 다시 클릭하면 축소됩니다.
 - 확장된 행의 화살표는 90도 회전하여 확장 상태를 표시합니다.
 - 디테일 영역은 전체 컬럼 너비를 차지합니다.
@@ -84,7 +81,7 @@ const loadDetail = async (rowId: number) => {
 </script>
 
 <template>
-  <WZGrid :columns="columns" :rows="rows" :licenseKey="key">
+  <WZGrid :columns="columns" :rows="rows">
     <template #detail="{ row }">
       <div v-if="detailData[row.id]" class="p-4">
         <!-- 로딩된 상세 데이터 표시 -->
@@ -101,5 +98,4 @@ const loadDetail = async (rowId: number) => {
 ## 주의사항
 
 - `#detail` 슬롯을 제공하지 않으면 확장 버튼이 표시되지 않습니다.
-- Pro 라이선스 없이 `#detail` 슬롯을 제공하면 슬롯이 무시되고 콘솔 경고가 출력됩니다.
 - 가상 스크롤, 페이징, 체크박스 등 기존 기능과 함께 사용 가능합니다.

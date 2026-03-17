@@ -2,11 +2,14 @@
 
 ## 셀 편집
 
-`text`, `number`, `date`, `select` 타입 컬럼은 기본적으로 편집 가능합니다.
-`boolean`은 클릭 즉시 토글, `badge`/`progress`/`image`/`button`/`link`/`radio`는 편집 불가입니다.
+`text`, `number`, `date`, `datetime`, `select`, `currency`, `email`, `textarea` 타입 컬럼은 더블 클릭 또는 키 입력으로 편집 가능합니다.
+`boolean`, `radio`, `rating`, `color`는 클릭 즉시 값이 반영됩니다.
+`badge`, `progress`, `image`, `button`, `link`, `tag`, `sparkline`은 편집 불가입니다.
 
 - 더블 클릭 또는 알파벳/숫자 키 입력으로 편집 모드 진입
-- `Enter` 또는 포커스 이탈로 저장 → `@update:cell` 이벤트 발생
+- `Enter`로 저장 후 동일 컬럼의 다음 행 셀로 포커스 이동 (Excel 동작)
+- `textarea` 타입에서 `Shift+Enter`는 줄바꿈 입력
+- 포커스 이탈(blur)로 저장 → `@update:cell` 이벤트 발생
 - `Esc`로 편집 취소
 
 ```ts

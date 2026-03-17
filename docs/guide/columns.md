@@ -88,14 +88,12 @@ const columns = [
 말줄임으로 잘린 내용을 hover로 확인할 수 있습니다.
 :::
 
-## 컬럼 표시/숨기기 <Badge type="warning" text="Pro" />
-
-> **Pro 라이선스** 전용 기능입니다. `licenseKey` 없이 사용하면 기능이 비활성화됩니다.
+## 컬럼 표시/숨기기
 
 `showColumnSettings` prop을 `true`로 설정하면 헤더 우측에 설정 아이콘이 나타납니다.
 
 ```vue
-<WZGrid :showColumnSettings="true" :licenseKey="myLicenseKey" ... />
+<WZGrid :showColumnSettings="true" ... />
 ```
 
 - 아이콘 클릭 시 컬럼 목록 드롭다운 표시

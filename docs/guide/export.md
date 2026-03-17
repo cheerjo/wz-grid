@@ -41,9 +41,7 @@ const handleExportCSV = () => {
 }
 ```
 
-## Excel 내보내기 <Badge type="warning" text="Pro" />
-
-> **Pro 또는 Enterprise 라이선스**가 있어야 사용할 수 있습니다.
+## Excel 내보내기
 
 ### 툴바 버튼으로 내보내기 (권장)
 
@@ -54,7 +52,6 @@ const handleExportCSV = () => {
   :columns="columns"
   :rows="rows"
   :show-excel-export="true"
-  :license-key="myLicenseKey"
   excel-filename="report.xlsx"
   :use-checkbox="true"
 />
@@ -63,11 +60,9 @@ const handleExportCSV = () => {
 | Prop | 타입 | 기본값 | 설명 |
 | :--- | :--- | :---: | :--- |
 | `showExcelExport` | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시 |
-| `licenseKey` | `string` | `''` | Pro/Enterprise 라이선스 키 |
 | `excelFilename` | `string` | `'export.xlsx'` | 저장될 파일명 |
 
 **동작 규칙:**
-- 유효한 Pro 라이선스가 없으면 클릭 시 업그레이드 안내 모달이 표시됩니다.
 - `useCheckbox: true` + 체크된 행이 있으면 → **체크된 행만** 내보냅니다.
 - `image`, `button` 타입 컬럼은 자동 제외됩니다.
 - `select`, `badge`, `radio` 타입은 `options` label 값으로 변환됩니다.

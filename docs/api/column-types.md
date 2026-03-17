@@ -29,6 +29,12 @@ interface Column {
   sparklineHeight?: number // SVG 높이 px (기본: 32)
 }
 
+// ColumnType 유니온 (총 19종)
+type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'select'
+                | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio'
+                | 'tag' | 'currency' | 'rating' | 'datetime' | 'color' | 'email'
+                | 'sparkline' | 'textarea'
+
 // FooterAggr 타입
 type FooterAggr = 'sum' | 'avg' | 'count' | 'min' | 'max' | ((rows: any[]) => any)
 ```
@@ -223,4 +229,15 @@ CSS 색상 문자열을 색상 박스로 표시. 색상 피커 클릭 즉시 `@u
   sparklineHeight: 32,
 }
 // row.trend 예: [12, 34, 28, 45, 33, 52, 41]
+```
+
+### `textarea`
+
+멀티라인 텍스트 입력. 더블 클릭 또는 Enter로 편집 모드 진입, `<textarea>` 오버레이를 셀 위에 표시합니다.
+읽기 모드에서는 `whitespace-pre` 스타일로 줄바꿈을 유지합니다.
+편집 중 Enter로 다음 행 이동, Shift+Enter로 줄바꿈 입력.
+필터: 텍스트 부분 일치.
+
+```ts
+{ key: 'memo', title: '메모', type: 'textarea', width: 200 }
 ```

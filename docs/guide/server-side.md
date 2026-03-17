@@ -1,6 +1,4 @@
-# 서버사이드 모드 <Badge type="warning" text="Pro" />
-
-> **Pro 라이선스** 전용 기능입니다.
+# 서버사이드 모드
 
 `serverSide` prop을 `true`로 설정하면 정렬, 필터링, 페이징을 클라이언트에서 처리하지 않고 이벤트를 통해 서버에 위임합니다.
 
@@ -14,7 +12,6 @@
   :totalRows="serverTotalCount"
   :usePaging="true"
   :useFilter="true"
-  :licenseKey="myLicenseKey"
   v-model:currentPage="currentPage"
   v-model:pageSize="pageSize"
   @sort="handleServerSort"
