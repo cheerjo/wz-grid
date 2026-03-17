@@ -1,6 +1,8 @@
 // src/mocks/data.ts — MSW가 사용하는 인메모리 DB
 
 const CITIES = ['서울특별시', '부산광역시', '대구광역시', '인천광역시', '광주광역시', '대전광역시', '울산광역시', '세종특별자치시'];
+const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+const SKILLS_POOL = ['Vue', 'React', 'TypeScript', 'Node.js', 'Python', 'Docker', 'AWS', 'GraphQL', 'Kotlin', 'Swift'];
 const DISTRICTS = [
   '강남구 테헤란로', '마포구 월드컵북로', '송파구 올림픽로', '종로구 세종대로',
   '해운대구 해운대해변로', '수성구 달구벌대로', '남구 문현금융로', '서구 둔산대로',
@@ -37,6 +39,13 @@ function generate(count: number) {
       active:     i % 3 !== 2,
       completion: Math.floor(Math.random() * 100),
       profile:    `https://github.com/user-${i + 1}`,
+      // 신규 타입 필드
+      wage:       Math.floor(Math.random() * 5000000) + 2000000,
+      rating:     (i % 5) + 1,
+      lastLogin:  `${year}-${month}-${day}T${String(i % 24).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}`,
+      themeColor: COLORS[i % COLORS.length],
+      email:      `user${i + 1}@example.com`,
+      skills:     SKILLS_POOL.slice(i % SKILLS_POOL.length, (i % SKILLS_POOL.length) + 2 + (i % 3)),
     };
   });
 }

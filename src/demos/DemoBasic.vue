@@ -404,11 +404,17 @@ const baseColumns = computed<Column[]>(() => [
     ]
   },
 
-  { key: 'salary', title: '급여 [number]', width: w('salary', 140), type: 'number', align: 'right', footer: 'sum', footerLabel: '합계' },
-  { key: 'joinDate', title: '입사일 [date]', width: w('joinDate', 130), type: 'date', align: 'center' },
-  { key: 'active', title: '재직 [boolean]', width: w('active', 110), type: 'boolean', align: 'center', footer: 'count', footerLabel: '재직' },
-  { key: 'completion', title: '완료율 [progress]', width: w('completion', 160), type: 'progress', footer: 'avg', footerLabel: '평균' },
-  { key: 'profile', title: '프로필 [link]', width: w('profile', 180), type: 'link' },
+  { key: 'salary',     title: '급여 [number]',     width: w('salary', 140),   type: 'number',   align: 'right',  footer: 'sum', footerLabel: '합계' },
+  { key: 'wage',       title: '월급 [currency]',   width: w('wage', 150),     type: 'currency', align: 'right',  currencySymbol: '₩', decimals: 0 },
+  { key: 'joinDate',   title: '입사일 [date]',      width: w('joinDate', 130), type: 'date',     align: 'center' },
+  { key: 'lastLogin',  title: '최근접속 [datetime]',width: w('lastLogin', 160),type: 'datetime', align: 'center' },
+  { key: 'active',     title: '재직 [boolean]',     width: w('active', 110),   type: 'boolean',  align: 'center', footer: 'count', footerLabel: '재직' },
+  { key: 'rating',     title: '평점 [rating]',      width: w('rating', 130),   type: 'rating',   align: 'center', maxRating: 5 },
+  { key: 'themeColor', title: '색상 [color]',       width: w('themeColor', 130),type: 'color',   align: 'center' },
+  { key: 'email',      title: '이메일 [email]',     width: w('email', 180),    type: 'email' },
+  { key: 'skills',     title: '스킬 [tag]',         width: w('skills', 200),   type: 'tag' },
+  { key: 'completion', title: '완료율 [progress]',  width: w('completion', 160),type: 'progress', footer: 'avg', footerLabel: '평균' },
+  { key: 'profile',    title: '프로필 [link]',      width: w('profile', 180),  type: 'link' },
   {
     key: 'action', title: '관리 [button]', width: w('action', 110), type: 'button', align: 'center',
     options: [{ label: '상세보기' }]
