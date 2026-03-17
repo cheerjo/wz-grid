@@ -11,7 +11,7 @@ hero:
       link: /guide/getting-started
     - theme: alt
       text: 라이선스 보기
-      link: /pricing
+      link: /guide/license
 
 features:
   - icon: ⚡

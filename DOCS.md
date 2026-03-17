@@ -1683,4 +1683,4 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ---
 
-*최종 업데이트: 2026-03-17 — 라이선스 시스템 제거, 전 기능 오픈소스 공개: `licenseKey` prop 제거, `eff*` computed에서 Pro 게이팅 제거, WZGridRow `isProLicense` prop 제거, sparkline 🔒 제거, Pro 모달 제거, `src/license.ts` 및 `src/demos/shared/useLicense.ts` 삭제; `textarea` 컬럼 타입 추가 (멀티라인 편집, Enter 다음 행 이동, Shift+Enter 줄바꿈); 편집 중 Enter 키로 동일 컬럼 다음 행 이동(Excel 동작) 추가*
+*최종 업데이트: 2026-03-17 — 라이선스 시스템 제거, 전 기능 오픈소스 공개: `licenseKey` prop 제거, `eff*` computed에서 Pro 게이팅 제거, WZGridRow `isProLicense` prop 제거, sparkline 🔒 제거, Pro 모달 제거, `src/license.ts` 및 `src/demos/shared/useLicense.ts` 삭제; `textarea` 컬럼 타입 추가 (멀티라인 편집, Enter 다음 행 이동, Shift+Enter 줄바꿈); 편집 중 Enter 키로 동일 컬럼 다음 행 이동(Excel 동작) 추가; docs/pricing.md·guide/introduction.md에서 Pro/Enterprise 티어 관련 내용 제거 (MIT 오픈소스 전환 반영)*
