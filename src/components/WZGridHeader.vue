@@ -92,21 +92,30 @@
       >
         <!-- ── Pro 고급 필터 모드 ── -->
         <template v-if="effUseAdvancedFilter">
-          <!-- text / link / radio / 기타 -->
+          <!-- text / link / radio / color / email / 기타 -->
           <input
-            v-if="!col.type || col.type === 'text' || col.type === 'link' || col.type === 'radio'"
+            v-if="!col.type || col.type === 'text' || col.type === 'link' || col.type === 'radio' || col.type === 'color' || col.type === 'email'"
             v-model="filters[col.key].value"
             type="text"
             placeholder="검색..."
             class="filter-input"
           />
 
-          <!-- number: min ~ max -->
-          <div v-else-if="col.type === 'number'" class="flex items-center gap-0.5">
+          <!-- number / currency: min ~ max -->
+          <div v-else-if="col.type === 'number' || col.type === 'currency'" class="flex items-center gap-0.5">
             <input v-model="filters[col.key].min" type="number" placeholder="최소" class="filter-input" />
             <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
             <input v-model="filters[col.key].max" type="number" placeholder="최대" class="filter-input" />
           </div>
+
+          <!-- tag: 텍스트 포함 검색 -->
+          <input
+            v-else-if="col.type === 'tag'"
+            v-model="filters[col.key].value"
+            type="text"
+            placeholder="태그 검색..."
+            class="filter-input"
+          />
 
           <!-- date: from / to -->
           <div v-else-if="col.type === 'date'" class="flex flex-col gap-0.5">
@@ -163,8 +172,8 @@
 
         <!-- ── Community 기본 텍스트 필터 ── -->
         <template v-else>
-          <!-- number: min ~ max -->
-          <div v-if="col.type === 'number'" class="flex items-center gap-0.5">
+          <!-- number / currency: min ~ max -->
+          <div v-if="col.type === 'number' || col.type === 'currency'" class="flex items-center gap-0.5">
             <input v-model="filters[col.key].min" type="number" placeholder="최소" class="filter-input" />
             <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
             <input v-model="filters[col.key].max" type="number" placeholder="최대" class="filter-input" />
@@ -182,6 +191,15 @@
             v-model="filters[col.key].value"
             type="text"
             placeholder="검색..."
+            class="filter-input"
+          />
+
+          <!-- tag: 텍스트 포함 검색 -->
+          <input
+            v-else-if="col.type === 'tag'"
+            v-model="filters[col.key].value"
+            type="text"
+            placeholder="태그 검색..."
             class="filter-input"
           />
 

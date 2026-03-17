@@ -11,7 +11,7 @@ export function useFilter(
 
   const initFilter = (col: Column) => {
     if (filters[col.key] !== undefined) return;
-    if (col.type === 'number')                          filters[col.key] = { min: '', max: '' };
+    if (col.type === 'number' || col.type === 'currency') filters[col.key] = { min: '', max: '' };
     else if (col.type === 'date')                       filters[col.key] = { from: '', to: '' };
     else if (col.type === 'select' || col.type === 'badge') filters[col.key] = { values: [] as any[], value: '' };
     else                                                filters[col.key] = { value: '' };
@@ -53,10 +53,18 @@ export function useFilter(
         const f   = filters[col.key];
         const val = row[col.key];
 
-        if (col.type === 'number') {
+        if (col.type === 'number' || col.type === 'currency') {
           const n = Number(val ?? 0);
           if (f.min !== '' && n < Number(f.min)) return false;
           if (f.max !== '' && n > Number(f.max)) return false;
+        } else if (col.type === 'tag') {
+          // 배열 항목 중 하나라도 쿼리를 포함하면 통과
+          const query = String(f.value ?? '').toLowerCase();
+          if (query) {
+            const tags: string[] = Array.isArray(val) ? val : [];
+            const matched = tags.some(t => String(t).toLowerCase().includes(query));
+            if (!matched) return false;
+          }
         } else if (col.type === 'date') {
           const s = String(val ?? '');
           if (f.from && s < f.from) return false;

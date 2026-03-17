@@ -1,11 +1,12 @@
 // src/composables/useSort.ts
 import { ref, computed } from 'vue-demi';
-import type { SortConfig, GridRow } from '../types/grid';
+import type { SortConfig, GridRow, Column } from '../types/grid';
 
 export function useSort(
   onSort: (configs: SortConfig[]) => void,
   getRows: () => GridRow[],
-  isServerSide: () => boolean
+  isServerSide: () => boolean,
+  getColumns?: () => Column[]
 ) {
   const sortConfigs = ref<SortConfig[]>([]);
 
@@ -51,14 +52,29 @@ export function useSort(
     return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
   };
 
+  // 컬럼 타입 인식 비교: tag는 배열 길이, currency는 숫자 기준
+  const compareByColumn = (a: any, b: any, col: Column): number => {
+    if (col.type === 'tag') {
+      const lenA = Array.isArray(a) ? a.length : 0;
+      const lenB = Array.isArray(b) ? b.length : 0;
+      return lenA - lenB;
+    }
+    // currency는 숫자 비교 (compareValues에서 숫자 감지로 처리)
+    return compareValues(a, b);
+  };
+
   const sortedRows = computed((): GridRow[] => {
     const rows = getRows();
     // 서버사이드 모드이거나 정렬 기준이 없으면 원본 반환
     if (isServerSide() || sortConfigs.value.length === 0) return rows;
 
+    const columns = getColumns ? getColumns() : [];
+    const colMap = new Map<string, Column>(columns.map(c => [c.key, c]));
+
     return [...rows].sort((a, b) => {
       for (const { key, order } of sortConfigs.value) {
-        const cmp = compareValues(a[key], b[key]);
+        const col = colMap.get(key);
+        const cmp = col ? compareByColumn(a[key], b[key], col) : compareValues(a[key], b[key]);
         if (cmp !== 0) return order === 'asc' ? cmp : -cmp;
       }
       return 0;

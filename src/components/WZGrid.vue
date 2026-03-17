@@ -482,7 +482,8 @@ export default defineComponent({
     const { sortConfigs, getSortEntry, getSortIndex, toggleSort, sortedRows } = useSort(
       (configs) => emit('sort', configs),
       () => props.rows,
-      () => effServerSide.value
+      () => effServerSide.value,
+      () => props.columns
     );
 
     // ── 마스터-디테일 Row Expand ─────────────────────────────────────

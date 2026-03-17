@@ -115,8 +115,17 @@
           @change="$emit('stop-editing', true)"
         />
         <input
-          v-else-if="col.type !== 'select' && col.type !== 'boolean'"
-          ref="editInput" :value="editValue" :type="col.type === 'number' ? 'number' : 'text'"
+          v-else-if="col.type === 'color'"
+          ref="editInput" :value="editValue" type="color"
+          class="w-full h-full cursor-pointer border-2 border-blue-500 outline-none"
+          @blur="$emit('stop-editing', true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
+          @input="$emit('update:editValue', ($event.target as HTMLInputElement).value); $emit('handle-input', col)"
+          @change="$emit('update:editValue', ($event.target as HTMLInputElement).value); $emit('stop-editing', true)"
+        />
+        <input
+          v-else-if="col.type !== 'select' && col.type !== 'boolean' && col.type !== 'tag'"
+          ref="editInput" :value="editValue"
+          :type="col.type === 'number' || col.type === 'currency' ? 'number' : col.type === 'email' ? 'email' : 'text'"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
           @blur="$emit('stop-editing', true)" @keydown.enter="$emit('stop-editing', true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
           @input="$emit('update:editValue', ($event.target as HTMLInputElement).value); $emit('handle-input', col)"
@@ -199,6 +208,22 @@
             </a>
           </div>
         </template>
+        <template v-else-if="col.type === 'color'">
+          <div class="flex items-center gap-2 w-full overflow-hidden">
+            <span
+              class="w-4 h-4 rounded-sm flex-shrink-0 border border-gray-300 shadow-sm"
+              :style="{ backgroundColor: row?.[col.key] || 'transparent' }"
+            ></span>
+            <span class="truncate text-sm font-mono text-gray-600">{{ row?.[col.key] || '' }}</span>
+          </div>
+        </template>
+        <template v-else-if="col.type === 'email'">
+          <div class="flex items-center w-full overflow-hidden" @mousedown.stop>
+            <a :href="row?.[col.key] ? 'mailto:' + row[col.key] : undefined" class="text-blue-600 hover:underline truncate text-sm">
+              {{ row?.[col.key] || '' }}
+            </a>
+          </div>
+        </template>
         <template v-else-if="col.type === 'radio'">
           <div class="flex items-center gap-3 overflow-hidden px-1" @mousedown.stop>
             <label v-for="opt in col.options" :key="opt.value" class="flex items-center gap-1 cursor-pointer whitespace-nowrap text-xs text-gray-600 hover:text-blue-600 transition-colors">
@@ -206,6 +231,20 @@
               {{ opt.label }}
             </label>
           </div>
+        </template>
+        <template v-else-if="col.type === 'tag'">
+          <div class="flex flex-wrap gap-1 py-0.5 overflow-hidden">
+            <span
+              v-for="(tag, tagIdx) in (Array.isArray(row?.[col.key]) ? row[col.key] : [])"
+              :key="tagIdx"
+              class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 border border-gray-200 leading-none whitespace-nowrap"
+            >{{ tag }}</span>
+          </div>
+        </template>
+        <template v-else-if="col.type === 'currency'">
+          <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">
+            {{ formatCurrency(row?.[col.key], col.currencySymbol, col.decimals) }}
+          </span>
         </template>
       </div>
       <div v-if="isSelected(itemIdx, colIdx)" class="absolute inset-0 pointer-events-none border-2 border-blue-500 z-10"></div>
@@ -323,7 +362,23 @@ export default defineComponent({
       }
     };
 
-    return { editInput, renderParentSlot };
+    /**
+     * currency 타입 포매터.
+     * currencySymbol(기본 '₩'), decimals(기본 0) 옵션을 반영한다.
+     */
+    const formatCurrency = (value: any, symbol?: string, decimals?: number): string => {
+      const num = Number(value ?? 0);
+      if (isNaN(num)) return String(value ?? '');
+      const sym = symbol ?? '₩';
+      const dec = decimals ?? 0;
+      const formatted = num.toLocaleString(undefined, {
+        minimumFractionDigits: dec,
+        maximumFractionDigits: dec,
+      });
+      return `${sym}${formatted}`;
+    };
+
+    return { editInput, renderParentSlot, formatCurrency };
   },
 });
 </script>
