@@ -29,6 +29,7 @@
           :columns="columns"
           :rows="rows"
           :height="560"
+          :licenseKey="licenseKey"
           :useCheckbox="true"
           :useFilter="true"
           @update:cell="handleCellUpdate"
