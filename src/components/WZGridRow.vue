@@ -123,7 +123,7 @@
           @change="$emit('stop-editing', true)"
         />
         <input
-          v-else-if="col.type !== 'select' && col.type !== 'boolean' && col.type !== 'tag' && col.type !== 'color' && col.type !== 'rating'"
+          v-else-if="col.type !== 'select' && col.type !== 'boolean' && col.type !== 'tag' && col.type !== 'color' && col.type !== 'rating' && col.type !== 'sparkline'"
           ref="editInput" :value="editValue"
           :type="col.type === 'number' || col.type === 'currency' ? 'number' : col.type === 'email' ? 'email' : 'text'"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
@@ -268,7 +268,7 @@
           <span v-if="!isProLicense" class="text-xs text-gray-400">🔒 Pro</span>
           <svg
             v-else-if="Array.isArray(row?.[col.key]) && row[col.key].length >= 2"
-            viewBox="0 0 100 32"
+            :viewBox="'0 0 100 ' + (col.sparklineHeight || 32)"
             preserveAspectRatio="none"
             class="w-full"
             :style="{ height: (col.sparklineHeight || 32) + 'px' }"

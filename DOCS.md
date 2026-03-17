@@ -153,6 +153,9 @@ interface Column {
   decimals?: number;       // 소수점 자릿수 (기본: 0)
   // rating 타입 전용 옵션
   maxRating?: number;      // 최대 별점 수 (기본: 5)
+  // sparkline 타입 전용 옵션 (Pro)
+  sparklineColor?: string;  // 라인 색상 (기본: '#3b82f6')
+  sparklineHeight?: number; // SVG 높이 px (기본: 32)
 }
 
 interface Option {
@@ -163,7 +166,8 @@ interface Option {
 
 type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'select'
                 | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio'
-                | 'tag' | 'currency' | 'rating' | 'datetime' | 'color' | 'email';
+                | 'tag' | 'currency' | 'rating' | 'datetime' | 'color' | 'email'
+                | 'sparkline';  // Pro 전용 — 숫자 배열을 SVG 미니 라인 차트로 렌더링
 
 type Align = 'left' | 'center' | 'right';
 ```
@@ -349,6 +353,28 @@ CSS 색상 문자열을 색상 박스로 표시. 색상 피커 클릭 즉시 `@u
 
 ```ts
 { key: 'email', title: '이메일', type: 'email', width: 200 }
+```
+
+### `sparkline` (Pro)
+
+숫자 배열 데이터를 SVG polyline 미니 라인 차트로 렌더링합니다.
+**Pro 라이선스가 없으면 🔒 아이콘만 표시**됩니다. 편집 불가.
+
+| 옵션 | 타입 | 기본값 | 설명 |
+|:-----|:-----|:-------|:-----|
+| `sparklineColor` | `string` | `'#3b82f6'` | 라인 색상 |
+| `sparklineHeight` | `number` | `32` | SVG 높이(px) |
+
+```ts
+{
+  key: 'trend',
+  title: '트렌드',
+  type: 'sparkline',
+  width: 140,
+  sparklineColor: '#10b981',
+  sparklineHeight: 32,
+}
+// row.trend 예: [30, 72, 45, 88, 61, 95, 42, 78, 55, 90, 33, 67]
 ```
 
 ---
@@ -1177,7 +1203,7 @@ src/
 ├── demos/
 │   ├── DemoBasic.vue           # 종합 데모 탭 — 주요 기능 한 번에 체험
 │   ├── DemoTree.vue            # 트리 그리드 탭 — 계층 데이터 & 토글
-│   ├── DemoColumnTypes.vue     # 컬럼 타입 탭 — 17종 컬럼 타입 + 이벤트 로그
+│   ├── DemoColumnTypes.vue     # 컬럼 타입 탭 — 18종 컬럼 타입 + 이벤트 로그
 │   └── index.ts                # 데모 탭 레지스트리 (id / label / component)
 ├── types/
 │   └── grid.ts                 # Column, SortConfig, GridItem 등 타입 정의
@@ -1193,7 +1219,7 @@ src/
 > |:---|:-----|
 > | 종합 데모 | 페이징, 필터, 정렬, 그룹핑 등 주요 기능 종합 체험 |
 > | 트리 그리드 | 계층 데이터 트리 모드 & 펼치기/접기 |
-> | **컬럼 타입** | 편집 가능 7종 · 클릭 즉시 반영 4종 · 읽기 전용 6종, 총 17종 컬럼 타입 인터랙티브 데모 + 이벤트 로그 패널 |
+> | **컬럼 타입** | 편집 가능 7종 · 클릭 즉시 반영 4종 · 읽기 전용 6종 · Pro 전용 1종(sparkline), 총 18종 컬럼 타입 인터랙티브 데모 + 이벤트 로그 패널 |
 
 ### WZGrid 내부 데이터 흐름
 
@@ -1732,4 +1758,4 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ---
 
-*최종 업데이트: 2026-03-17 — 컬럼 타입 6종 추가: `tag`, `currency`, `rating`, `datetime`, `color`, `email`; Column 인터페이스에 `currencySymbol`, `decimals`, `maxRating` 옵션 추가; 고급 필터 타입 매핑 테이블 업데이트; 데모 앱 탭 셸 구조로 리팩토링 (App.vue → 탭 컨테이너, `src/demos/` 디렉토리 분리: DemoBasic.vue·DemoTree.vue·DemoColumnTypes.vue, `src/demos/shared/useLicense.ts` 추가)*
+*최종 업데이트: 2026-03-17 — sparkline 컬럼 타입 추가 (Pro 기능): `ColumnType`에 `'sparkline'` 추가, Column 인터페이스에 `sparklineColor`/`sparklineHeight` 옵션 추가, WZGridRow에 `isProLicense` prop 추가 및 sparkline SVG 렌더링, WZGrid startEditing·Delete키 차단 목록에 `'sparkline'` 포함, mocks/data.ts에 `trend` 필드 추가, DemoBasic·DemoColumnTypes 데모 반영*
