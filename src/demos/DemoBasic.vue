@@ -357,8 +357,11 @@ const formatPhone = (v: any): string => {
 const columnWidths = ref<Record<string, number>>({});
 const w = (key: string, def: number) => columnWidths.value[key] ?? def;
 
+// ── 컬럼 순서 오버라이드 (헤더 드래그 반영) ────────────────────────────────
+const columnOrder = ref<string[]>([]);
+
 // ── 컬럼 정의 ──────────────────────────────────────────────────────────────
-const columns = computed<Column[]>(() => [
+const baseColumns = computed<Column[]>(() => [
   { key: 'id',     title: 'ID',   width: w('id', 60),     align: 'center', pinned: true },
   { key: 'avatar', title: '사진', width: w('avatar', 60), type: 'image',   pinned: true },
   { key: 'name',   title: '이름', width: w('name', 120),  type: 'text',    pinned: true, required: true,
@@ -412,6 +415,12 @@ const columns = computed<Column[]>(() => [
   },
 ]);
 
+const columns = computed<Column[]>(() => {
+  if (columnOrder.value.length === 0) return baseColumns.value;
+  const map = new Map(baseColumns.value.map(c => [c.key, c]));
+  return columnOrder.value.map(key => map.get(key)).filter(Boolean) as Column[];
+});
+
 // ── API ────────────────────────────────────────────────────────────────────
 const API = '/api/employees';
 
@@ -463,13 +472,13 @@ const handleSort = (configs: SortConfig[]) => {
 };
 
 const handleReorderColumns = ({ srcKey, targetKey }: { srcKey: string; targetKey: string }) => {
-  const cols = [...columns.value];
-  const srcIdx    = cols.findIndex(c => c.key === srcKey);
-  const targetIdx = cols.findIndex(c => c.key === targetKey);
+  const keys = columns.value.map(c => c.key);
+  const srcIdx    = keys.indexOf(srcKey);
+  const targetIdx = keys.indexOf(targetKey);
   if (srcIdx === -1 || targetIdx === -1) return;
-  const [moved] = cols.splice(srcIdx, 1);
-  cols.splice(targetIdx, 0, moved);
-  columnWidths.value = { ...columnWidths.value };
+  const [moved] = keys.splice(srcIdx, 1);
+  keys.splice(targetIdx, 0, moved);
+  columnOrder.value = keys;
 };
 
 const handleButtonClick = ({ row }: any) => { alert(`${row.name} 상세 보기`); };
