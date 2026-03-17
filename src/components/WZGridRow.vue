@@ -110,7 +110,7 @@
           v-if="col.type === 'date'"
           ref="editInput" :value="editValue" type="date"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
-          @blur="$emit('stop-editing', true)" @keydown.enter.exact="$emit('stop-editing', true, true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
+          @blur="$emit('stop-editing', true)" @keydown.enter.exact.stop="$emit('stop-editing', true, true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
           @input="$emit('update:editValue', getEventValue($event))"
           @change="$emit('stop-editing', true)"
         />
@@ -118,7 +118,7 @@
           v-else-if="col.type === 'datetime'"
           ref="editInput" :value="editValue" type="datetime-local"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
-          @blur="$emit('stop-editing', true)" @keydown.enter.exact="$emit('stop-editing', true, true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
+          @blur="$emit('stop-editing', true)" @keydown.enter.exact.stop="$emit('stop-editing', true, true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
           @input="$emit('update:editValue', getEventValue($event))"
           @change="$emit('stop-editing', true)"
         />
@@ -129,19 +129,19 @@
           class="absolute inset-0 w-full h-full px-2 py-1 text-sm border-2 border-blue-500 outline-none resize-none bg-white z-30"
           @blur="$emit('stop-editing', true)"
           @keydown.esc.stop="$emit('stop-editing', false)"
-          @keydown.enter.exact="$emit('stop-editing', true, true)"
+          @keydown.enter.exact.stop="$emit('stop-editing', true, true)"
           @mousedown.stop
-          @input="editValue = ($event.target as HTMLTextAreaElement).value; $emit('update:editValue', ($event.target as HTMLTextAreaElement).value)"
+          @input="$emit('update:editValue', getEventValue($event))"
         />
         <input
           v-else-if="col.type !== 'select' && col.type !== 'boolean' && col.type !== 'tag' && col.type !== 'color' && col.type !== 'rating' && col.type !== 'sparkline'"
           ref="editInput" :value="editValue"
           :type="col.type === 'number' || col.type === 'currency' ? 'number' : col.type === 'email' ? 'email' : 'text'"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
-          @blur="$emit('stop-editing', true)" @keydown.enter.exact="$emit('stop-editing', true, true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
+          @blur="$emit('stop-editing', true)" @keydown.enter.exact.stop="$emit('stop-editing', true, true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
           @input="$emit('update:editValue', getEventValue($event)); $emit('handle-input', col)"
         />
-        <select v-else-if="col.type === 'select'" ref="editInput" :value="editValue" class="w-full h-full px-1 text-sm border-2 border-blue-500 outline-none" @blur="$emit('stop-editing', true)" @keydown.enter.exact="$emit('stop-editing', true, true)" @change="$emit('update:editValue', getEventValue($event)); $emit('stop-editing', true)" @mousedown.stop>
+        <select v-else-if="col.type === 'select'" ref="editInput" :value="editValue" class="w-full h-full px-1 text-sm border-2 border-blue-500 outline-none" @blur="$emit('stop-editing', true)" @keydown.enter.exact.stop="$emit('stop-editing', true, true)" @change="$emit('update:editValue', getEventValue($event)); $emit('stop-editing', true)" @mousedown.stop>
           <option v-for="opt in col.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
         </select>
       </div>
@@ -444,7 +444,7 @@ export default defineComponent({
     };
 
     const getEventValue = (e: any): any => {
-      const target = e.target as HTMLInputElement | HTMLSelectElement;
+      const target = e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
       return target ? target.value : '';
     };
 
