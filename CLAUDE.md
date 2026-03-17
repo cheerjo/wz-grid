@@ -111,4 +111,4 @@ VitePress 기반. `docs/.vitepress/config.ts`에서 사이드바 구성.
 
 ### 컬럼 타입별 편집 가능 여부
 
-편집 가능(`text`, `number`, `date`, `select`, `currency`, `email`, `datetime`), 클릭 즉시 반영(`boolean`, `radio`, `rating`, `color`), 편집 불가(`badge`, `progress`, `image`, `button`, `link`, `tag`).
+편집 가능(`text`, `number`, `date`, `select`, `currency`, `email`, `datetime`), 클릭 즉시 반영(`boolean`, `radio`, `rating`, `color`), 편집 불가(`badge`, `progress`, `image`, `button`, `link`, `tag`, `sparkline`).

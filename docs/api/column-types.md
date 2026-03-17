@@ -24,6 +24,9 @@ interface Column {
   decimals?: number        // 소수점 자릿수 (기본: 0)
   // rating 타입 전용
   maxRating?: number       // 최대 별점 수 (기본: 5)
+  // sparkline 타입 전용 (Pro)
+  sparklineColor?: string  // 라인 색상 (기본: '#3b82f6')
+  sparklineHeight?: number // SVG 높이 px (기본: 32)
 }
 
 // FooterAggr 타입
@@ -202,4 +205,23 @@ CSS 색상 문자열을 색상 박스로 표시. 색상 피커 클릭 즉시 `@u
 
 ```ts
 { key: 'email', title: '이메일', type: 'email', width: 200 }
+```
+
+### `sparkline` 🔒 Pro
+
+`number[]` 배열 데이터를 SVG polyline 미니 라인 차트로 렌더링합니다. 편집 불가.
+`isProLicense=false`일 때 🔒 아이콘만 표시됩니다.
+
+| 옵션 | 타입 | 기본값 | 설명 |
+| :--- | :--- | :---: | :--- |
+| `sparklineColor` | `string` | `'#3b82f6'` | 라인 색상 |
+| `sparklineHeight` | `number` | `32` | SVG 높이(px) |
+
+```ts
+{
+  key: 'trend', title: '트렌드', type: 'sparkline', width: 140,
+  sparklineColor: '#10b981',
+  sparklineHeight: 32,
+}
+// row.trend 예: [12, 34, 28, 45, 33, 52, 41]
 ```
