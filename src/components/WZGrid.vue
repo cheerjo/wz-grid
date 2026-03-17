@@ -893,9 +893,9 @@ export default defineComponent({
     const startEditing = (rIdx: number, cIdx: number, initialValue?: string) => {
       const row = getRow(rIdx);
       const col = visibleColumns.value[cIdx];
-      if (!row || !col || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio'].includes(col.type || '')) return;
+      if (!row || !col || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating'].includes(col.type || '')) return;
       editing.rowId = row.id; editing.colIdx = cIdx;
-      const useInitial = initialValue !== undefined && col.type !== 'date';
+      const useInitial = initialValue !== undefined && col.type !== 'date' && col.type !== 'datetime';
       editValue.value = useInitial ? initialValue : row[col.key];
       clearSelection();
       // 포커스는 WZGridRow가 editingColIdx prop 변화를 watch하여 자동으로 처리

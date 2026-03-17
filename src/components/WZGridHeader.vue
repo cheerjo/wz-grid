@@ -101,8 +101,8 @@
             class="filter-input"
           />
 
-          <!-- number / currency: min ~ max -->
-          <div v-else-if="col.type === 'number' || col.type === 'currency'" class="flex items-center gap-0.5">
+          <!-- number / currency / rating: min ~ max -->
+          <div v-else-if="col.type === 'number' || col.type === 'currency' || col.type === 'rating'" class="flex items-center gap-0.5">
             <input v-model="filters[col.key].min" type="number" placeholder="최소" class="filter-input" />
             <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
             <input v-model="filters[col.key].max" type="number" placeholder="최대" class="filter-input" />
@@ -121,6 +121,12 @@
           <div v-else-if="col.type === 'date'" class="flex flex-col gap-0.5">
             <input v-model="filters[col.key].from" type="date" class="filter-input" style="font-size:10px;" />
             <input v-model="filters[col.key].to"   type="date" class="filter-input" style="font-size:10px;" />
+          </div>
+
+          <!-- datetime: from / to (datetime-local) -->
+          <div v-else-if="col.type === 'datetime'" class="flex flex-col gap-0.5">
+            <input v-model="filters[col.key].from" type="datetime-local" class="filter-input" style="font-size:10px;" />
+            <input v-model="filters[col.key].to"   type="datetime-local" class="filter-input" style="font-size:10px;" />
           </div>
 
           <!-- select / badge: 다중 선택 드롭다운 -->
@@ -172,8 +178,8 @@
 
         <!-- ── Community 기본 텍스트 필터 ── -->
         <template v-else>
-          <!-- number / currency: min ~ max -->
-          <div v-if="col.type === 'number' || col.type === 'currency'" class="flex items-center gap-0.5">
+          <!-- number / currency / rating: min ~ max -->
+          <div v-if="col.type === 'number' || col.type === 'currency' || col.type === 'rating'" class="flex items-center gap-0.5">
             <input v-model="filters[col.key].min" type="number" placeholder="최소" class="filter-input" />
             <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
             <input v-model="filters[col.key].max" type="number" placeholder="최대" class="filter-input" />
@@ -183,6 +189,12 @@
           <div v-else-if="col.type === 'date'" class="flex flex-col gap-0.5">
             <input v-model="filters[col.key].from" type="date" class="filter-input" style="font-size:10px;" />
             <input v-model="filters[col.key].to"   type="date" class="filter-input" style="font-size:10px;" />
+          </div>
+
+          <!-- datetime: from / to (datetime-local) -->
+          <div v-else-if="col.type === 'datetime'" class="flex flex-col gap-0.5">
+            <input v-model="filters[col.key].from" type="datetime-local" class="filter-input" style="font-size:10px;" />
+            <input v-model="filters[col.key].to"   type="datetime-local" class="filter-input" style="font-size:10px;" />
           </div>
 
           <!-- select / badge: 단순 텍스트 검색 (value 기반) -->
@@ -210,9 +222,9 @@
             <option value="false">아니요</option>
           </select>
 
-          <!-- text / link / radio / 기타 (편집 불가 타입 제외) -->
+          <!-- text / link / radio / 기타 (편집 불가 타입 및 별도 처리 타입 제외) -->
           <input
-            v-else-if="col.type !== 'image' && col.type !== 'button' && col.type !== 'progress'"
+            v-else-if="col.type !== 'image' && col.type !== 'button' && col.type !== 'progress' && col.type !== 'rating' && col.type !== 'datetime'"
             v-model="filters[col.key].value"
             type="text"
             placeholder="검색..."

@@ -1,5 +1,5 @@
 // src/types/grid.ts
-export type ColumnType = 'text' | 'number' | 'date' | 'boolean' | 'select' | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio' | 'tag' | 'currency' | 'color' | 'email';
+export type ColumnType = 'text' | 'number' | 'date' | 'datetime' | 'boolean' | 'select' | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio' | 'tag' | 'currency' | 'color' | 'email' | 'rating';
 export type Align = 'left' | 'center' | 'right';
 
 /**
@@ -32,6 +32,8 @@ export type Column = {
   // currency 타입 전용
   currencySymbol?: string; // 통화 기호 (기본값: '₩')
   decimals?: number;       // 소수점 자리수 (기본값: 0)
+  // rating 타입 전용
+  maxRating?: number;   // 최대 별점 (기본: 5)
 }
 
 export type SortConfig = {
