@@ -806,7 +806,8 @@ export default defineComponent({
       const col = visibleColumns.value[cIdx];
       if (!row || !col || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating', 'color', 'tag', 'sparkline'].includes(col.type || '')) return;
       editing.rowId = row.id; editing.colIdx = cIdx;
-      const useInitial = initialValue !== undefined && col.type !== 'date' && col.type !== 'datetime' && col.type !== 'textarea';
+      const type = col.type as any;
+      const useInitial = initialValue !== undefined && type !== 'date' && type !== 'datetime' && type !== 'textarea';
       editValue.value = useInitial ? initialValue : row[col.key];
       clearSelection();
       // 포커스는 WZGridRow가 editingColIdx prop 변화를 watch하여 자동으로 처리
@@ -836,7 +837,9 @@ export default defineComponent({
           }
           if (nextPagedIdx !== -1) {
             editing.rowId = null; editing.colIdx = -1;
+            scrollToCell(nextPagedIdx, currentColIdx);
             startEditing(nextPagedIdx, currentColIdx);
+            startSelection(nextPagedIdx, currentColIdx);
             return;
           }
         }
@@ -864,8 +867,10 @@ export default defineComponent({
       const rowBottom = rowTop + props.rowHeight;
       if (rowTop < el.scrollTop) {
         el.scrollTop = rowTop;
+        _vs.onScroll({ target: el } as Event);
       } else if (headerHeight + rowBottom > el.scrollTop + visibleHeight) {
         el.scrollTop = headerHeight + rowBottom - visibleHeight;
+        _vs.onScroll({ target: el } as Event);
       }
 
       // 수평 스크롤 — 실제 DOM TH 위치 기반으로 정확하게 계산
