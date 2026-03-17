@@ -1174,6 +1174,11 @@ src/
 │   ├── useColumnDrag.ts        # 헤더 드래그로 컬럼 순서 변경
 │   ├── useRowDragDrop.ts       # 행 드래그 핸들로 행 순서 변경
 │   └── useTree.ts              # 트리 계층 구조 평탄화 & 토글
+├── demos/
+│   ├── DemoBasic.vue           # 종합 데모 탭 — 주요 기능 한 번에 체험
+│   ├── DemoTree.vue            # 트리 그리드 탭 — 계층 데이터 & 토글
+│   ├── DemoColumnTypes.vue     # 컬럼 타입 탭 — 17종 컬럼 타입 + 이벤트 로그
+│   └── index.ts                # 데모 탭 레지스트리 (id / label / component)
 ├── types/
 │   └── grid.ts                 # Column, SortConfig, GridItem 등 타입 정의
 ├── utils/
@@ -1181,6 +1186,14 @@ src/
 │   └── print.ts                # 인쇄 유틸
 └── index.ts                    # 컴포넌트 및 타입 export
 ```
+
+> **데모 앱 탭 구성** (`npm run dev` 실행 후 브라우저에서 확인)
+>
+> | 탭 | 설명 |
+> |:---|:-----|
+> | 종합 데모 | 페이징, 필터, 정렬, 그룹핑 등 주요 기능 종합 체험 |
+> | 트리 그리드 | 계층 데이터 트리 모드 & 펼치기/접기 |
+> | **컬럼 타입** | 편집 가능 7종 · 클릭 즉시 반영 4종 · 읽기 전용 6종, 총 17종 컬럼 타입 인터랙티브 데모 + 이벤트 로그 패널 |
 
 ### WZGrid 내부 데이터 흐름
 
@@ -1719,4 +1732,4 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ---
 
-*최종 업데이트: 2026-03-17 — 컬럼 타입 6종 추가: `tag`, `currency`, `rating`, `datetime`, `color`, `email`; Column 인터페이스에 `currencySymbol`, `decimals`, `maxRating` 옵션 추가; 고급 필터 타입 매핑 테이블 업데이트*
+*최종 업데이트: 2026-03-17 — 컬럼 타입 6종 추가: `tag`, `currency`, `rating`, `datetime`, `color`, `email`; Column 인터페이스에 `currencySymbol`, `decimals`, `maxRating` 옵션 추가; 고급 필터 타입 매핑 테이블 업데이트; 데모 앱 "컬럼 타입" 탭 추가 (DemoColumnTypes.vue, 17종 컬럼 타입 인터랙티브 데모)*
