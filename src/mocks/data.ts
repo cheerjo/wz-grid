@@ -46,12 +46,13 @@ function generate(count: number) {
       themeColor: COLORS[i % COLORS.length],
       email:      `user${i + 1}@example.com`,
       skills:     SKILLS_POOL.slice(i % SKILLS_POOL.length, (i % SKILLS_POOL.length) + 2 + (i % 3)),
+      trend:      Array.from({ length: 12 }, () => Math.floor(Math.random() * 100)),
     };
   });
 }
 
 // 인메모리 DB (앱 실행 중 유지)
 export const db = {
-  employees: generate(10000) as any[],
+  employees: generate(100) as any[],
   nextId: 10001,
 };

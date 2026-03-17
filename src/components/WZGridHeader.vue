@@ -172,7 +172,7 @@
             <option value="false">아니요</option>
           </select>
 
-          <!-- 나머지 타입(image, button, progress): 빈 칸 -->
+          <!-- 나머지 타입(image, button, progress, sparkline): 빈 칸 -->
           <template v-else></template>
         </template>
 
@@ -224,7 +224,7 @@
 
           <!-- text / link / radio / 기타 (편집 불가 타입 및 별도 처리 타입 제외) -->
           <input
-            v-else-if="col.type !== 'image' && col.type !== 'button' && col.type !== 'progress'"
+            v-else-if="col.type !== 'image' && col.type !== 'button' && col.type !== 'progress' && col.type !== 'sparkline'"
             v-model="filters[col.key].value"
             type="text"
             placeholder="검색..."

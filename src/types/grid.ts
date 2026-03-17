@@ -1,5 +1,5 @@
 // src/types/grid.ts
-export type ColumnType = 'text' | 'number' | 'date' | 'datetime' | 'boolean' | 'select' | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio' | 'tag' | 'currency' | 'color' | 'email' | 'rating';
+export type ColumnType = 'text' | 'number' | 'date' | 'datetime' | 'boolean' | 'select' | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio' | 'tag' | 'currency' | 'color' | 'email' | 'rating' | 'sparkline';
 export type Align = 'left' | 'center' | 'right';
 
 /**
@@ -34,6 +34,9 @@ export type Column = {
   decimals?: number;       // 소수점 자리수 (기본값: 0)
   // rating 타입 전용
   maxRating?: number;   // 최대 별점 (기본: 5)
+  // sparkline 타입 전용 (Pro)
+  sparklineColor?: string;  // 라인 색상 (기본: '#3b82f6')
+  sparklineHeight?: number; // SVG 높이 (기본: 32)
 }
 
 export type SortConfig = {

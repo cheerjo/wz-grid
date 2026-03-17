@@ -13,12 +13,15 @@
       <span class="px-2.5 py-1 rounded-full border bg-gray-100 text-gray-500 border-gray-300 font-semibold">
         🔒 읽기 전용 — badge, tag, progress, image, link, button
       </span>
+      <span class="px-2.5 py-1 rounded-full border bg-amber-50 text-amber-700 border-amber-200 font-semibold">
+        Pro — sparkline
+      </span>
     </div>
 
     <!-- ── 그리드 카드 ──────────────────────────────────────────────────────── -->
     <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
       <div class="p-3 border-b bg-gray-50 text-sm text-gray-600 flex items-center justify-between">
-        <span>전체 <strong>{{ rows.length }}</strong>행 · 컬럼 타입 <strong>17</strong>종</span>
+        <span>전체 <strong>{{ rows.length }}</strong>행 · 컬럼 타입 <strong>18</strong>종</span>
         <span v-if="checkedRows.length > 0" class="text-blue-600 font-semibold text-xs">
           {{ checkedRows.length }}건 선택됨
         </span>
@@ -216,6 +219,14 @@ const columns: Column[] = [
     align: 'center',
     options: [{ label: '클릭' }],
   },
+  {
+    key: 'colSparkline',
+    title: 'sparkline 🔒Pro',
+    type: 'sparkline',
+    width: 120,
+    sparklineColor: '#3b82f6',
+    sparklineHeight: 28,
+  },
 ];
 
 // ── 정적 데이터 (12행) ────────────────────────────────────────────────────
@@ -240,8 +251,9 @@ const makeRow = (i: number) => ({
   colTag:      [`태그${i}`, `유형${i % 3 + 1}`, i % 2 === 0 ? '공개' : '비공개'],
   colProgress: Math.min(100, (i * 8) % 101),
   colImage:    `https://i.pravatar.cc/40?img=${i + 1}`,
-  colLink:     `https://example.com/item/${i}`,
-  colButton:   '',
+  colLink:       `https://example.com/item/${i}`,
+  colButton:     '',
+  colSparkline:  Array.from({ length: 7 }, (_, j) => Math.round(10 + Math.abs(Math.sin((i + j) * 0.8) * 80))),
 });
 
 const rows = ref(Array.from({ length: 12 }, (_, i) => makeRow(i + 1)));

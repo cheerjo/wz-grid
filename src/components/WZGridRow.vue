@@ -264,6 +264,26 @@
             {{ formatCurrency(row?.[col.key], col.currencySymbol, col.decimals) }}
           </span>
         </template>
+        <template v-else-if="col.type === 'sparkline'">
+          <span v-if="!isProLicense" class="text-xs text-gray-400">🔒 Pro</span>
+          <svg
+            v-else-if="Array.isArray(row?.[col.key]) && row[col.key].length >= 2"
+            viewBox="0 0 100 32"
+            preserveAspectRatio="none"
+            class="w-full"
+            :style="{ height: (col.sparklineHeight || 32) + 'px' }"
+          >
+            <polyline
+              :points="getSparklinePoints(row[col.key], col.sparklineHeight || 32)"
+              fill="none"
+              :stroke="col.sparklineColor || '#3b82f6'"
+              stroke-width="2"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span v-else class="text-xs text-gray-300">—</span>
+        </template>
       </div>
       <div v-if="isSelected(itemIdx, colIdx)" class="absolute inset-0 pointer-events-none border-2 border-blue-500 z-10"></div>
     </td>
@@ -318,6 +338,8 @@ export default defineComponent({
     editingColIdx:      { type: Number, default: -1 },
     // 부모의 $slots 참조 — cell-* 슬롯 포워딩용
     parentSlots:        { type: Object as PropType<Record<string, any> | null>, default: null },
+    // Pro 라이선스 여부 — sparkline 등 Pro 전용 셀 렌더링에 사용
+    isProLicense:       { type: Boolean, default: false },
   },
   emits: [
     'row-click',
@@ -415,7 +437,24 @@ export default defineComponent({
       return target ? target.value : '';
     };
 
-    return { editInput, renderParentSlot, formatCurrency, formatDatetime, getEventValue };
+    /**
+     * number[] 배열을 SVG polyline points 문자열로 변환.
+     * viewBox width=100, height=svgHeight (2px 상하 패딩 포함)
+     */
+    const getSparklinePoints = (values: number[], svgHeight: number): string => {
+      if (!values || values.length < 2) return '';
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const range = max - min || 1;
+      const pad = 2;
+      return values.map((v, i) => {
+        const x = (i / (values.length - 1)) * 100;
+        const y = svgHeight - pad - ((v - min) / range) * (svgHeight - pad * 2);
+        return `${x.toFixed(2)},${y.toFixed(2)}`;
+      }).join(' ');
+    };
+
+    return { editInput, renderParentSlot, formatCurrency, formatDatetime, getEventValue, getSparklinePoints };
   },
 });
 </script>

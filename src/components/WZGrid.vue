@@ -176,6 +176,7 @@
                 :editing-row-id="editing.rowId"
                 :editing-col-idx="editing.colIdx"
                 :parent-slots="$slots"
+                :is-pro-license="isProLicense"
                 @row-click="onRowClick"
                 @row-drag-over="onRowDragOver"
                 @row-drop="onRowDrop"
@@ -893,7 +894,7 @@ export default defineComponent({
     const startEditing = (rIdx: number, cIdx: number, initialValue?: string) => {
       const row = getRow(rIdx);
       const col = visibleColumns.value[cIdx];
-      if (!row || !col || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating', 'color', 'tag'].includes(col.type || '')) return;
+      if (!row || !col || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating', 'color', 'tag', 'sparkline'].includes(col.type || '')) return;
       editing.rowId = row.id; editing.colIdx = cIdx;
       const useInitial = initialValue !== undefined && col.type !== 'date' && col.type !== 'datetime';
       editValue.value = useInitial ? initialValue : row[col.key];
@@ -980,7 +981,7 @@ export default defineComponent({
         clearSelection();
       } else if (e.key === 'Backspace' || e.key === 'Delete') {
         const col = visibleColumns.value[selection.startCol];
-        if (col && !['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating', 'color', 'tag'].includes(col.type || '')) {
+        if (col && !['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating', 'color', 'tag', 'sparkline'].includes(col.type || '')) {
           updateCellFromItem(selection.startRow, col.key, '');
         }
       } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {

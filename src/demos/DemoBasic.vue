@@ -124,6 +124,10 @@
           >마스터-디테일 {{ isProUser ? '✓' : '🔒' }}</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">셀 슬롯 ✓</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-semibold">행 스타일 ✓</span>
+          <span
+            :class="isProUser ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400 line-through'"
+            class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+          >Sparkline {{ isProUser ? '✓' : '🔒' }}</span>
         </div>
       </div>
 
@@ -413,6 +417,7 @@ const baseColumns = computed<Column[]>(() => [
   { key: 'themeColor', title: '색상 [color]',       width: w('themeColor', 130),type: 'color',   align: 'center' },
   { key: 'email',      title: '이메일 [email]',     width: w('email', 180),    type: 'email' },
   { key: 'skills',     title: '스킬 [tag]',         width: w('skills', 200),   type: 'tag' },
+  { key: 'trend',      title: '트렌드 [sparkline]', width: w('trend', 140),    type: 'sparkline', sparklineColor: '#10b981', sparklineHeight: 32 },
   { key: 'completion', title: '완료율 [progress]',  width: w('completion', 160),type: 'progress', footer: 'avg', footerLabel: '평균' },
   { key: 'profile',    title: '프로필 [link]',      width: w('profile', 180),  type: 'link' },
   {
