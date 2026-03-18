@@ -3,7 +3,7 @@
   <thead class="sticky top-0 z-30 bg-gray-100 shadow-sm">
 
     <!-- 헤더 행 -->
-    <tr>
+    <tr role="row">
       <!-- 행 드래그 핸들 헤더 -->
       <th
         v-if="effUseRowDrag"
@@ -37,6 +37,9 @@
       <th
         v-for="(col, colIdx) in visibleColumns"
         :key="col.key"
+        role="columnheader"
+        scope="col"
+        :aria-sort="getSortEntry(col.key) ? (getSortEntry(col.key)?.order === 'asc' ? 'ascending' : 'descending') : (col.pinned ? undefined : 'none')"
         :style="getColumnStyle(col, colIdx)"
         class="border-b border-r border-gray-300 px-2 py-2 text-xs font-bold text-gray-600 uppercase tracking-wider h-[40px] relative group transition-colors"
         :class="{
@@ -66,14 +69,14 @@
             {{ getSortEntry(col.key)?.order === 'asc' ? '▲' : '▼' }}<sup v-if="sortConfigs.length > 1" class="text-[8px] leading-none">{{ getSortIndex(col.key) + 1 }}</sup>
           </span>
           <!-- 활성 필터 표시 -->
-          <span v-if="useFilter && isFilterActive(col.key)" class="ml-1 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0 inline-block" title="필터 적용 중"></span>
+          <span v-if="useFilter && isFilterActive(col.key)" class="ml-1 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0 inline-block" :title="t('filter.active')"></span>
         </div>
         <div class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 z-10" @mousedown.stop="$emit('start-resize', $event, colIdx)" @dblclick.stop="$emit('auto-fit-column', colIdx)"></div>
       </th>
     </tr>
 
     <!-- 필터 행 -->
-    <tr v-if="useFilter">
+    <tr v-if="useFilter" role="row">
       <th v-if="effUseRowDrag" class="sticky left-0 z-40 border-b border-r border-gray-200 bg-gray-50 p-0" :style="{ width: rowDragWidth + 'px', minWidth: rowDragWidth + 'px' }"></th>
       <th v-if="effUseDetail" class="sticky z-40 border-b border-r border-gray-200 bg-gray-50 p-0" :style="{ width: detailExpandWidth + 'px', minWidth: detailExpandWidth + 'px', left: (effUseRowDrag ? rowDragWidth : 0) + 'px' }"></th>
       <th
@@ -97,15 +100,15 @@
             v-if="!col.type || col.type === 'text' || col.type === 'link' || col.type === 'radio' || col.type === 'color' || col.type === 'email'"
             v-model="filters[col.key].value"
             type="text"
-            placeholder="검색..."
+            :placeholder="t('filter.searchPlaceholder')"
             class="filter-input"
           />
 
           <!-- number / currency / rating: min ~ max -->
           <div v-else-if="col.type === 'number' || col.type === 'currency' || col.type === 'rating'" class="flex items-center gap-0.5">
-            <input v-model="filters[col.key].min" type="number" placeholder="최소" class="filter-input" />
+            <input v-model="filters[col.key].min" type="number" :placeholder="t('filter.minPlaceholder')" class="filter-input" />
             <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
-            <input v-model="filters[col.key].max" type="number" placeholder="최대" class="filter-input" />
+            <input v-model="filters[col.key].max" type="number" :placeholder="t('filter.maxPlaceholder')" class="filter-input" />
           </div>
 
           <!-- tag: 텍스트 포함 검색 -->
@@ -113,7 +116,7 @@
             v-else-if="col.type === 'tag'"
             v-model="filters[col.key].value"
             type="text"
-            placeholder="태그 검색..."
+            :placeholder="t('filter.tagSearchPlaceholder')"
             class="filter-input"
           />
 
@@ -135,7 +138,7 @@
               @click.stop="$emit('toggle-multi-select-filter-open', col.key)"
               class="filter-input text-left flex items-center justify-between cursor-pointer"
             >
-              <span class="truncate text-[10px]">{{ filters[col.key].values && filters[col.key].values.length ? filters[col.key].values.length + '개 선택' : '전체' }}</span>
+              <span class="truncate text-[10px]">{{ filters[col.key].values && filters[col.key].values.length ? t('filter.selectedCount', { count: filters[col.key].values.length }) : t('filter.all') }}</span>
               <svg class="w-2.5 h-2.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
             <div
@@ -144,8 +147,8 @@
               @click.stop
             >
               <div class="flex items-center justify-between px-2 py-1 border-b border-gray-100">
-                <button @click.stop="$emit('select-all-filter-options', col)" class="text-[9px] text-blue-500 hover:text-blue-700">전체 선택</button>
-                <button @click.stop="$emit('deselect-all-filter-options', col.key)" class="text-[9px] text-gray-400 hover:text-red-500">전체 해제</button>
+                <button @click.stop="$emit('select-all-filter-options', col)" class="text-[9px] text-blue-500 hover:text-blue-700">{{ t('filter.selectAll') }}</button>
+                <button @click.stop="$emit('deselect-all-filter-options', col.key)" class="text-[9px] text-gray-400 hover:text-red-500">{{ t('filter.deselectAll') }}</button>
               </div>
               <div class="overflow-auto flex-1">
                 <label
@@ -167,9 +170,9 @@
 
           <!-- boolean -->
           <select v-else-if="col.type === 'boolean'" v-model="filters[col.key].value" class="filter-input">
-            <option value="">전체</option>
-            <option value="true">예</option>
-            <option value="false">아니요</option>
+            <option value="">{{ t('filter.all') }}</option>
+            <option value="true">{{ t('filter.yes') }}</option>
+            <option value="false">{{ t('filter.no') }}</option>
           </select>
 
           <!-- 나머지 타입(image, button, progress, sparkline): 빈 칸 -->
@@ -180,9 +183,9 @@
         <template v-else>
           <!-- number / currency / rating: min ~ max -->
           <div v-if="col.type === 'number' || col.type === 'currency' || col.type === 'rating'" class="flex items-center gap-0.5">
-            <input v-model="filters[col.key].min" type="number" placeholder="최소" class="filter-input" />
+            <input v-model="filters[col.key].min" type="number" :placeholder="t('filter.minPlaceholder')" class="filter-input" />
             <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
-            <input v-model="filters[col.key].max" type="number" placeholder="최대" class="filter-input" />
+            <input v-model="filters[col.key].max" type="number" :placeholder="t('filter.maxPlaceholder')" class="filter-input" />
           </div>
 
           <!-- date: from / to -->
@@ -202,7 +205,7 @@
             v-else-if="col.type === 'select' || col.type === 'badge'"
             v-model="filters[col.key].value"
             type="text"
-            placeholder="검색..."
+            :placeholder="t('filter.searchPlaceholder')"
             class="filter-input"
           />
 
@@ -211,15 +214,15 @@
             v-else-if="col.type === 'tag'"
             v-model="filters[col.key].value"
             type="text"
-            placeholder="태그 검색..."
+            :placeholder="t('filter.tagSearchPlaceholder')"
             class="filter-input"
           />
 
           <!-- boolean -->
           <select v-else-if="col.type === 'boolean'" v-model="filters[col.key].value" class="filter-input">
-            <option value="">전체</option>
-            <option value="true">예</option>
-            <option value="false">아니요</option>
+            <option value="">{{ t('filter.all') }}</option>
+            <option value="true">{{ t('filter.yes') }}</option>
+            <option value="false">{{ t('filter.no') }}</option>
           </select>
 
           <!-- text / link / radio / 기타 (편집 불가 타입 및 별도 처리 타입 제외) -->
@@ -227,7 +230,7 @@
             v-else-if="col.type !== 'image' && col.type !== 'button' && col.type !== 'progress' && col.type !== 'sparkline'"
             v-model="filters[col.key].value"
             type="text"
-            placeholder="검색..."
+            :placeholder="t('filter.searchPlaceholder')"
             class="filter-input"
           />
           <template v-else></template>
@@ -238,7 +241,7 @@
           v-if="isFilterActive(col.key)"
           @click.stop="$emit('clear-filter', col.key)"
           class="absolute right-0.5 top-0.5 w-3.5 h-3.5 flex items-center justify-center text-[9px] text-gray-400 hover:text-red-500 bg-white rounded-full border border-gray-200 hover:border-red-300 transition-colors z-10"
-          title="필터 초기화"
+          :title="t('filter.clear')"
         >&#10005;</button>
       </th>
     </tr>
@@ -247,8 +250,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, ref, watchEffect } from 'vue-demi';
+import { defineComponent, PropType, ref, inject, watchEffect } from 'vue-demi';
 import type { Column, SortConfig } from '../types/grid';
+import type { TFunction } from '../composables/useI18n';
+import { I18N_KEY } from '../composables/useI18n';
 
 export default defineComponent({
   name: 'WZGridHeader',
@@ -276,13 +281,14 @@ export default defineComponent({
     detailExpandWidth:     { type: Number, required: true },
   },
   setup(props) {
+    const t = inject<TFunction>(I18N_KEY, (key: string) => key);
     const headerCheckboxEl = ref<HTMLInputElement | null>(null);
     watchEffect(() => {
       if (headerCheckboxEl.value) {
         headerCheckboxEl.value.indeterminate = props.isIndeterminate;
       }
     });
-    return { headerCheckboxEl };
+    return { headerCheckboxEl, t };
   },
   emits: [
     'toggle-all',

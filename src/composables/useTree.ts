@@ -1,13 +1,27 @@
 // src/composables/useTree.ts
 import { ref, computed } from 'vue-demi';
+import type { ComputedRef } from 'vue-demi';
 import type { DataItem } from '../types/grid';
+
+export interface UseTreeReturn {
+  /** 접기/펼치기 상태가 반영된 평탄화 트리 아이템 목록 */
+  flatTreeItems: ComputedRef<DataItem[]>;
+  /** 노드 접기/펼치기 토글 */
+  toggleNode: (id: any) => void;
+  /** 특정 노드가 펼쳐진 상태인지 여부 */
+  isExpanded: (id: any) => boolean;
+  /** 전체 트리 펼치기 */
+  expandAll: () => void;
+  /** 전체 트리 접기 */
+  collapseAll: () => void;
+}
 
 export function useTree(
   getRows: () => any[],
   getEnabled: () => boolean,
   getChildrenKey: () => string,
   getFilteredIds: () => Set<any> | null
-) {
+): UseTreeReturn {
   const collapsedIds = ref<Set<any>>(new Set());
 
   // 필터 적용 시: 일치 노드 + 그 조상 노드만 visible로 표시

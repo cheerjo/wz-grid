@@ -1,12 +1,28 @@
 // src/composables/useFilter.ts
 import { reactive, computed, watch } from 'vue-demi';
+import type { ComputedRef } from 'vue-demi';
 import { Column } from '../types/grid';
+
+export interface UseFilterReturn {
+  /** 컬럼별 필터 값 맵. key는 column.key. */
+  filters: Record<string, any>;
+  /** 특정 컬럼의 필터가 활성화되었는지 여부 */
+  isFilterActive: (key: string) => boolean;
+  /** 현재 활성화된 필터 수 */
+  activeFilterCount: ComputedRef<number>;
+  /** 특정 컬럼 필터 초기화 */
+  clearFilter: (key: string) => void;
+  /** 전체 필터 초기화 */
+  clearAllFilters: () => void;
+  /** 필터가 적용된 rows */
+  filteredRows: ComputedRef<any[]>;
+}
 
 export function useFilter(
   getRows: () => any[],
   getColumns: () => Column[],
   isEnabled: () => boolean
-) {
+): UseFilterReturn {
   const filters = reactive<Record<string, any>>({});
 
   const initFilter = (col: Column) => {

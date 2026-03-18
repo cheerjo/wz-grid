@@ -15,7 +15,7 @@
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
           </svg>
-          컬럼 설정
+          {{ t('toolbar.columnSettings') }}
           <span v-if="hiddenColKeys.length > 0" class="bg-blue-500 text-white rounded-full text-[9px] w-4 h-4 flex items-center justify-center">{{ hiddenColKeys.length }}</span>
         </button>
 
@@ -26,8 +26,8 @@
           @click.stop
         >
           <div class="px-3 py-2 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
-            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">컬럼 표시</span>
-            <button @click="$emit('show-all-cols')" class="text-[10px] text-blue-500 hover:underline">전체 표시</button>
+            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{{ t('toolbar.columnVisibility') }}</span>
+            <button @click="$emit('show-all-cols')" class="text-[10px] text-blue-500 hover:underline">{{ t('toolbar.showAll') }}</button>
           </div>
           <div class="overflow-y-auto flex-grow">
             <label
@@ -42,7 +42,7 @@
                 class="w-3.5 h-3.5 accent-blue-500 flex-shrink-0"
               />
               <span class="text-xs text-gray-700 truncate">{{ col.title }}</span>
-              <span v-if="col.pinned" class="ml-auto text-[9px] text-orange-500 bg-orange-50 px-1 rounded flex-shrink-0">고정</span>
+              <span v-if="col.pinned" class="ml-auto text-[9px] text-orange-500 bg-orange-50 px-1 rounded flex-shrink-0">{{ t('toolbar.pinned') }}</span>
             </label>
           </div>
         </div>
@@ -55,14 +55,14 @@
           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-gray-300 text-gray-600 hover:bg-teal-600 hover:text-white hover:border-teal-600"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-          모두 펼치기
+          {{ t('toolbar.expandAll') }}
         </button>
         <button
           @click="$emit('collapse-all')"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-gray-300 text-gray-600 hover:bg-teal-600 hover:text-white hover:border-teal-600"
         >
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-          모두 접기
+          {{ t('toolbar.collapseAll') }}
         </button>
       </template>
 
@@ -75,7 +75,7 @@
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
-        필터 초기화 ({{ activeFilterCount }})
+        {{ t('toolbar.clearFilters', { count: activeFilterCount }) }}
       </button>
     </div>
 
@@ -92,7 +92,7 @@
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
-        삭제<span v-if="checkedCount > 0" class="opacity-80">({{ checkedCount }})</span>
+        {{ t('toolbar.delete') }}<span v-if="checkedCount > 0" class="opacity-80">({{ checkedCount }})</span>
       </button>
       <button
         v-if="showAdd"
@@ -102,7 +102,7 @@
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        추가
+        {{ t('toolbar.add') }}
       </button>
 
       <!-- Excel 내보내기 -->
@@ -121,8 +121,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue-demi';
+import { defineComponent, PropType, inject } from 'vue-demi';
 import type { Column } from '../types/grid';
+import type { TFunction } from '../composables/useI18n';
+import { I18N_KEY } from '../composables/useI18n';
 
 export default defineComponent({
   name: 'WZGridToolbar',
@@ -151,5 +153,9 @@ export default defineComponent({
     'add',
     'excel-export',
   ],
+  setup() {
+    const t = inject<TFunction>(I18N_KEY, (key: string) => key);
+    return { t };
+  },
 });
 </script>

@@ -43,8 +43,15 @@
       @keydown="handleKeyDown"
       tabindex="0"
     >
+      <!-- aria-live: 정렬/필터 변경 시 스크린리더에 알림 -->
+      <div role="status" aria-live="polite" aria-atomic="true" class="sr-only">{{ ariaLiveMessage }}</div>
+
       <div :style="{ paddingTop: topPadding + 'px', paddingBottom: bottomPadding + 'px', minWidth: 'max-content' }">
-        <table class="table-fixed border-separate border-spacing-0">
+        <table
+          role="grid"
+          :aria-rowcount="activeItems.length"
+          class="table-fixed border-separate border-spacing-0"
+        >
 
           <!-- ── 헤더 ───────────────────────────────────────────────────── -->
           <WZGridHeader
@@ -104,7 +111,7 @@
                     <span class="text-blue-500 w-3 text-center flex-shrink-0">{{ asGroupHeader(itemIdx).collapsed ? '&#9654;' : '&#9660;' }}</span>
                     <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ groupColTitle }}</span>
                     <span class="text-sm font-semibold text-blue-700">{{ asGroupHeader(itemIdx).label }}</span>
-                    <span class="text-[11px] text-gray-400 bg-blue-100 px-1.5 py-0.5 rounded-full">{{ asGroupHeader(itemIdx).count.toLocaleString() }}건</span>
+                    <span class="text-[11px] text-gray-400 bg-blue-100 px-1.5 py-0.5 rounded-full">{{ asGroupHeader(itemIdx).count.toLocaleString() }}{{ t('grid.rowUnit') }}</span>
                   </div>
                 </td>
               </tr>
@@ -126,8 +133,8 @@
                   class="border-b border-r border-gray-200 px-2 py-1"
                 >
                   <template v-if="colIdx === 0">
-                    <span class="text-[11px] font-bold text-amber-700">소계</span>
-                    <span class="text-[10px] text-gray-400 ml-1">({{ asSubtotal(itemIdx).count.toLocaleString() }}건)</span>
+                    <span class="text-[11px] font-bold text-amber-700">{{ t('grid.subtotal') }}</span>
+                    <span class="text-[10px] text-gray-400 ml-1">({{ asSubtotal(itemIdx).count.toLocaleString() }}{{ t('grid.rowUnit') }})</span>
                   </template>
                   <template v-else-if="col.type === 'number'">
                     <div class="text-xs font-semibold text-gray-700 text-right w-full">{{ asSubtotal(itemIdx).sums[col.key]?.toLocaleString() }}</div>
@@ -287,8 +294,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, PropType, ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue-demi';
-import type { Column, SortConfig, GridItem, DataItem, GroupHeader, SubtotalItem, GridRow } from '../types/grid';
+import { defineComponent, computed, PropType, ref, reactive, watch, provide, onMounted, onBeforeUnmount } from 'vue-demi';
+import type { Column, SortConfig, GridItem, DataItem, GroupHeader, SubtotalItem, GridRow, Locale, Messages } from '../types/grid';
+import type { WZGridPlugin } from '../types/plugin';
+import { useI18n, I18N_KEY } from '../composables/useI18n';
+import { usePlugins } from '../composables/usePlugins';
+import { usePerformance } from '../composables/usePerformance';
+import type { PerfEntry } from '../composables/usePerformance';
 import { exportExcel } from '../utils/excel';
 import { useSelection }      from '../composables/useSelection';
 import { useClipboard }      from '../composables/useClipboard';
@@ -300,7 +312,7 @@ import { useMerge }          from '../composables/useMerge';
 import { useSort }           from '../composables/useSort';
 import { useColumnDrag }     from '../composables/useColumnDrag';
 import { useRowDragDrop }    from '../composables/useRowDragDrop';
-import { useValidation }     from '../composables/useValidation';
+import { useValidation, runStructureValidation } from '../composables/useValidation';
 import { useCheckbox }       from '../composables/useCheckbox';
 import { useTree }           from '../composables/useTree';
 import WZGridPagination      from './WZGridPagination.vue';
@@ -311,6 +323,14 @@ import WZGridRow             from './WZGridRow.vue';
 
 const CHECKBOX_WIDTH = 40;
 const ROW_DRAG_WIDTH = 28;
+
+// 세션당 1회만 경고 출력
+const _deprecatedWarnedOnce = new Set<string>();
+function warnDeprecatedOnce(oldProp: string, newProp: string) {
+  if (_deprecatedWarnedOnce.has(oldProp)) return;
+  _deprecatedWarnedOnce.add(oldProp);
+  console.warn(`[WZGrid] "${oldProp}" prop은 deprecated입니다. "${newProp}"을 사용하세요.`);
+}
 
 export default defineComponent({
   name: 'WZGrid',
@@ -330,6 +350,7 @@ export default defineComponent({
     'sort',
     'click:row',
     'update:filters',
+    'perf',
   ],
   props: {
     columns:            { type: Array as PropType<Column[]>, required: true },
@@ -368,12 +389,45 @@ export default defineComponent({
     /** serverSide의 통일된 네이밍 alias (권장). 두 prop 중 하나라도 true이면 활성화됩니다. */
     useServerSide:      { type: Boolean, default: false },
     totalRows:          { type: Number, default: 0 },
+    /** 개발 시 데이터 유효성 경고를 활성화합니다. 프로덕션에서는 false로 설정하세요. */
+    debug:              { type: Boolean, default: false },
+    /** debug보다 강력한 검증 모드. console.error로 중복 id·타입 불일치 등을 검사합니다. strict=true이면 debug도 자동 활성화됩니다. */
+    strict:             { type: Boolean, default: false },
+    /** 표시 언어. 'ko'(기본) 또는 'en', 커스텀 locale도 messages와 함께 사용 가능합니다. */
+    locale:             { type: String as PropType<Locale>, default: 'ko' },
+    /** 메시지 오버라이드. 특정 키만 부분 오버라이드할 수 있습니다. */
+    messages:           { type: Object as PropType<Messages>, default: null },
+    /** WZGridPlugin 배열. install(context)로 라이프사이클 훅을 등록합니다. */
+    plugins:            { type: Array as PropType<WZGridPlugin[]>, default: () => [] },
+    /** 성능 모니터링 활성화. @perf 이벤트로 측정값을 전달합니다. */
+    performance:        { type: Boolean, default: false },
   },
 
   setup(props, { emit, slots }) {
     const hasToolbarSlot = computed(() => !!slots.toolbar);
     const containerEl = ref<HTMLElement | null>(null);
     const footerEl    = ref<HTMLElement | null>(null);
+
+    // ── i18n ────────────────────────────────────────────────────────
+    const { t } = useI18n(() => props.locale, () => props.messages);
+    provide(I18N_KEY, t);
+
+    // ── 플러그인 ─────────────────────────────────────────────────────
+    const { callHook, initPlugins } = usePlugins();
+    watch(() => props.plugins, (plugins) => initPlugins(plugins), { immediate: true });
+
+    // ── 성능 모니터링 ────────────────────────────────────────────────
+    // effDebug는 아래에서 정의되므로 getter 함수로 지연 참조
+    const { markStart, markEnd } = usePerformance(
+      () => props.performance,
+      (entry: PerfEntry) => emit('perf', entry),
+      () => props.debug || props.strict
+    );
+
+    // ── deprecated prop 경고 (세션당 1회) ────────────────────────────
+    watch(() => props.showColumnSettings, (val) => { if (val) warnDeprecatedOnce('showColumnSettings', 'useColumnSettings'); }, { immediate: true });
+    watch(() => props.showExcelExport,    (val) => { if (val) warnDeprecatedOnce('showExcelExport', 'useExcelExport'); },      { immediate: true });
+    watch(() => (props as any).serverSide, (val) => { if (val) warnDeprecatedOnce('serverSide', 'useServerSide'); },           { immediate: true });
 
     // ── eff computed: alias prop 병합 ────────────────────────────────
     // alias prop(useColumnSettings, useExcelExport, useServerSide)은 기존 prop과 || 로 병합됩니다.
@@ -388,6 +442,14 @@ export default defineComponent({
     const effShowExcelExport    = computed(() => props.showExcelExport || props.useExcelExport);
     const hasDetailSlot         = computed(() => !!slots.detail);
     const effUseDetail          = computed(() => hasDetailSlot.value);
+
+    // ── debug / strict 모드 구조 검증 (useValidation.runStructureValidation 사용) ──
+    // strict=true이면 debug도 자동 활성화
+    const effDebug = computed(() => props.debug || props.strict);
+
+    watch(() => [props.rows, props.columns, effDebug.value] as const, () => {
+      runStructureValidation(props.rows, props.columns, { debug: effDebug.value, strict: props.strict });
+    }, { immediate: true, deep: false });
 
     // ── 정렬 (데이터 흐름 최상단: props.rows → sortedRows) ──────────────
     // serverSide=true이면 정렬을 수행하지 않고 원본 rows를 그대로 반환합니다.
@@ -664,7 +726,7 @@ export default defineComponent({
     );
 
     // ── 10. 유효성 검사 ────────────────────────────────────────────────
-    const { errors, validateCell } = useValidation(() => props.rows, () => props.columns);
+    const { errors, validateCell } = useValidation(() => props.rows, () => props.columns, t);
     const hasError = (rowIdx: number, colKey: string) => { const row = getRow(rowIdx); return row ? !!errors[`${row.id}:${colKey}`] : false; };
     const getError = (rowIdx: number, colKey: string) => { const row = getRow(rowIdx); return row ? errors[`${row.id}:${colKey}`] : ''; };
 
@@ -968,6 +1030,35 @@ export default defineComponent({
       updateCellByDataIdx
     );
 
+    // ── 플러그인 훅 호출 포인트 ──────────────────────────────────────
+    watch(sortedRows,   (rows) => callHook('afterSort',    { rows, sortConfigs: sortConfigs.value }));
+    watch(filteredRows, (rows) => callHook('afterFilter',  { rows }));
+    watch(activeItems,  (items) => callHook('beforeRender', { items }));
+
+    // ── 성능 측정 watch ──────────────────────────────────────────────
+    watch(() => sortConfigs.value,    () => markStart('sort'),   { flush: 'sync' });
+    watch(sortedRows,                 rows => markEnd('sort', rows.length));
+    watch(activeFilterCount,          () => markStart('filter'), { flush: 'sync' });
+    watch(filteredRows,               rows => markEnd('filter', rows.length));
+    watch(activeItems,                () => markStart('render'), { flush: 'sync' });
+    watch(pagedItems,                 items => markEnd('render', items.length));
+
+    // ── 접근성(a11y): aria-live 알림 영역 ────────────────────────────
+    const ariaLiveMessage = ref('');
+    watch(sortConfigs, (configs) => {
+      if (configs.length === 0) {
+        ariaLiveMessage.value = t('aria.sortCleared');
+      } else {
+        const desc = configs.map(c => `${c.key} ${t(c.order === 'asc' ? 'aria.asc' : 'aria.desc')}`).join(', ');
+        ariaLiveMessage.value = t('aria.sortChanged', { desc });
+      }
+    });
+    watch(activeFilterCount, (count) => {
+      ariaLiveMessage.value = count > 0
+        ? t('aria.filterActive', { count })
+        : t('aria.filterCleared');
+    });
+
     return {
       containerEl,
       CHECKBOX_WIDTH, ROW_DRAG_WIDTH,
@@ -1016,6 +1107,10 @@ export default defineComponent({
       footerValues,
       // tree
       effectiveTreeKey, getTreeLevel, getTreeHasChildren, toggleNode, isExpanded, expandAll, collapseAll,
+      // a11y
+      ariaLiveMessage, activeItems, effDebug,
+      // i18n
+      t,
     };
   }
 });
@@ -1029,4 +1124,37 @@ export default defineComponent({
 .z-30 { z-index: 30; }
 .z-20 { z-index: 20; }
 .z-10 { z-index: 10; }
+
+/* 스크린리더 전용 텍스트 (시각적 숨김) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 고대비 모드 (Windows 고대비 / forced-colors) 지원 */
+@media (forced-colors: active) {
+  .wz-grid-container {
+    border: 1px solid ButtonText;
+  }
+  table[role="grid"] td,
+  table[role="grid"] th {
+    border-color: ButtonText;
+  }
+  table[role="grid"] tr[aria-selected="true"] {
+    outline: 2px solid Highlight;
+    background-color: Highlight;
+    color: HighlightText;
+  }
+  table[role="grid"] td:focus,
+  table[role="grid"] [tabindex="0"] {
+    outline: 2px solid Highlight;
+  }
+}
 </style>

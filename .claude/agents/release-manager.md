@@ -15,6 +15,7 @@ Execute steps in this exact order. Stop and report if any step fails.
 ### Step 1 — Pre-release Checks
 
 Before touching version or build:
+
 - Run `git status` to confirm no uncommitted changes
 - Run `git log --oneline -5` to review recent commits
 - Confirm the current branch is `main`
@@ -25,6 +26,7 @@ If there are uncommitted changes, stop and ask the user to commit or stash them 
 ### Step 2 — Version Bump
 
 Read `package.json` and update the `version` field:
+
 - **patch** (e.g., 1.2.0 → 1.2.1): bug fixes only
 - **minor** (e.g., 1.2.0 → 1.3.0): new features, backwards compatible
 - **major** (e.g., 1.2.0 → 2.0.0): breaking changes
@@ -36,17 +38,20 @@ After updating `package.json`, also check if `package-lock.json` needs updating 
 ### Step 3 — Library Build
 
 Run the library build:
+
 ```bash
 npm run build:lib
 ```
 
 This produces:
+
 - `dist/wz-grid.es.js` — ES module
 - `dist/wz-grid.cjs.js` — CommonJS
 - `dist/wz-grid.css` — Styles
 - `dist/index.d.ts` — TypeScript declarations
 
 **Validate the output:**
+
 - Confirm all four files exist in `dist/`
 - Check that `dist/wz-grid.es.js` contains no `import from 'vue'` (should use `vue-demi`)
 - Check that `dist/index.d.ts` exists and is non-empty
@@ -57,6 +62,7 @@ If the build fails, read the error output carefully, diagnose the root cause, an
 ### Step 4 — Commit Version Bump
 
 Stage and commit only the version-related files:
+
 ```bash
 git add package.json package-lock.json
 git commit -m "chore: bump version to X.Y.Z"
@@ -65,24 +71,13 @@ git commit -m "chore: bump version to X.Y.Z"
 ### Step 5 — Git Tag
 
 Create a version tag:
+
 ```bash
 git tag vX.Y.Z
 ```
 
-### Step 6 — Publish to npm (requires explicit user confirmation)
+### Step 6 — Push
 
-**IMPORTANT**: Before running `npm publish`, explicitly ask the user to confirm:
-> "npm publish를 실행하면 wz-grid@X.Y.Z가 공개 npm 레지스트리에 배포됩니다. 계속할까요?"
-
-Only proceed after the user says yes.
-
-```bash
-npm publish
-```
-
-### Step 7 — Push
-
-After successful publish:
 ```bash
 git push
 git push --tags

@@ -1,0 +1,55 @@
+// src/i18n/en.ts
+export const en = {
+  toolbar: {
+    columnSettings: 'Columns',
+    columnVisibility: 'Column Visibility',
+    showAll: 'Show All',
+    pinned: 'Pinned',
+    expandAll: 'Expand All',
+    collapseAll: 'Collapse All',
+    clearFilters: 'Clear Filters ({count})',
+    delete: 'Delete',
+    add: 'Add',
+  },
+  filter: {
+    searchPlaceholder: 'Search...',
+    minPlaceholder: 'Min',
+    maxPlaceholder: 'Max',
+    tagSearchPlaceholder: 'Search tags...',
+    selectedCount: '{count} selected',
+    all: 'All',
+    selectAll: 'Select All',
+    deselectAll: 'Deselect All',
+    yes: 'Yes',
+    no: 'No',
+    active: 'Filter active',
+    clear: 'Clear filter',
+  },
+  grid: {
+    subtotal: 'Subtotal',
+    rowUnit: 'rows',
+  },
+  pagination: {
+    filteredCount: '{count} rows',
+    totalCount: 'Total {count} rows',
+    selected: '{count} selected',
+    pageSize: 'Page Size:',
+  },
+  contextMenu: {
+    clearCell: 'Clear Cell',
+    insertAbove: 'Insert Row Above',
+    insertBelow: 'Insert Row Below',
+    deleteRow: 'Delete Row',
+  },
+  validation: {
+    required: '{title} is required.',
+  },
+  aria: {
+    sortCleared: 'Sort cleared.',
+    sortChanged: 'Sort: {desc}',
+    filterActive: '{count} filters active',
+    filterCleared: 'Filters cleared.',
+    asc: 'ascending',
+    desc: 'descending',
+  },
+} as const;

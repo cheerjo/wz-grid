@@ -39,7 +39,18 @@
 | `serverSide` ⚠️ | `boolean` | `false` | 서버사이드 모드. `useServerSide` 사용 권장 |
 | `useServerSide` | `boolean` | `false` | 서버사이드 모드. 정렬/필터/페이징을 서버에 위임 (`serverSide`의 권장 alias) |
 | `totalRows` | `number` | `0` | 서버사이드 모드에서 전체 행 수. 페이징 UI 계산에 사용 |
+| `debug` | `boolean` | `false` | 개발 시 데이터 유효성 경고 활성화. 프로덕션에서는 `false`로 설정 |
 
 ::: tip
 ⚠️ 표시된 prop은 deprecated이며, 권장 이름으로 대체 예정입니다. 두 이름 모두 동작하며, 둘 중 하나라도 `true`이면 기능이 활성화됩니다.
+:::
+
+::: details deprecated prop 대체 목록
+| 기존 이름 | 권장 이름 |
+| :--- | :--- |
+| `showColumnSettings` | `useColumnSettings` |
+| `showExcelExport` | `useExcelExport` |
+| `serverSide` | `useServerSide` |
+
+자세한 내용은 [마이그레이션 가이드](/guide/migration)를 참고하세요.
 :::

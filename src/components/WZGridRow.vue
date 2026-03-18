@@ -6,6 +6,9 @@
 -->
 <template>
   <tr
+    role="row"
+    :aria-rowindex="itemIdx + 1"
+    :aria-selected="useCheckbox && row ? isRowChecked(row.id) : undefined"
     :style="{ height: rowHeight + 'px' }"
     :class="[{
       'opacity-40': effUseRowDrag && rowDragSrcIdx === itemIdx,
@@ -73,6 +76,10 @@
     <template v-for="(col, colIdx) in visibleColumns" :key="col.key">
     <td
       v-if="!getMerge(itemIdx, col.key)?.hidden"
+      role="gridcell"
+      :aria-colindex="colIdx + 1"
+      :aria-expanded="useTree && col.key === effectiveTreeKey && getTreeHasChildren(itemIdx) ? isExpanded(row && row.id) : undefined"
+      :tabindex="isSelected(itemIdx, colIdx) ? 0 : -1"
       :rowspan="getMerge(itemIdx, col.key)?.rowspan ?? 1"
       :colspan="getMerge(itemIdx, col.key)?.colspan ?? 1"
       :style="getColumnStyle(col, colIdx)"

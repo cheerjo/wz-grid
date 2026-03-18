@@ -1,13 +1,27 @@
 // src/composables/useSort.ts
 import { ref, computed } from 'vue-demi';
+import type { Ref, ComputedRef } from 'vue-demi';
 import type { SortConfig, GridRow, Column } from '../types/grid';
+
+export interface UseSortReturn {
+  /** 현재 활성화된 정렬 기준 목록 (다중 정렬 지원) */
+  sortConfigs: Ref<SortConfig[]>;
+  /** 특정 key의 정렬 항목 반환. 없으면 undefined. */
+  getSortEntry: (key: string) => SortConfig | undefined;
+  /** 특정 key의 정렬 인덱스 반환. 없으면 -1. */
+  getSortIndex: (key: string) => number;
+  /** 헤더 클릭 시 정렬 토글. Shift+클릭으로 다중 정렬. */
+  toggleSort: (key: string, e: MouseEvent) => void;
+  /** 정렬 기준이 적용된 rows. serverSide=true이면 원본 반환. */
+  sortedRows: ComputedRef<GridRow[]>;
+}
 
 export function useSort(
   onSort: (configs: SortConfig[]) => void,
   getRows: () => GridRow[],
   isServerSide: () => boolean,
   getColumns?: () => Column[]
-) {
+): UseSortReturn {
   const sortConfigs = ref<SortConfig[]>([]);
 
   const getSortEntry = (key: string) => sortConfigs.value.find(s => s.key === key);

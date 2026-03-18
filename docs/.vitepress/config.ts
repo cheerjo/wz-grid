@@ -60,6 +60,20 @@ export default defineConfig({
             { text: '라이선스', link: '/guide/license' },
           ],
         },
+        {
+          text: '고급',
+          items: [
+            { text: 'TypeScript', link: '/guide/typescript' },
+            { text: 'Composables 활용', link: '/guide/composables-usage' },
+            { text: '국제화 (i18n)', link: '/guide/i18n' },
+            { text: '플러그인', link: '/guide/plugins' },
+            { text: '성능 튜닝', link: '/guide/performance' },
+            { text: '성능 모니터링', link: '/guide/performance-monitoring' },
+            { text: '안티패턴', link: '/guide/anti-patterns' },
+            { text: '마이그레이션 가이드', link: '/guide/migration' },
+            { text: '디버깅', link: '/guide/debugging' },
+          ],
+        },
       ],
       '/api/': [
         {
@@ -68,6 +82,7 @@ export default defineConfig({
             { text: 'Props', link: '/api/props' },
             { text: 'Events', link: '/api/events' },
             { text: 'Column 타입', link: '/api/column-types' },
+            { text: 'Composables', link: '/api/composables' },
           ],
         },
       ],

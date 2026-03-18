@@ -3,12 +3,12 @@
   <div class="wz-grid-paging border-t border-gray-300 bg-gray-50 px-4 py-2 flex items-center justify-between text-sm text-gray-600">
     <div class="flex items-center gap-4">
       <span>
-        <strong>{{ totalFilteredRows.toLocaleString() }}</strong>건
-        <span v-if="showFilterNote" class="text-blue-600 text-xs ml-1">(전체 {{ totalRows.toLocaleString() }}건)</span>
+        <strong>{{ totalFilteredRows.toLocaleString() }}</strong>{{ t('grid.rowUnit') }}
+        <span v-if="showFilterNote" class="text-blue-600 text-xs ml-1">({{ t('pagination.totalCount', { count: totalRows.toLocaleString() }) }})</span>
       </span>
-      <span v-if="checkedCount > 0" class="text-blue-600 font-semibold">{{ checkedCount.toLocaleString() }}건 선택됨</span>
+      <span v-if="checkedCount > 0" class="text-blue-600 font-semibold">{{ t('pagination.selected', { count: checkedCount.toLocaleString() }) }}</span>
       <div class="flex items-center gap-1">
-        <span>Page Size:</span>
+        <span>{{ t('pagination.pageSize') }}</span>
         <select :value="pageSize" @change="onPageSizeChange" class="bg-white border border-gray-300 rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-400">
           <option v-for="s in [10, 20, 50, 100]" :key="s" :value="s">{{ s }}</option>
         </select>
@@ -28,7 +28,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue-demi';
+import { defineComponent, inject } from 'vue-demi';
+import type { TFunction } from '../composables/useI18n';
+import { I18N_KEY } from '../composables/useI18n';
 
 export default defineComponent({
   name: 'WZGridPagination',
@@ -43,6 +45,7 @@ export default defineComponent({
   },
   emits: ['update:pageSize', 'go-to'],
   setup(_, { emit }) {
+    const t = inject<TFunction>(I18N_KEY, (key: string) => key);
     const onPageSizeChange = (e: Event) => {
       emit('update:pageSize', parseInt((e.target as HTMLSelectElement).value));
       emit('go-to', 1);
@@ -51,7 +54,7 @@ export default defineComponent({
       const page = parseInt((e.target as HTMLInputElement).value);
       if (!isNaN(page)) emit('go-to', page);
     };
-    return { onPageSizeChange, onPageInput };
+    return { onPageSizeChange, onPageInput, t };
   },
 });
 </script>
