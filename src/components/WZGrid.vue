@@ -38,8 +38,8 @@
       ref="containerEl"
       class="wz-grid-container relative border border-gray-300 overflow-auto bg-white select-none focus:ring-2 focus:ring-blue-400 outline-none flex-grow"
       @scroll="onScroll"
-      @copy.self="onCopy"
-      @paste.self="onPaste"
+      @copy="onCopy"
+      @paste="onPaste"
       @keydown="handleKeyDown"
       tabindex="0"
     >
@@ -165,6 +165,7 @@
                 :cell-class="cellClass"
                 :get-merge="getMerge"
                 :is-selected="isSelected"
+                :selection-key="selectionKey"
                 :is-editing="isEditing"
                 :is-row-checked="isRowChecked"
                 :is-detail-expanded="isDetailExpanded"
@@ -494,6 +495,13 @@ export default defineComponent({
     };
 
     const { selection, startSelection, updateSelection, endSelection, isSelected, clearSelection, moveSelection } = useSelection();
+
+    // selection이 변경될 때마다 새 값이 생성되는 computed.
+    // WZGridRow에 prop으로 전달하여 shouldUpdateComponent가 true를 반환하게 함으로써
+    // 방향키 이동 후 이전 셀 하이라이트가 남는 버그를 수정한다.
+    const selectionKey = computed(() =>
+      `${selection.startRow}:${selection.startCol}:${selection.endRow}:${selection.endCol}`
+    );
 
     // ── 1. 컬럼 표시/숨기기 ────────────────────────────────────────────
     const { hiddenColKeys, visibleColumns, toggleColVisibility, colSettingsOpen } = useColumnSettings(
@@ -1088,7 +1096,7 @@ export default defineComponent({
       onRowDragStart, onRowDragOver, onRowDrop, onRowDragEnd,
       // grid
       topPadding, bottomPadding, onScroll, visibleRowsRange, filteredRows, footerEl,
-      isSelected, startSelection, updateSelection, endSelection,
+      isSelected, selectionKey, startSelection, updateSelection, endSelection,
       onCopy, onPaste,
       // editing
       editing, isEditing, startEditing, stopEditing, editValue,

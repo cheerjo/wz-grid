@@ -47,12 +47,17 @@ export function useClipboard(
     const startRow = Math.min(selection.startRow, selection.endRow);
     const startCol = Math.min(selection.startCol, selection.endCol);
 
+    // CLAUDE.md 기준 편집 불가 타입: badge, progress, image, button, link, tag, sparkline
+    // 이 타입의 컬럼에는 붙여넣기를 차단한다.
+    // tag는 배열 값이고 sparkline도 숫자 배열이므로 문자열 붙여넣기 시 데이터가 깨진다.
+    const READ_ONLY_TYPES = new Set(['badge', 'progress', 'image', 'button', 'link', 'tag', 'sparkline']);
+
     parsed.forEach((rowData, rIdx) => {
       rowData.forEach((cellData, cIdx) => {
         const targetRow = startRow + rIdx;
         const targetCol = startCol + cIdx;
         const col = getCols()[targetCol];
-        if (targetRow < getRows_().length && col) {
+        if (targetRow < getRows_().length && col && !READ_ONLY_TYPES.has(col.type || '')) {
           updateCell(targetRow, col.key, cellData);
         }
       });

@@ -805,6 +805,7 @@ type MergeCell = {
 - 내부적으로 TSV(Tab-Separated Values) 형식을 사용
 - 붙여넣기 시 시작 셀 위치부터 오른쪽/아래로 순서대로 입력
 - 그리드 범위를 벗어나는 데이터는 무시
+- 편집 불가 컬럼(`badge`, `progress`, `image`, `button`, `link`, `tag`, `sparkline`)에는 붙여넣기가 자동으로 차단됨
 
 ---
 
@@ -1306,7 +1307,7 @@ type GridItem     = DataItem | GroupHeader | SubtotalItem;
 
 - 파라미터: `selection`, `getColumns: () => Column[]`, `getRows: () => any[]`, `updateCell`
 - `onCopy(e)`: 선택 범위의 셀 값을 TSV 문자열로 클립보드에 복사
-- `onPaste(e)`: 클립보드의 TSV 데이터를 파싱하여 시작 셀부터 `updateCell` 호출
+- `onPaste(e)`: 클립보드의 TSV 데이터를 파싱하여 시작 셀부터 `updateCell` 호출 (편집 불가 타입 컬럼은 건너뜀)
 
 ### useFilter
 

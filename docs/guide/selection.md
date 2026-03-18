@@ -49,6 +49,7 @@
 - 내부적으로 TSV(Tab-Separated Values) 형식 사용
 - 붙여넣기 시 시작 셀 위치부터 오른쪽/아래로 순서대로 입력
 - 그리드 범위를 벗어나는 데이터는 무시
+- 편집 불가 컬럼(`badge`, `progress`, `image`, `button`, `link`, `tag`, `sparkline`)에는 붙여넣기가 자동으로 차단됨
 
 ::: info 편집 모드에서의 붙여넣기
 셀을 더블 클릭하거나 `Enter`로 **편집 모드** 진입 후 `Ctrl+V`를 누르면 input 안에 텍스트가 직접 붙여넣어집니다.

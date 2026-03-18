@@ -2,7 +2,8 @@
 export function parseTSV(text: string): string[][] {
   if (!text) return [];
   // 엑셀에서 복사하면 행은 줄바꿈(\r\n 또는 \n), 열은 탭(\t)으로 구분됩니다.
-  return text.split(/\r?\n/).map(row => row.split('\t'));
+  // trimEnd()로 Excel이 붙이는 후행 \r\n을 제거해 빈 마지막 행이 생기지 않도록 한다.
+  return text.trimEnd().split(/\r?\n/).map(row => row.split('\t'));
 }
 
 export function stringifyTSV(data: string[][]): string {

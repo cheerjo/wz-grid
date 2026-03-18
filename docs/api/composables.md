@@ -233,7 +233,7 @@ function useClipboard(
 ): { onCopy: (e: ClipboardEvent) => void; onPaste: (e: ClipboardEvent) => void }
 ```
 
-데이터는 TSV(탭 구분 값) 형식으로 클립보드에 저장되어 Excel과 호환됩니다. 편집 중인 `input`/`textarea`/`select`에서의 복사·붙여넣기는 기본 동작에 위임됩니다.
+데이터는 TSV(탭 구분 값) 형식으로 클립보드에 저장되어 Excel과 호환됩니다. 편집 중인 `input`/`textarea`/`select`에서의 복사·붙여넣기는 기본 동작에 위임됩니다. 붙여넣기 시 편집 불가 타입(`badge`, `progress`, `image`, `button`, `link`, `tag`, `sparkline`) 컬럼은 자동으로 건너뜁니다.
 
 ---
 

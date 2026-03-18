@@ -83,7 +83,7 @@
       :rowspan="getMerge(itemIdx, col.key)?.rowspan ?? 1"
       :colspan="getMerge(itemIdx, col.key)?.colspan ?? 1"
       :style="getColumnStyle(col, colIdx)"
-      class="border-b border-r border-gray-200 p-0 relative group"
+      class="border-b border-r border-gray-200 p-0 relative group outline-none"
       :class="[{
         'bg-blue-50/50': isSelected(itemIdx, colIdx),
         'sticky left-0 z-10 bg-white group-hover:bg-gray-50': col.pinned,
@@ -338,6 +338,9 @@ export default defineComponent({
     cellClass:          { type: Function as PropType<(row: any, column: Column, rowIndex: number) => any>, default: null },
     getMerge:           { type: Function as PropType<(itemIdx: number, colKey: string) => any>, required: true },
     isSelected:         { type: Function as PropType<(rowIdx: number, colIdx: number) => boolean>, required: true },
+    // selection 변경 시 WZGridRow 리렌더링을 보장하기 위한 키.
+    // WZGrid의 selectionKey computed가 변경되면 shouldUpdateComponent=true → 반드시 리렌더링.
+    selectionKey:       { type: String, default: '' },
     isEditing:          { type: Function as PropType<(rowIdx: number, colIdx: number) => boolean>, required: true },
     isRowChecked:       { type: Function as PropType<(rowId: any) => boolean>, required: true },
     isDetailExpanded:   { type: Function as PropType<(rowId: any) => boolean>, required: true },
