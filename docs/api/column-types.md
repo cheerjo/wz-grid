@@ -25,7 +25,8 @@ interface Column {
   // rating 타입 전용
   maxRating?: number       // 최대 별점 수 (기본: 5)
   // sparkline 타입 전용
-  sparklineColor?: string  // 라인 색상 (기본: '#3b82f6')
+  sparklineType?: 'line' | 'area' | 'bar' | 'column' // 차트 타입 (기본: 'line')
+  sparklineColor?: string  // 라인/막대 색상 (기본: '#3b82f6')
   sparklineHeight?: number // SVG 높이 px (기본: 32)
 }
 
@@ -215,16 +216,28 @@ CSS 색상 문자열을 색상 박스로 표시. 색상 피커 클릭 즉시 `@u
 
 ### `sparkline`
 
-`number[]` 배열 데이터를 SVG polyline 미니 라인 차트로 렌더링합니다. 편집 불가.
+`number[]` 배열 데이터를 SVG 미니 차트로 렌더링합니다. 편집 불가.
+`sparklineType`으로 차트 스타일을 선택합니다.
 
 | 옵션 | 타입 | 기본값 | 설명 |
 | :--- | :--- | :---: | :--- |
-| `sparklineColor` | `string` | `'#3b82f6'` | 라인 색상 |
+| `sparklineType` | `'line' \| 'area' \| 'bar' \| 'column'` | `'line'` | 차트 타입 |
+| `sparklineColor` | `string` | `'#3b82f6'` | 라인/막대 색상 |
 | `sparklineHeight` | `number` | `32` | SVG 높이(px) |
+
+**차트 타입**
+
+| 타입 | SVG 요소 | 설명 |
+| :--- | :------- | :--- |
+| `line` | `<polyline>` | 기본 라인 차트 |
+| `area` | `<polygon>` | 라인 + 아래 영역 채움 |
+| `bar` | `<rect>` | 수평 막대 차트 |
+| `column` | `<rect>` | 수직 막대 차트 |
 
 ```ts
 {
   key: 'trend', title: '트렌드', type: 'sparkline', width: 140,
+  sparklineType: 'area',   // 'line' | 'area' | 'bar' | 'column'
   sparklineColor: '#10b981',
   sparklineHeight: 32,
 }
