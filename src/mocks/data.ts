@@ -45,6 +45,7 @@ function generate(count: number) {
       lastLogin:  `${year}-${month}-${day}T${String(i % 24).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}`,
       themeColor: COLORS[i % COLORS.length],
       email:      `user${i + 1}@example.com`,
+      memo:       `메모 ${i + 1}: ${i % 3 === 0 ? '특이사항 없음' : i % 3 === 1 ? '업무 협조 필요' : '성과 우수'}`,
       skills:     SKILLS_POOL.slice(i % SKILLS_POOL.length, (i % SKILLS_POOL.length) + 2 + (i % 3)),
       trend:      Array.from({ length: 12 }, () => Math.floor(Math.random() * 100)),
     };

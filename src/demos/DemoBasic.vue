@@ -362,6 +362,7 @@ const baseColumns = computed<Column[]>(() => [
   { key: 'rating',     title: '평점 [rating]',      width: w('rating', 130),   type: 'rating',   align: 'center', maxRating: 5 },
   { key: 'themeColor', title: '색상 [color]',       width: w('themeColor', 130),type: 'color',   align: 'center' },
   { key: 'email',      title: '이메일 [email]',     width: w('email', 180),    type: 'email' },
+  { key: 'memo',       title: '메모 [textarea]',    width: w('memo', 200),     type: 'textarea' },
   { key: 'skills',     title: '스킬 [tag]',         width: w('skills', 200),   type: 'tag' },
   { key: 'trend',      title: '트렌드 [sparkline]', width: w('trend', 140),    type: 'sparkline', sparklineColor: '#10b981', sparklineHeight: 32 },
   { key: 'completion', title: '완료율 [progress]',  width: w('completion', 160),type: 'progress', footer: 'avg', footerLabel: '평균' },
@@ -472,7 +473,7 @@ const newRowTemplate = () => ({
   avatar: '', name: '', gender: 'M', phone: '', address: '',
   status: 'Pending', dept: 'dev', salary: 0,
   joinDate: new Date().toISOString().slice(0, 10),
-  active: true, completion: 0, profile: '',
+  active: true, completion: 0, profile: '', memo: '',
 });
 
 const handleAdd = async () => {
@@ -547,6 +548,7 @@ const columnTypeTags = [
   { label: 'button',   class: 'bg-orange-50  text-orange-600 border-orange-200' },
   { label: 'link',     class: 'bg-cyan-50    text-cyan-600   border-cyan-200' },
   { label: 'radio',    class: 'bg-yellow-50  text-yellow-600 border-yellow-200' },
+  { label: 'textarea', class: 'bg-amber-50   text-amber-600  border-amber-200' },
   { label: 'onInput',  class: 'bg-rose-50    text-rose-600   border-rose-200' },
 ];
 </script>
