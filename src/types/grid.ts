@@ -52,7 +52,8 @@ export type Column<T extends Record<string, any> = Record<string, any>> = {
   // rating 타입 전용
   maxRating?: number;   // 최대 별점 (기본: 5)
   // sparkline 타입 전용
-  sparklineColor?: string;  // 라인 색상 (기본: '#3b82f6')
+  sparklineType?: 'line' | 'area' | 'bar' | 'column'; // 차트 타입 (기본: 'line')
+  sparklineColor?: string;  // 라인/막대 색상 (기본: '#3b82f6')
   sparklineHeight?: number; // SVG 높이 (기본: 32)
 }
 

@@ -18,7 +18,7 @@
     <!-- ── 그리드 카드 ──────────────────────────────────────────────────────── -->
     <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
       <div class="p-3 border-b bg-gray-50 text-sm text-gray-600 flex items-center justify-between">
-        <span>전체 <strong>{{ rows.length }}</strong>행 · 컬럼 타입 <strong>18</strong>종</span>
+        <span>전체 <strong>{{ rows.length }}</strong>행 · 컬럼 타입 <strong>18</strong>종 (sparkline 4가지 타입 포함)</span>
         <span v-if="checkedRows.length > 0" class="text-blue-600 font-semibold text-xs">
           {{ checkedRows.length }}건 선택됨
         </span>
@@ -213,10 +213,38 @@ const columns: Column[] = [
   },
   {
     key: 'colSparkline',
-    title: 'sparkline',
+    title: 'sparkline (line)',
     type: 'sparkline',
+    sparklineType: 'line',
     width: 120,
     sparklineColor: '#3b82f6',
+    sparklineHeight: 28,
+  },
+  {
+    key: 'colSparklineArea',
+    title: 'sparkline (area)',
+    type: 'sparkline',
+    sparklineType: 'area',
+    width: 120,
+    sparklineColor: '#8b5cf6',
+    sparklineHeight: 28,
+  },
+  {
+    key: 'colSparklineBar',
+    title: 'sparkline (bar)',
+    type: 'sparkline',
+    sparklineType: 'bar',
+    width: 120,
+    sparklineColor: '#f59e0b',
+    sparklineHeight: 28,
+  },
+  {
+    key: 'colSparklineColumn',
+    title: 'sparkline (column)',
+    type: 'sparkline',
+    sparklineType: 'column',
+    width: 130,
+    sparklineColor: '#10b981',
     sparklineHeight: 28,
   },
 ];
@@ -245,7 +273,10 @@ const makeRow = (i: number) => ({
   colImage:    `https://i.pravatar.cc/40?img=${i + 1}`,
   colLink:       `https://example.com/item/${i}`,
   colButton:     '',
-  colSparkline:  Array.from({ length: 7 }, (_, j) => Math.round(10 + Math.abs(Math.sin((i + j) * 0.8) * 80))),
+  colSparkline:       Array.from({ length: 7 }, (_, j) => Math.round(10 + Math.abs(Math.sin((i + j) * 0.8) * 80))),
+  colSparklineArea:   Array.from({ length: 7 }, (_, j) => Math.round(10 + Math.abs(Math.sin((i + j) * 0.8) * 80))),
+  colSparklineBar:    Array.from({ length: 5 }, (_, j) => Math.round(5 + ((i + j) * 17) % 90)),
+  colSparklineColumn: Array.from({ length: 7 }, (_, j) => Math.round(5 + ((i * 3 + j * 13) % 90))),
 });
 
 const rows = ref(Array.from({ length: 12 }, (_, i) => makeRow(i + 1)));

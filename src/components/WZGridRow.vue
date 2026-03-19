@@ -286,8 +286,9 @@
           </span>
         </template>
         <template v-else-if="col.type === 'sparkline'">
+          <!-- line (기본) -->
           <svg
-            v-if="Array.isArray(row?.[col.key]) && row[col.key].length >= 2"
+            v-if="Array.isArray(row?.[col.key]) && row[col.key].length >= 2 && (!col.sparklineType || col.sparklineType === 'line')"
             :viewBox="'0 0 100 ' + (col.sparklineHeight || 32)"
             preserveAspectRatio="none"
             class="w-full"
@@ -300,6 +301,71 @@
               stroke-width="2"
               stroke-linejoin="round"
               stroke-linecap="round"
+            />
+          </svg>
+          <!-- area -->
+          <svg
+            v-else-if="Array.isArray(row?.[col.key]) && row[col.key].length >= 2 && col.sparklineType === 'area'"
+            :viewBox="'0 0 100 ' + (col.sparklineHeight || 32)"
+            preserveAspectRatio="none"
+            class="w-full"
+            :style="{ height: (col.sparklineHeight || 32) + 'px' }"
+          >
+            <!-- 채움 영역 -->
+            <polygon
+              :points="getSparklineAreaPoints(row[col.key], col.sparklineHeight || 32)"
+              :fill="col.sparklineColor || '#3b82f6'"
+              fill-opacity="0.18"
+              stroke="none"
+            />
+            <!-- 라인 -->
+            <polyline
+              :points="getSparklinePoints(row[col.key], col.sparklineHeight || 32)"
+              fill="none"
+              :stroke="col.sparklineColor || '#3b82f6'"
+              stroke-width="2"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            />
+          </svg>
+          <!-- bar (수평 막대) -->
+          <svg
+            v-else-if="Array.isArray(row?.[col.key]) && row[col.key].length >= 1 && col.sparklineType === 'bar'"
+            :viewBox="'0 0 100 ' + (col.sparklineHeight || 32)"
+            preserveAspectRatio="none"
+            class="w-full"
+            :style="{ height: (col.sparklineHeight || 32) + 'px' }"
+          >
+            <rect
+              v-for="(r, ri) in getSparklineBarRects(row[col.key], col.sparklineHeight || 32)"
+              :key="ri"
+              :x="r.x"
+              :y="r.y"
+              :width="r.w"
+              :height="r.h"
+              :fill="col.sparklineColor || '#3b82f6'"
+              fill-opacity="0.85"
+              rx="1"
+            />
+          </svg>
+          <!-- column (수직 막대) -->
+          <svg
+            v-else-if="Array.isArray(row?.[col.key]) && row[col.key].length >= 1 && col.sparklineType === 'column'"
+            :viewBox="'0 0 100 ' + (col.sparklineHeight || 32)"
+            preserveAspectRatio="none"
+            class="w-full"
+            :style="{ height: (col.sparklineHeight || 32) + 'px' }"
+          >
+            <rect
+              v-for="(r, ri) in getSparklineColumnRects(row[col.key], col.sparklineHeight || 32)"
+              :key="ri"
+              :x="r.x"
+              :y="r.y"
+              :width="r.w"
+              :height="r.h"
+              :fill="col.sparklineColor || '#3b82f6'"
+              fill-opacity="0.85"
+              rx="1"
             />
           </svg>
           <span v-else class="text-xs text-gray-300">—</span>
@@ -458,24 +524,98 @@ export default defineComponent({
       return target ? target.value : '';
     };
 
+    // ── Sparkline 헬퍼 ────────────────────────────────────────────────────
+
     /**
-     * number[] 배열을 SVG polyline points 문자열로 변환.
+     * number[] → SVG 공통 정규화 유틸
+     * viewBox width=100, height=svgHeight, 상하 pad=2px
+     * 반환: { x, y }[] (0-based normalized)
+     */
+    const normalizeSparkline = (values: number[], svgHeight: number, pad = 2) => {
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const range = max - min || 1;
+      return values.map((v, i) => ({
+        x: (i / (values.length - 1)) * 100,
+        y: svgHeight - pad - ((v - min) / range) * (svgHeight - pad * 2),
+        v,
+      }));
+    };
+
+    /**
+     * line / area 타입용 — polyline points 문자열 반환.
      * viewBox width=100, height=svgHeight (2px 상하 패딩 포함)
      */
     const getSparklinePoints = (values: number[], svgHeight: number): string => {
       if (!values || values.length < 2) return '';
-      const min = Math.min(...values);
-      const max = Math.max(...values);
-      const range = max - min || 1;
-      const pad = 2;
-      return values.map((v, i) => {
-        const x = (i / (values.length - 1)) * 100;
-        const y = svgHeight - pad - ((v - min) / range) * (svgHeight - pad * 2);
-        return `${x.toFixed(2)},${y.toFixed(2)}`;
-      }).join(' ');
+      return normalizeSparkline(values, svgHeight)
+        .map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`)
+        .join(' ');
     };
 
-    return { editInput, renderParentSlot, formatCurrency, formatDatetime, getEventValue, getSparklinePoints };
+    /**
+     * area 타입용 — 채움 polygon points 문자열 반환.
+     * 라인 포인트 + 우하단 → 좌하단 으로 닫는 경로
+     */
+    const getSparklineAreaPoints = (values: number[], svgHeight: number): string => {
+      if (!values || values.length < 2) return '';
+      const pad = 2;
+      const pts = normalizeSparkline(values, svgHeight, pad);
+      const linePts = pts.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
+      const baseline = (svgHeight - pad).toFixed(2);
+      const firstX = pts[0].x.toFixed(2);
+      const lastX  = pts[pts.length - 1].x.toFixed(2);
+      return `${linePts} ${lastX},${baseline} ${firstX},${baseline}`;
+    };
+
+    /**
+     * bar 타입 (수평) — rect 배열 데이터 반환.
+     * 각 값을 행으로 배치: y는 등분, 막대 너비는 값에 비례 (0~100)
+     */
+    const getSparklineBarRects = (
+      values: number[],
+      svgHeight: number,
+    ): { x: number; y: number; w: number; h: number }[] => {
+      if (!values || values.length < 1) return [];
+      const min = 0; // 0 기준 (음수 미지원)
+      const max = Math.max(...values) || 1;
+      const count = values.length;
+      const totalH = svgHeight - 4; // 상하 2px 여유
+      const barH = Math.max(1, totalH / count - 1); // 1px 간격
+      return values.map((v, i) => {
+        const w = ((v - min) / (max - min)) * 96; // 최대 96px
+        const y = 2 + i * (barH + 1);
+        return { x: 0, y, w, h: barH };
+      });
+    };
+
+    /**
+     * column 타입 (수직) — rect 배열 데이터 반환.
+     * 각 값을 열로 배치: x는 등분, 막대 높이는 값에 비례
+     */
+    const getSparklineColumnRects = (
+      values: number[],
+      svgHeight: number,
+    ): { x: number; y: number; w: number; h: number }[] => {
+      if (!values || values.length < 1) return [];
+      const max = Math.max(...values) || 1;
+      const count = values.length;
+      const pad = 2;
+      const totalW = 100;
+      const barW = Math.max(1, totalW / count - 1); // 1px 간격
+      const usableH = svgHeight - pad * 2;
+      return values.map((v, i) => {
+        const h = (v / max) * usableH;
+        const x = i * (barW + 1);
+        const y = svgHeight - pad - h;
+        return { x, y, w: barW, h: Math.max(1, h) };
+      });
+    };
+
+    return {
+      editInput, renderParentSlot, formatCurrency, formatDatetime, getEventValue,
+      getSparklinePoints, getSparklineAreaPoints, getSparklineBarRects, getSparklineColumnRects,
+    };
   },
 });
 </script>
