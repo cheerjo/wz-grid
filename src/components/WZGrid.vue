@@ -32,6 +32,9 @@
       </template>
     </WZGridToolbar>
 
+    <!-- 접근성용 텍스트 및 디버깅 -->
+    <div role="status" aria-live="polite" aria-atomic="true" class="sr-only">{{ ariaLiveMessage }}</div>
+
     <!-- ── 그리드 컨테이너 ─────────────────────────────────────────────── -->
     <div
       :class="(showAdd || showDelete || hasToolbarSlot || effShowColumnSettings) ? 'rounded-b border-t-0' : 'rounded'"
@@ -633,9 +636,11 @@ export default defineComponent({
     // ── 5. 가상 스크롤 ─────────────────────────────────────────────────
     const hasActiveMerge = computed(() => effAutoMergeCols.value.length > 0 || !!effMergeCells.value);
 
+    const getActualRowHeight = () => props.rowHeight + 1; // 1px for border-b
+
     const _vs = useVirtualScroll(
       computed(() => pagedItems.value.length),
-      () => props.rowHeight,
+      getActualRowHeight,
       () => props.height
     );
 
@@ -905,14 +910,17 @@ export default defineComponent({
           for (let i = currentPagedIdx + 1; i < pagedItems.value.length; i++) {
             if (pagedItems.value[i].type === 'data') { nextPagedIdx = i; break; }
           }
-          if (nextPagedIdx !== -1) {
-            editing.rowId = null; editing.colIdx = -1;
-            scrollToCell(nextPagedIdx, currentColIdx);
-            startSelection(nextPagedIdx, currentColIdx);
-            endSelection();
-            containerEl.value?.focus();
-            return;
+          // 다음 데이터 행이 없으면 현재 행 유지
+          if (nextPagedIdx === -1) {
+            nextPagedIdx = currentPagedIdx;
           }
+          
+          editing.rowId = null; editing.colIdx = -1;
+          scrollToCell(nextPagedIdx, currentColIdx);
+          startSelection(nextPagedIdx, currentColIdx);
+          endSelection();
+          containerEl.value?.focus({ preventScroll: true });
+          return;
         }
       }
       editing.rowId = null; editing.colIdx = -1;
@@ -926,22 +934,44 @@ export default defineComponent({
     // ── 15. 키보드 ─────────────────────────────────────────────────────
     const pagedDataRows = computed(() => pagedItems.value.filter((i): i is DataItem => i.type === 'data').map(i => i.row));
 
-    const scrollToCell = (rowIdx: number, colIdx: number) => {
+    const scrollToCell = (itemIdx: number, colIdx: number) => {
       const el = containerEl.value;
       if (!el) return;
 
-      // 수직 스크롤 — sticky 헤더 / sticky 푸터 높이 고려
       const headerHeight = el.querySelector('thead')?.clientHeight ?? 0;
       const footerHeight = el.querySelector<HTMLElement>('.sticky.bottom-0')?.clientHeight ?? 0;
-      const visibleHeight = el.clientHeight - footerHeight;
-      const rowTop    = rowIdx * props.rowHeight;
-      const rowBottom = rowTop + props.rowHeight;
-      if (rowTop < el.scrollTop) {
-        el.scrollTop = rowTop;
-        _vs.onScroll({ target: el } as unknown as Event);
-      } else if (headerHeight + rowBottom > el.scrollTop + visibleHeight) {
-        el.scrollTop = headerHeight + rowBottom - visibleHeight;
-        _vs.onScroll({ target: el } as unknown as Event);
+      
+      const tr = el.querySelector(`tbody tr[aria-rowindex="${itemIdx + 1}"]`) as HTMLElement;
+      if (tr) {
+        // 실제 DOM 엘리먼트가 렌더링된 경우 getBoundingClientRect()로 정확하게 스크롤 조정
+        const elRect = el.getBoundingClientRect();
+        const trRect = tr.getBoundingClientRect();
+
+        // 위쪽으로 가려진 경우 (헤더 고려)
+        if (trRect.top < elRect.top + headerHeight) {
+          el.scrollTop -= (elRect.top + headerHeight) - trRect.top;
+          _vs.onScroll({ target: el } as unknown as Event);
+        }
+        // 아래쪽으로 가려진 경우 (하단 여백/푸터 고려 및 수평 스크롤바 높이 회피)
+        else if (trRect.bottom > elRect.top + el.clientHeight - footerHeight) {
+          // 가려진 만큼 스크롤을 내린다
+          el.scrollTop += trRect.bottom - (elRect.top + el.clientHeight - footerHeight);
+          _vs.onScroll({ target: el } as unknown as Event);
+        }
+      } else {
+        // 가상 스크롤로 인해 DOM에 렌더링되지 않은 항목이라면 기존 수학적 비용(최소 높이 기준) 적용
+        const visibleHeight = el.clientHeight - footerHeight;
+        const actualRH  = getActualRowHeight();
+        const rowTop    = Math.max(0, itemIdx) * actualRH;
+        const rowBottom = rowTop + actualRH;
+        
+        if (rowTop < el.scrollTop) {
+          el.scrollTop = rowTop;
+          _vs.onScroll({ target: el } as unknown as Event);
+        } else if (headerHeight + rowBottom > el.scrollTop + visibleHeight) {
+          el.scrollTop = headerHeight + rowBottom - visibleHeight;
+          _vs.onScroll({ target: el } as unknown as Event);
+        }
       }
 
       // 수평 스크롤 — 실제 DOM TH 위치 기반으로 정확하게 계산
@@ -949,7 +979,6 @@ export default defineComponent({
       const col  = cols[colIdx];
       if (!col || col.pinned) return;
 
-      // effUseDetail 열을 extraCols에 포함
       const extraCols  = (effUseRowDrag.value ? 1 : 0) + (effUseDetail.value ? 1 : 0) + (props.useCheckbox ? 1 : 0);
       const ths        = el.querySelectorAll<HTMLElement>('thead tr:first-child th');
       const th         = ths[extraCols + colIdx];
@@ -977,7 +1006,39 @@ export default defineComponent({
       const dirs: any = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
       if (dirs[e.key]) {
         e.preventDefault();
-        moveSelection(dirs[e.key], e.shiftKey, pagedDataRows.value.length, visibleColumns.value.length);
+
+        // [중요 버그 수정]
+        // 사용자가 특정 td(셀)를 클릭해 포커스가 td에 머물러 있을 때 가상 스크롤이 발생하면,
+        // Vue DOM 패칭 과정에서 해당 td가 날아가며 포커스를 잃고 document.body로 빠지게 됩니다.
+        // 이러면 화살표 이벤트가 끊어져 네이티브 스크롤로 대체되므로, 컨테이너로 포커스를 안정적으로 잡아줍니다.
+        if (containerEl.value && document.activeElement !== containerEl.value) {
+          containerEl.value.focus({ preventScroll: true });
+        }
+
+        const dir = dirs[e.key];
+        const shift = e.shiftKey;
+        const oldStartRow = selection.startRow;
+        const oldEndRow = selection.endRow;
+
+        moveSelection(dir, shift, pagedItems.value.length, visibleColumns.value.length);
+        
+        // 새로 이동한 항목이 data row가 아니면, data row를 찾을 때까지 계속 이동
+        const targetRow = shift ? selection.endRow : selection.startRow;
+        let iterRow = targetRow;
+        
+        if (dir === 'up' || dir === 'down') {
+           const step = dir === 'up' ? -1 : 1;
+           while (iterRow >= 0 && iterRow < pagedItems.value.length && pagedItems.value[iterRow].type !== 'data') {
+               iterRow += step;
+           }
+           if (iterRow < 0 || iterRow >= pagedItems.value.length) {
+               iterRow = shift ? oldEndRow : oldStartRow; // 이동할 곳이 없으면 원상복구
+           }
+           
+           if (shift) selection.endRow = iterRow;
+           else selection.startRow = selection.endRow = iterRow;
+        }
+
         const focusRow = e.shiftKey ? selection.endRow : selection.startRow;
         const focusCol = e.shiftKey ? selection.endCol : selection.startCol;
         scrollToCell(focusRow, focusCol);
