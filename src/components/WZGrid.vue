@@ -771,9 +771,9 @@ export default defineComponent({
     };
 
     const getAlignClass = (align?: string) => ({
-      'justify-start':  !align || align === 'left',
-      'justify-center': align === 'center',
-      'justify-end':    align === 'right',
+      'justify-start text-left':  !align || align === 'left',
+      'justify-center text-center': align === 'center',
+      'justify-end text-right':    align === 'right',
     });
 
     const isResizing = ref(false);
