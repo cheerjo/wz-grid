@@ -1,0 +1,25 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//Users/jojaemun/wz-grid/**)",
+      "Bash(done)",
+      "Bash(git push:*)",
+      "Bash(npx vite:*)",
+      "Bash(npm publish:*)",
+      "Bash(git worktree:*)",
+      "Bash(git rm:*)",
+      "Bash(node:*)",
+      "Bash(npm version:*)"
+    ]
+  },
+  "teammateMode": "tmux"
+}

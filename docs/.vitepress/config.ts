@@ -94,7 +94,7 @@ export default defineConfig({
 
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2024 WZ-Grid',
+      copyright: 'Copyright © 2024 (주)위존',
     },
 
     search: {
