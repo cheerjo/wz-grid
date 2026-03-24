@@ -14,7 +14,7 @@
 
 - 더블 클릭 또는 알파벳/숫자 키 입력으로 편집 모드 진입
 - `Enter`로 저장 후 동일 컬럼의 다음 행 셀로 포커스 이동 (Excel 동작)
-- `textarea` 타입에서 `Shift+Enter`는 줄바꿈 입력
+- `textarea` 타입 편집 팝업에서 `Enter`는 줄바꿈을 입력하며, `Ctrl+Enter(또는 Cmd+Enter)`로 입력을 완료합니다.
 - 포커스 이탈(blur)로 저장 → `@update:cell` 이벤트 발생
 - `Esc`로 편집 취소
 
