@@ -42,6 +42,8 @@ export type Column<T extends Record<string, any> = Record<string, any>> = {
   required?: boolean;  // 필수값 여부
   validator?: (value: any, row: any) => string | null; // 커스텀 유효성 검사 함수
   onInput?: (value: any) => any; // 실시간 입력 가공 함수
+  editable?: boolean;   // 직접 편집 가능 여부 (기본: 컬럼 타입 기본 규칙 사용)
+  rules?: any[];        // 외부 폼 컴포넌트 등과의 연동을 위한 검증 룰 배열
   truncate?: boolean;   // 내용이 길 때 말줄임표(...) 처리 (기본: true)
   tooltip?: boolean;    // 호버 시 전체 내용을 툴팁으로 표시
   footer?: FooterAggr;  // 푸터 집계 방식
