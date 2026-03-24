@@ -145,8 +145,8 @@
             @input="$emit('update:editValue', getEventValue($event))"
           />
           <div class="flex items-center justify-end gap-1.5 p-1.5 bg-gray-50 border-t border-gray-200">
-            <button type="button" @mousedown.prevent @click.stop="$emit('stop-editing', false)" class="px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-200 rounded transition-colors">취소 (ESC)</button>
             <button type="button" @mousedown.prevent @click.stop="$emit('stop-editing', true, true)" class="px-2 py-1 text-[10px] font-medium text-white bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded transition-colors shadow-sm">확인 (Ctrl+Enter)</button>
+            <button type="button" @mousedown.prevent @click.stop="$emit('stop-editing', false)" class="px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-200 rounded transition-colors">취소 (ESC)</button>
           </div>
         </div>
         <input
