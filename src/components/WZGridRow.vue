@@ -129,17 +129,26 @@
           @input="$emit('update:editValue', getEventValue($event))"
           @change="$emit('stop-editing', true)"
         />
-        <textarea
+        <div
           v-else-if="col.type === 'textarea'"
-          ref="editInput"
-          :value="editValue"
-          class="absolute inset-0 w-full h-full px-2 py-1 text-sm border-2 border-blue-500 outline-none resize-none bg-white z-30"
-          @blur="$emit('stop-editing', true)"
-          @keydown.esc.stop="$emit('stop-editing', false)"
-          @keydown.enter.exact.stop="$emit('stop-editing', true, true)"
+          class="absolute z-50 flex flex-col border-2 border-blue-500 bg-white shadow-xl rounded-sm"
+          style="min-width: 100%; min-height: 120px; top: -2px; left: -2px; resize: both; overflow: hidden;"
           @mousedown.stop
-          @input="$emit('update:editValue', getEventValue($event))"
-        />
+        >
+          <textarea
+            ref="editInput"
+            :value="editValue"
+            class="flex-1 w-full p-2 text-sm outline-none resize-none bg-transparent"
+            @blur="$emit('stop-editing', true)"
+            @keydown.esc.stop="$emit('stop-editing', false)"
+            @keydown.enter.stop="(e) => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); $emit('stop-editing', true, true); } }"
+            @input="$emit('update:editValue', getEventValue($event))"
+          />
+          <div class="flex items-center justify-end gap-1.5 p-1.5 bg-gray-50 border-t border-gray-200">
+            <button type="button" @mousedown.prevent @click.stop="$emit('stop-editing', false)" class="px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-200 rounded transition-colors">취소 (ESC)</button>
+            <button type="button" @mousedown.prevent @click.stop="$emit('stop-editing', true, true)" class="px-2 py-1 text-[10px] font-medium text-white bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded transition-colors shadow-sm">확인 (Ctrl+Enter)</button>
+          </div>
+        </div>
         <input
           v-else-if="col.type !== 'select' && col.type !== 'boolean' && col.type !== 'tag' && col.type !== 'color' && col.type !== 'rating' && col.type !== 'sparkline'"
           ref="editInput" :value="editValue"
