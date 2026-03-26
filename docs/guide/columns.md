@@ -24,17 +24,11 @@ const columns = [
 
 ## 컬럼 리사이즈
 
-헤더 셀 오른쪽 경계에 마우스를 올리면 리사이즈 커서가 표시됩니다.
-
-```ts
-const handleResize = ({ colKey, width }: { colKey: string; width: number }) => {
-  const col = columns.value.find(c => c.key === colKey)
-  if (col) col.width = width
-}
-```
+헤더 셀 오른쪽 경계에 마우스를 올리면 리사이즈 커서가 표시됩니다. **별도 핸들러 없이도 너비 변경이 자동으로 반영됩니다.**
 
 ```vue
-<WZGrid ... @resize:column="handleResize" />
+<!-- 기본 사용: 핸들러 없이 자동 동작 -->
+<WZGrid :columns="columns" :rows="rows" />
 ```
 
 - 최소 너비: 50px, 최대 너비: 600px
@@ -47,25 +41,45 @@ const handleResize = ({ colKey, width }: { colKey: string; width: number }) => {
 `boolean`, `progress`, `image`, `button`, `radio` 타입 컬럼은 헤더 텍스트 너비만 기준으로 합니다.
 :::
 
+::: details 리사이즈 너비를 외부에서 저장하려면?
+`@resize:column` 이벤트를 바인딩하여 너비 변경을 로컬 스토리지나 서버에 저장할 수 있습니다.
+
+```ts
+const handleResize = ({ colKey, width }: { colKey: string; width: number }) => {
+  localStorage.setItem(`col-width-${colKey}`, String(width))
+}
+```
+
+```vue
+<WZGrid ... @resize:column="handleResize" />
+```
+:::
+
 ## 컬럼 드래그 재배치
 
-헤더 셀을 드래그하여 컬럼 순서를 변경할 수 있습니다. 별도 prop 없이 기본 활성화됩니다.
+헤더 셀을 드래그하여 컬럼 순서를 변경할 수 있습니다. 별도 prop 없이 기본 활성화되며, **핸들러 없이도 순서 변경이 자동 반영됩니다.**
+
+```vue
+<!-- 기본 사용: 드래그만 하면 자동 동작 -->
+<WZGrid :columns="columns" :rows="rows" />
+```
+
+::: details 컬럼 순서를 외부에서 저장하려면?
+`@reorder:columns` 이벤트를 바인딩하여 순서 변경을 서버에 저장할 수 있습니다.
 
 ```ts
 const handleReorderColumns = ({ srcKey, targetKey }: { srcKey: string; targetKey: string }) => {
-  const cols = [...columns.value]
-  const srcIdx    = cols.findIndex(c => c.key === srcKey)
-  const targetIdx = cols.findIndex(c => c.key === targetKey)
-  if (srcIdx === -1 || targetIdx === -1) return
-  const [moved] = cols.splice(srcIdx, 1)
-  cols.splice(targetIdx, 0, moved)
-  columns.value = cols
+  fetch('/api/column-order', {
+    method: 'POST',
+    body: JSON.stringify({ srcKey, targetKey }),
+  })
 }
 ```
 
 ```vue
 <WZGrid ... @reorder:columns="handleReorderColumns" />
 ```
+:::
 
 ## 말줄임 & 툴팁
 

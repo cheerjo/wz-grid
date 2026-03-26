@@ -506,15 +506,35 @@ export default defineComponent({
       `${selection.startRow}:${selection.startCol}:${selection.endRow}:${selection.endCol}`
     );
 
+    // ── 0. 컬럼 드래그 순서 변경 (내부 자체 관리) ─────────────────────
+    // 드래그 순서가 적용된 컬럼 → useColumnSettings → visibleColumns 순서로 흐름
+    const { dragSourceColIdx, dragOverColIdx, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd, reorderedColumns } = useColumnDrag(
+      () => props.columns,
+      (srcKey, targetKey) => emit('reorder:columns', { srcKey, targetKey }),
+      () => isResizing.value
+    );
+
     // ── 1. 컬럼 표시/숨기기 ────────────────────────────────────────────
     const { hiddenColKeys, visibleColumns, toggleColVisibility, colSettingsOpen } = useColumnSettings(
-      () => props.columns
+      () => reorderedColumns.value
+    );
+
+    // ── 행 드래그 순서 변경 (내부 자체 관리 — treeAllFlat 이전에 선언 필요) ──
+    // getRow는 pagedItems에 의존하므로, 런타임에만 호출되는 지연 래퍼 사용
+    const _lazyGetRow = (idx: number) => {
+      const item = pagedItems.value?.[idx];
+      return item?.type === 'data' ? item.row : undefined;
+    };
+    const { rowDragSrcIdx, rowDragOverIdx, rowDragOverPos, onRowDragStart, onRowDragOver, onRowDrop, onRowDragEnd, reorderedRows } = useRowDragDrop(
+      _lazyGetRow,
+      (from, to, position) => emit('reorder:rows', { from, to, position }),
+      () => sortedRows.value
     );
 
     // ── 트리: 모든 노드 플래튼 (필터 입력에 사용) ─────────────────────
-    // sortedRows를 입력으로 받아 props.rows → sortedRows → treeAllFlat → filteredRows 흐름 유지
+    // reorderedRows를 입력으로 받아 정렬 → 드래그 순서 → treeAllFlat → filteredRows 흐름 유지
     const treeAllFlat = computed((): GridRow[] => {
-      if (!props.useTree) return sortedRows.value;
+      if (!props.useTree) return reorderedRows.value;
       const childKey = props.childrenKey || 'children';
       const result: GridRow[] = [];
       function flatten(rows: GridRow[]) {
@@ -524,7 +544,7 @@ export default defineComponent({
           if (Array.isArray(ch)) flatten(ch);
         }
       }
-      flatten(sortedRows.value);
+      flatten(reorderedRows.value);
       return result;
     });
 
@@ -732,11 +752,7 @@ export default defineComponent({
       if (row) emit('click:delete', [row]); closeCtxMenu();
     };
 
-    // ── 9. 행 드래그 순서 변경 ─────────────────────────────────────────
-    const { rowDragSrcIdx, rowDragOverIdx, rowDragOverPos, onRowDragStart, onRowDragOver, onRowDrop, onRowDragEnd } = useRowDragDrop(
-      getRow,
-      (from, to, position) => emit('reorder:rows', { from, to, position })
-    );
+    // ── 9. (행 드래그는 위 sortedRows 직후에서 초기화됨 — reorderedRows → treeAllFlat 순서 보장)
 
     // ── 10. 유효성 검사 ────────────────────────────────────────────────
     const { errors, validateCell } = useValidation(() => props.rows, () => props.columns, t);
@@ -744,6 +760,11 @@ export default defineComponent({
     const getError = (rowIdx: number, colKey: string) => { const row = getRow(rowIdx); return row ? errors[`${row.id}:${colKey}`] : ''; };
 
     // ── 11. 스타일 & 리사이즈 ──────────────────────────────────────────
+    // 내부적으로 관리하는 컬럼 너비 (리사이즈 즉시 반영)
+    const internalWidths = ref<Record<string, number>>({});
+    // 컬럼의 실제 너비: 내부 오버라이드 → props 기본값 순서
+    const getColWidth = (col: Column) => internalWidths.value[col.key] ?? col.width ?? 150;
+
     // pinned 컬럼의 sticky left 값을 미리 계산 — 매 렌더링마다 for 루프 대신 O(1) lookup
     const pinnedLeftMap = computed<Map<string, number>>(() => {
       const map = new Map<string, number>();
@@ -755,14 +776,14 @@ export default defineComponent({
       for (const col of visibleColumns.value) {
         if (col.pinned) {
           map.set(col.key, accLeft);
-          accLeft += col.width || 150;
+          accLeft += getColWidth(col);
         }
       }
       return map;
     });
 
     const getColumnStyle = (col: Column, _colIdx: number) => {
-      const px = (col.width || 150) + 'px';
+      const px = getColWidth(col) + 'px';
       const style: Record<string, any> = { width: px, minWidth: px, maxWidth: px };
       if (col.pinned) {
         style.left = (pinnedLeftMap.value.get(col.key) ?? 0) + 'px';
@@ -782,11 +803,15 @@ export default defineComponent({
       isResizing.value = true;
       resizedRecently = true; // mousedown 시점부터 세팅 — click 이벤트(정렬 트리거) 차단
       const startX = e.pageX;
-      const startWidth = visibleColumns.value[colIdx]?.width || 150;
-      const colKey = visibleColumns.value[colIdx]?.key;
+      const col = visibleColumns.value[colIdx];
+      const startWidth = getColWidth(col!);
+      const colKey = col?.key;
       const onMouseMove = (ev: MouseEvent) => {
         resizedRecently = true;
-        emit('resize:column', { colIdx, colKey, width: Math.max(50, startWidth + (ev.pageX - startX)) });
+        const newWidth = Math.max(50, startWidth + (ev.pageX - startX));
+        // 내부 상태에 즉시 반영 (외부 핸들러 없이도 리사이즈 작동)
+        if (colKey) internalWidths.value[colKey] = newWidth;
+        emit('resize:column', { colIdx, colKey, width: newWidth });
       };
       const onMouseUp = () => {
         isResizing.value = false;
@@ -843,15 +868,13 @@ export default defineComponent({
       }
 
       const finalWidth = Math.max(50, Math.min(600, Math.ceil(maxW)));
+      // 내부 상태에 즉시 반영 (외부 핸들러 없이도 자동 맞춤 작동)
+      internalWidths.value[col.key] = finalWidth;
       emit('resize:column', { colIdx, colKey: col.key, width: finalWidth });
     };
 
     // ── 12. 컬럼 드래그 앤 드롭 순서 변경 ─────────────────────────────
-    const { dragSourceColIdx, dragOverColIdx, onDragStart, onDragOver, onDragLeave, onDrop, onDragEnd } = useColumnDrag(
-      () => visibleColumns.value,
-      (srcKey, targetKey) => emit('reorder:columns', { srcKey, targetKey }),
-      () => isResizing.value
-    );
+    // useColumnDrag는 위 ── 0 ──에서 초기화됨 (reorderedColumns → useColumnSettings 순서 보장)
 
     // ── 14. 편집 ───────────────────────────────────────────────────────
     const editing   = reactive({ rowId: null as any, colIdx: -1 });

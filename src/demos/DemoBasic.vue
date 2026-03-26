@@ -176,11 +176,7 @@
           @update:checked="checkedRows = $event"
           @click:add="handleAdd"
           @click:delete="handleDelete"
-          @resize:column="handleResize"
-          @sort="handleSort"
-          @reorder:columns="handleReorderColumns"
           @click:insert="handleInsert"
-          @reorder:rows="handleReorderRows"
           @click:button="handleButtonClick"
           :rowClass="demoRowClass"
           :cellClass="demoCellClass"
@@ -271,7 +267,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import WZGrid from '../components/WZGrid.vue';
-import type { Column, SortConfig } from '../types/grid';
+import type { Column } from '../types/grid';
 import { downloadCSV } from '../utils/tsv';
 import { printGrid } from '../utils/print';
 
@@ -303,33 +299,27 @@ const formatPhone = (v: any): string => {
   return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
 };
 
-// ── 컬럼 너비 오버라이드 (리사이즈 반영) ──────────────────────────────────
-const columnWidths = ref<Record<string, number>>({});
-const w = (key: string, def: number) => columnWidths.value[key] ?? def;
-
-// ── 컬럼 순서 오버라이드 (헤더 드래그 반영) ────────────────────────────────
-const columnOrder = ref<string[]>([]);
-
 // ── 컬럼 정의 ──────────────────────────────────────────────────────────────
-const baseColumns = computed<Column[]>(() => [
-  { key: 'id',     title: 'ID',   width: w('id', 60),     align: 'center', pinned: true },
-  { key: 'avatar', title: '사진', width: w('avatar', 60), type: 'image',   pinned: true },
-  { key: 'name',   title: '이름', width: w('name', 120),  type: 'text',    pinned: true, required: true,
+// WZGrid 내부에서 리사이즈/정렬/드래그를 자체 처리하므로 고정 width만 지정
+const columns = computed<Column[]>(() => [
+  { key: 'id',     title: 'ID',   width: 60,     align: 'center', pinned: true },
+  { key: 'avatar', title: '사진', width: 60, type: 'image',   pinned: true },
+  { key: 'name',   title: '이름', width: 120,  type: 'text',    pinned: true, required: true,
     truncate: truncateEnabled.value, tooltip: truncateEnabled.value },
 
   {
-    key: 'gender', title: '성별 [radio]', width: w('gender', 130), type: 'radio', align: 'center',
+    key: 'gender', title: '성별 [radio]', width: 130, type: 'radio', align: 'center',
     options: [{ label: '남', value: 'M' }, { label: '여', value: 'F' }]
   },
 
   {
-    key: 'phone', title: '휴대전화 [text+onInput]', width: w('phone', 150), type: 'text',
+    key: 'phone', title: '휴대전화 [text+onInput]', width: 150, type: 'text',
     onInput: formatPhone,
     truncate: truncateEnabled.value,
   },
 
   {
-    key: 'address', title: `주소 [truncate ${truncateEnabled.value ? 'ON' : 'OFF'}]`, width: w('address', 160), type: 'text',
+    key: 'address', title: `주소 [truncate ${truncateEnabled.value ? 'ON' : 'OFF'}]`, width: 160, type: 'text',
     truncate: truncateEnabled.value, tooltip: true,
   },
 
@@ -343,7 +333,7 @@ const baseColumns = computed<Column[]>(() => [
   },
 
   {
-    key: 'dept', title: '부서 [select]', width: w('dept', 140), type: 'select',
+    key: 'dept', title: '부서 [select]', width: 140, type: 'select',
     truncate: truncateEnabled.value,
     options: [
       { value: 'dev',     label: '개발팀' },
@@ -354,30 +344,25 @@ const baseColumns = computed<Column[]>(() => [
     ]
   },
 
-  { key: 'salary',     title: '급여 [number]',     width: w('salary', 140),   type: 'number',   align: 'right',  footer: 'sum', footerLabel: '합계' },
-  { key: 'wage',       title: '월급 [currency]',   width: w('wage', 150),     type: 'currency', align: 'right',  currencySymbol: '₩', decimals: 0 },
-  { key: 'joinDate',   title: '입사일 [date]',      width: w('joinDate', 130), type: 'date',     align: 'center' },
-  { key: 'lastLogin',  title: '최근접속 [datetime]',width: w('lastLogin', 160),type: 'datetime', align: 'center' },
-  { key: 'active',     title: '재직 [boolean]',     width: w('active', 110),   type: 'boolean',  align: 'center', footer: 'count', footerLabel: '재직' },
-  { key: 'rating',     title: '평점 [rating]',      width: w('rating', 130),   type: 'rating',   align: 'center', maxRating: 5 },
-  { key: 'themeColor', title: '색상 [color]',       width: w('themeColor', 130),type: 'color',   align: 'center' },
-  { key: 'email',      title: '이메일 [email]',     width: w('email', 180),    type: 'email' },
-  { key: 'memo',       title: '메모 [textarea]',    width: w('memo', 200),     type: 'textarea' },
-  { key: 'skills',     title: '스킬 [tag]',         width: w('skills', 200),   type: 'tag' },
-  { key: 'trend',      title: '트렌드 [sparkline]', width: w('trend', 140),    type: 'sparkline', sparklineColor: '#10b981', sparklineHeight: 32 },
-  { key: 'completion', title: '완료율 [progress]',  width: w('completion', 160),type: 'progress', footer: 'avg', footerLabel: '평균' },
-  { key: 'profile',    title: '프로필 [link]',      width: w('profile', 180),  type: 'link' },
+  { key: 'salary',     title: '급여 [number]',     width: 140,   type: 'number',   align: 'right',  footer: 'sum', footerLabel: '합계' },
+  { key: 'wage',       title: '월급 [currency]',   width: 150,     type: 'currency', align: 'right',  currencySymbol: '₩', decimals: 0 },
+  { key: 'joinDate',   title: '입사일 [date]',      width: 130, type: 'date',     align: 'center' },
+  { key: 'lastLogin',  title: '최근접속 [datetime]',width: 160,type: 'datetime', align: 'center' },
+  { key: 'active',     title: '재직 [boolean]',     width: 110,   type: 'boolean',  align: 'center', footer: 'count', footerLabel: '재직' },
+  { key: 'rating',     title: '평점 [rating]',      width: 130,   type: 'rating',   align: 'center', maxRating: 5 },
+  { key: 'themeColor', title: '색상 [color]',       width: 130,type: 'color',   align: 'center' },
+  { key: 'email',      title: '이메일 [email]',     width: 180,    type: 'email' },
+  { key: 'memo',       title: '메모 [textarea]',    width: 200,     type: 'textarea' },
+  { key: 'skills',     title: '스킬 [tag]',         width: 200,   type: 'tag' },
+  { key: 'trend',      title: '트렌드 [sparkline]', width: 140,    type: 'sparkline', sparklineColor: '#10b981', sparklineHeight: 32 },
+  { key: 'completion', title: '완료율 [progress]',  width: 160,type: 'progress', footer: 'avg', footerLabel: '평균' },
+  { key: 'profile',    title: '프로필 [link]',      width: 180,  type: 'link' },
   {
-    key: 'action', title: '관리 [button]', width: w('action', 110), type: 'button', align: 'center',
+    key: 'action', title: '관리 [button]', width: 110, type: 'button', align: 'center',
     options: [{ label: '상세보기' }]
   },
 ] as Column[]);
 
-const columns = computed<Column[]>(() => {
-  if (columnOrder.value.length === 0) return baseColumns.value;
-  const map = new Map(baseColumns.value.map(c => [c.key, c]));
-  return columnOrder.value.map(key => map.get(key)).filter(Boolean) as Column[];
-});
 
 // ── API ────────────────────────────────────────────────────────────────────
 const API = '/api/employees';
@@ -413,31 +398,8 @@ const handleUpdate = async ({ row, colKey, value }: any) => {
   });
 };
 
-const handleResize = ({ colKey, width }: any) => {
-  columnWidths.value[colKey] = width;
-};
 
-const handleSort = (configs: SortConfig[]) => {
-  if (configs.length === 0) return;
-  rows.value = [...rows.value].sort((a, b) => {
-    for (const { key, order } of configs) {
-      const modifier = order === 'asc' ? 1 : -1;
-      const av = a[key]; const bv = b[key];
-      if (av !== bv) return (av > bv ? 1 : -1) * modifier;
-    }
-    return 0;
-  });
-};
 
-const handleReorderColumns = ({ srcKey, targetKey }: { srcKey: string; targetKey: string }) => {
-  const keys = columns.value.map(c => c.key);
-  const srcIdx    = keys.indexOf(srcKey);
-  const targetIdx = keys.indexOf(targetKey);
-  if (srcIdx === -1 || targetIdx === -1) return;
-  const [moved] = keys.splice(srcIdx, 1);
-  keys.splice(targetIdx, 0, moved);
-  columnOrder.value = keys;
-};
 
 const handleButtonClick = ({ row }: any) => { alert(`${row.name} 상세 보기`); };
 
@@ -488,16 +450,7 @@ const handleAdd = async () => {
   currentPage.value = 1;
 };
 
-const handleReorderRows = ({ from, to, position }: { from: any; to: any; position: 'above' | 'below' }) => {
-  const arr = [...rows.value];
-  const fromIdx = arr.findIndex(r => r.id === from.id);
-  if (fromIdx === -1) return;
-  const [moved] = arr.splice(fromIdx, 1);
-  const toIdx = arr.findIndex(r => r.id === to.id);
-  if (toIdx === -1) return;
-  arr.splice(position === 'above' ? toIdx : toIdx + 1, 0, moved);
-  rows.value = arr;
-};
+
 
 const handleInsert = async ({ position, row }: { position: 'above' | 'below'; row: any }) => {
   const idx = rows.value.findIndex(r => r.id === row?.id);

@@ -304,11 +304,13 @@ const visibleItems = computed(() =>
 여러 composable을 조합해 완전한 데이터 파이프라인을 구성할 수 있습니다.
 
 ```ts
-// 정렬 → 필터 → 체크박스 순서로 파이프라인 구성
+// 정렬 → 행 드래그 순서 → 필터 → 체크박스 순서로 파이프라인 구성
 const { sortedRows } = useSort(onSort, () => props.rows, () => false, () => columns.value)
-const { filteredRows } = useFilter(() => sortedRows.value, () => columns.value, () => filterEnabled.value)
+const { reorderedRows } = useRowDragDrop(getRow, onReorder, () => sortedRows.value)
+const { filteredRows } = useFilter(() => reorderedRows.value, () => columns.value, () => filterEnabled.value)
 const { checkedIds, toggleRow } = useCheckbox(() => filteredRows.value, () => props.rows, onCheck)
 const { errors } = useValidation(() => filteredRows.value, () => columns.value)
 ```
 
-> 이 파이프라인은 WZGrid 내부에서 이미 동일한 순서로 동작합니다. 외부에서 사용할 때는 각 단계의 결과를 다음 단계 getter로 전달하는 패턴을 유지하세요.
+> 이 파이프라인은 WZGrid 내부에서 이미 동일한 순서로 동작합니다. `sort`, `resize:column`, `reorder:columns`, `reorder:rows`는 WZGrid가 자동 처리하므로, 대부분의 경우 Composable을 직접 사용할 필요 없이 그리드 컴포넌트만 배치하면 됩니다.
+

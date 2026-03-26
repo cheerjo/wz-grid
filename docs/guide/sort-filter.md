@@ -8,7 +8,7 @@
 
 ## 정렬 (Sort)
 
-헤더 셀 클릭으로 정렬 이벤트를 발생시킵니다. **실제 정렬 로직은 부모 컴포넌트에서 처리합니다.**
+헤더 셀 클릭으로 정렬할 수 있습니다. **WZGrid가 내부적으로 클라이언트 사이드 정렬을 자동 수행**하므로, 별도 핸들러 없이도 정렬이 동작합니다.
 
 ### 단일 정렬
 
@@ -21,23 +21,22 @@
 - 정렬된 컬럼 헤더에 순서 번호(①②③…)와 방향 화살표 표시
 - 이미 정렬 중인 컬럼을 Shift+클릭하면 방향 토글 → 해제 순으로 변경
 
+### 서버사이드 모드
+
+서버사이드 모드(`serverSide` prop)에서는 내부 정렬이 비활성화되고, `@sort` 이벤트를 통해 외부에서 처리해야 합니다.
+
 ```ts
 import type { SortConfig } from 'wz-grid'
 
-const handleSort = (configs: SortConfig[]) => {
-  if (configs.length === 0) return
-  rows.value = [...rows.value].sort((a, b) => {
-    for (const { key, order } of configs) {
-      const modifier = order === 'asc' ? 1 : -1
-      if (a[key] !== b[key]) return (a[key] > b[key] ? 1 : -1) * modifier
-    }
-    return 0
-  })
+const handleSort = async (configs: SortConfig[]) => {
+  const params = configs.map(c => `${c.key}:${c.order}`).join(',')
+  const res = await fetch(`/api/data?sort=${params}`)
+  rows.value = await res.json()
 }
 ```
 
 ```vue
-<WZGrid ... @sort="handleSort" />
+<WZGrid :serverSide="true" @sort="handleSort" />
 ```
 
 ## 필터 (Filter)
