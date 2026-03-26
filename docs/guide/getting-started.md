@@ -5,7 +5,7 @@
 라이브러리를 설치하기 전에 프로젝트를 클론하여 데모 앱을 실행해볼 수 있습니다.
 
 ```bash
-git clone https://github.com/your-org/wz-grid.git
+git clone https://github.com/cheerjo/wz-grid.git
 cd wz-grid
 npm install
 npm run dev
@@ -27,25 +27,25 @@ npm run dev
 
 ```vue
 <script setup lang="ts">
-import { ref } from 'vue'
-import { WZGrid } from 'wz-grid'
-import type { Column } from 'wz-grid'
+import { ref } from "vue";
+import { WZGrid } from "wz-grid";
+import type { Column } from "wz-grid";
 
 const columns = ref<Column[]>([
-  { key: 'id',   title: 'ID',   width: 60 },
-  { key: 'name', title: '이름', width: 150 },
-  { key: 'age',  title: '나이', width: 80, type: 'number', align: 'right' },
-])
+  { key: "id", title: "ID", width: 60 },
+  { key: "name", title: "이름", width: 150 },
+  { key: "age", title: "나이", width: 80, type: "number", align: "right" },
+]);
 
 const rows = ref([
-  { id: 1, name: '홍길동', age: 30 },
-  { id: 2, name: '김철수', age: 25 },
-])
+  { id: 1, name: "홍길동", age: 30 },
+  { id: 2, name: "김철수", age: 25 },
+]);
 
 const handleUpdate = ({ row, colKey, value }: any) => {
-  const target = rows.value.find(r => r.id === row.id)
-  if (target) (target as any)[colKey] = value
-}
+  const target = rows.value.find((r) => r.id === row.id);
+  if (target) (target as any)[colKey] = value;
+};
 </script>
 
 <template>
@@ -66,18 +66,33 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 
 ```vue
 <script setup lang="ts">
-import { ref } from 'vue'
-import { WZGrid } from 'wz-grid'
-import type { Column } from 'wz-grid'
+import { ref } from "vue";
+import { WZGrid } from "wz-grid";
+import type { Column } from "wz-grid";
 
 const columns = ref<Column[]>([
-  { key: 'name',  title: '이름',   width: 150, editable: true },
-  { key: 'dept',  title: '부서',   width: 120, editable: true, type: 'select',
-    options: ['개발', '기획', '디자인'] },
-  { key: 'score', title: '점수',   width: 80,  editable: true, type: 'number',
-    rules: [{ type: 'min', value: 0 }, { type: 'max', value: 100 }] },
-  { key: 'active', title: '활성',  width: 60,  type: 'checkbox' },
-])
+  { key: "name", title: "이름", width: 150, editable: true },
+  {
+    key: "dept",
+    title: "부서",
+    width: 120,
+    editable: true,
+    type: "select",
+    options: ["개발", "기획", "디자인"],
+  },
+  {
+    key: "score",
+    title: "점수",
+    width: 80,
+    editable: true,
+    type: "number",
+    rules: [
+      { type: "min", value: 0 },
+      { type: "max", value: 100 },
+    ],
+  },
+  { key: "active", title: "활성", width: 60, type: "checkbox" },
+]);
 </script>
 ```
 
