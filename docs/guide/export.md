@@ -49,11 +49,7 @@ const handleExportCSV = () => {
 
 ## Excel 내보내기
 
-Excel 내보내기 기능은 [ExcelJS](https://github.com/exceljs/exceljs)를 사용합니다. wz-grid의 optional peerDependency이므로 Excel 내보내기 기능을 사용하려면 별도로 설치해야 합니다.
-
-```bash
-npm install exceljs
-```
+Excel 내보내기 기능은 [ExcelJS](https://github.com/exceljs/exceljs)를 사용합니다. wz-grid 설치 시 자동으로 함께 설치됩니다.
 
 ### 툴바 버튼으로 내보내기 (권장)
 
