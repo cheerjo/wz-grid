@@ -58,6 +58,12 @@ export const en = {
     toggleDetail: 'Toggle detail row',
     loading: 'Loading data.',
     empty: 'No data to display.',
+    contextMenu: 'Cell context menu',
+  },
+  datePreset: {
+    today:     'Today',
+    last7Days: 'Last 7 days',
+    thisMonth: 'This month',
   },
   state: {
     empty: 'No data to display.',
