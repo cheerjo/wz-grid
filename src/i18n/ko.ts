@@ -10,6 +10,7 @@ export const ko = {
     clearFilters: '필터 초기화 ({count})',
     delete: '삭제',
     add: '추가',
+    csvExport: 'CSV 내보내기',
   },
   filter: {
     searchPlaceholder: '검색...',

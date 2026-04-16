@@ -36,6 +36,9 @@
 | `showExcelExport` ⚠️ | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시. `useExcelExport` 사용 권장 |
 | `useExcelExport` | `boolean` | `false` | 툴바에 Excel 내보내기 버튼 표시 (`showExcelExport`의 권장 alias) |
 | `excelFilename` | `string` | `'export.xlsx'` | Excel 저장 파일명 |
+| `useCsvExport` | `boolean` | `false` | 툴바에 CSV 내보내기 버튼 표시 (CSV injection 가드 + RFC 4180 준수) |
+| `csvFilename` | `string` | `'export.csv'` | CSV 저장 파일명 |
+| `csvDelimiter` | `string` | `','` | CSV 필드 구분자 (탭 TSV 원하면 `'\t'`) |
 | `serverSide` ⚠️ | `boolean` | `false` | 서버사이드 모드. `useServerSide` 사용 권장 |
 | `useServerSide` | `boolean` | `false` | 서버사이드 모드. 정렬/필터/페이징을 서버에 위임 (`serverSide`의 권장 alias) |
 | `totalRows` | `number` | `0` | 서버사이드 모드에서 전체 행 수. 페이징 UI 계산에 사용 |

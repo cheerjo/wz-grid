@@ -111,6 +111,8 @@ export type Messages = {
   toolbar?: Partial<{
     columnSettings: string; columnVisibility: string; showAll: string; pinned: string;
     expandAll: string; collapseAll: string; clearFilters: string; delete: string; add: string;
+    /** CSV 내보내기 버튼 aria-label */
+    csvExport: string;
   }>;
   filter?: Partial<{
     searchPlaceholder: string; minPlaceholder: string; maxPlaceholder: string;

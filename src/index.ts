@@ -3,6 +3,7 @@ import './lib.css';
 export { default as WZGrid } from './components/WZGrid.vue';
 export * from './types/grid';
 export * from './utils/tsv';
+export * from './utils/csv';
 export * from './utils/excel';
 export * from './utils/print';
 export * from './composables/useSelection';

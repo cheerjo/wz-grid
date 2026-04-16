@@ -10,6 +10,7 @@ export const en = {
     clearFilters: 'Clear Filters ({count})',
     delete: 'Delete',
     add: 'Add',
+    csvExport: 'Export CSV',
   },
   filter: {
     searchPlaceholder: 'Search...',
