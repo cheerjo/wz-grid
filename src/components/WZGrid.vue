@@ -4,7 +4,7 @@
 
     <!-- ── 툴바 ──────────────────────────────────────────────────────────── -->
     <WZGridToolbar
-      v-if="showAdd || showDelete || hasToolbarSlot || effShowColumnSettings || effShowExcelExport || useTree"
+      v-if="showAdd || showDelete || hasToolbarSlot || effShowColumnSettings || effShowExcelExport || effUseCsvExport || useTree"
       :columns="columns"
       :hidden-col-keys="hiddenColKeys"
       :col-settings-open="colSettingsOpen"
@@ -15,6 +15,7 @@
       :show-add="showAdd"
       :show-delete="showDelete"
       :eff-show-excel-export="effShowExcelExport"
+      :eff-use-csv-export="effUseCsvExport"
       :checked-count="checkedCount"
       :has-toolbar-slot="hasToolbarSlot"
       @toggle-col-settings="colSettingsOpen = !colSettingsOpen"
@@ -26,6 +27,7 @@
       @delete="handleDelete"
       @add="$emit('click:add')"
       @excel-export="handleExcelExport"
+      @csv-export="handleCsvExport"
     >
       <template #toolbar>
         <slot name="toolbar" />
@@ -327,6 +329,7 @@ import { usePlugins } from '../composables/usePlugins';
 import { usePerformance } from '../composables/usePerformance';
 import type { PerfEntry } from '../composables/usePerformance';
 import { exportExcel } from '../utils/excel';
+import { exportCSV } from '../utils/csv';
 import { useSelection }      from '../composables/useSelection';
 import { useClipboard }      from '../composables/useClipboard';
 import { useVirtualScroll }  from '../composables/useVirtualScroll';
@@ -417,6 +420,12 @@ export default defineComponent({
     /** showExcelExport의 통일된 네이밍 alias (권장). 두 prop 중 하나라도 true이면 활성화됩니다. */
     useExcelExport:     { type: Boolean, default: false },
     excelFilename:      { type: String,  default: 'export.xlsx' },
+    /** CSV 내보내기 버튼 활성화 */
+    useCsvExport:       { type: Boolean, default: false },
+    /** CSV 파일명 (기본: 'export.csv'). `useCsvExport=true`일 때만 의미 있음 */
+    csvFilename:        { type: String,  default: 'export.csv' },
+    /** CSV 필드 구분자 (기본: ',') */
+    csvDelimiter:       { type: String,  default: ',' },
     showFooter:         { type: Boolean, default: false },
     useTree:            { type: Boolean, default: false },
     treeKey:            { type: String,  default: '' },
@@ -545,6 +554,7 @@ export default defineComponent({
     const effUseAdvancedFilter  = computed(() => props.useFilter);
     const effServerSide         = computed(() => props.serverSide || props.useServerSide);
     const effShowExcelExport    = computed(() => props.showExcelExport || props.useExcelExport);
+    const effUseCsvExport       = computed(() => props.useCsvExport);
     const hasDetailSlot         = computed(() => !!slots.detail);
     const effUseDetail          = computed(() => hasDetailSlot.value);
 
@@ -913,6 +923,20 @@ export default defineComponent({
         filename: props.excelFilename,
         checkedOnly: props.useCheckbox,
         checkedRows: props.rows.filter(r => checkedIds.value.has(r.id)),
+      });
+    };
+
+    const handleCsvExport = () => {
+      // 체크박스 활성 + 체크된 행이 있으면 체크된 행만, 아니면 전체 filteredRows를 내보냄.
+      // - filteredRows: 현재 적용된 필터/정렬 결과 반영
+      // - 페이징은 무시하고 모든 페이지의 결과 포함 (사용자 기대 일치)
+      const hasChecked = props.useCheckbox && checkedIds.value.size > 0;
+      const targetRows = hasChecked
+        ? props.rows.filter(r => checkedIds.value.has(r.id))
+        : (filteredRows.value as GridRow[]);
+      exportCSV(props.columns as Column[], targetRows, {
+        filename: props.csvFilename,
+        delimiter: props.csvDelimiter,
       });
     };
 
@@ -1416,8 +1440,9 @@ export default defineComponent({
       containerEl,
       CHECKBOX_WIDTH, ROW_DRAG_WIDTH,
       handleExcelExport,
+      handleCsvExport,
       // eff computed (template에서 사용)
-      effShowColumnSettings, effUseContextMenu, effUseRowDrag, effUseAdvancedFilter, effServerSide, effShowExcelExport,
+      effShowColumnSettings, effUseContextMenu, effUseRowDrag, effUseAdvancedFilter, effServerSide, effShowExcelExport, effUseCsvExport,
       effUseDetail, expandedRowIds, DETAIL_EXPAND_WIDTH, toggleDetailExpand, isDetailExpanded,
       // toolbar
       hasToolbarSlot, hiddenColKeys, visibleColumns, toggleColVisibility,
