@@ -5,8 +5,10 @@
 | `@update:cell` | `{ rowIdx, row, colKey, value }` | 셀 값 변경 시 발생 |
 | `@update:currentPage` | `number` | 페이지 변경 |
 | `@update:pageSize` | `number` | 페이지 크기 변경 |
-| `@update:checked` | `any[]` | 체크된 행 배열 변경 |
-| `@sort` | `SortConfig[]` | 다중 정렬 변경 시 발생 |
+| `@update:checked` | `any[]` | 체크된 **행 객체** 배열 변경 (하위 호환용) |
+| `@update:checkedIds` | `(string\|number)[]` | 체크된 행의 **id 배열** 변경. `v-model:checkedIds`로 양방향 바인딩 |
+| `@update:sort` | `SortConfig[]` | 정렬 구성 변경. `v-model:sort`로 양방향 바인딩 |
+| `@sort` | `SortConfig[]` | 다중 정렬 변경 시 발생 (하위 호환용, `@update:sort`와 동시 emit) |
 | `@resize:column` | `{ colIdx, colKey, width }` | 컬럼 너비 조절 시 실시간 발생 |
 | `@reorder:columns` | `{ srcKey, targetKey }` | 컬럼 드래그 재배치 완료 |
 | `@reorder:rows` | `{ from, to, position }` | 행 드래그 재배치 완료. `position`: `'above'` \| `'below'` |
@@ -15,7 +17,7 @@
 | `@click:delete` | `any[]` | 삭제 버튼 또는 컨텍스트 메뉴 행 삭제 |
 | `@click:button` | `{ rowIdx, row, colKey }` | `button` 타입 셀 클릭 |
 | `@click:row` | `{ rowIdx, row }` | 데이터 행 클릭 |
-| `@update:filters` | `Record<string, any>` | 서버사이드 모드에서 필터 변경 시 발생. 기본 300ms debounce + IME(한글) 조합 완료까지 자동 보류 (`filterDebounceMs` prop으로 조정) |
+| `@update:filters` | `Record<string, any>` | 필터 변경 시 발생. 서버사이드 모드 또는 `v-model:filters` 제어 모드에서 활성화. 기본 300ms debounce + IME(한글) 조합 완료까지 자동 보류 (`filterDebounceMs` prop으로 조정) |
 
 ## 이벤트 페이로드 타입
 

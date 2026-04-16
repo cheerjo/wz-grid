@@ -43,6 +43,9 @@
 | `loading` | `boolean` | `false` | `true`이면 그리드에 로딩 오버레이(기본 스켈레톤 또는 `#loading` 슬롯)가 표시되고 `aria-busy="true"`가 자동 적용 |
 | `loadingRowCount` | `number` | `5` | 기본 스켈레톤이 렌더할 펄스 라인 수 |
 | `emptyText` | `string` | `undefined` | 데이터가 없을 때 기본으로 표시할 문자열. 미지정 시 i18n `aria.empty` 메시지 사용 |
+| `checkedIds` | `any[]` | `undefined` | (제어 모드) 체크된 행 id 배열. `v-model:checkedIds`로 양방향 바인딩 가능. 미지정 시 내부 상태 사용 |
+| `filters` | `Record<string, any>` | `undefined` | (제어 모드) 컬럼별 필터 상태 맵. `v-model:filters`로 양방향 바인딩 가능. 미지정 시 내부 상태 사용 |
+| `sort` | `SortConfig[]` | `undefined` | (제어 모드) 정렬 구성 배열. `v-model:sort`로 양방향 바인딩 가능. 미지정 시 내부 상태 사용 |
 | `debug` | `boolean` | `false` | 개발 시 데이터 유효성 경고 활성화. 프로덕션에서는 `false`로 설정 |
 
 ::: tip
