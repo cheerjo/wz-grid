@@ -64,6 +64,7 @@ export default defineConfig({
           text: '고급',
           items: [
             { text: 'TypeScript', link: '/guide/typescript' },
+            { text: '테스트', link: '/guide/testing' },
             { text: '제어 상태 (v-model)', link: '/guide/controlled-state' },
             { text: 'Composables 활용', link: '/guide/composables-usage' },
             { text: '국제화 (i18n)', link: '/guide/i18n' },

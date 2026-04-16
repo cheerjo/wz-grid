@@ -16,9 +16,17 @@ npm run docs:dev
 
 # VitePress 문서 빌드
 npm run docs:build
+
+# 테스트 (Vitest + jsdom; tests/composables/*.spec.ts)
+npm run test           # 1회 실행
+npm run test:watch     # watch 모드
+npm run test:coverage  # v8 커버리지
+
+# 타입 체크
+npm run typecheck      # tsc --noEmit
 ```
 
-테스트 프레임워크 없음. 타입 체크는 `npx tsc --noEmit`으로 실행하되, `.vue` 파일 모듈 선언 누락 오류(TS2307)와 `import.meta.env` 오류(TS2339)는 기존부터 있는 구조적 문제이므로 무시한다.
+테스트는 Vitest로 `tests/composables/*.spec.ts`에서 컴포저블 단위 테스트를 수행한다. 타입 체크는 `npm run typecheck` 또는 `npx tsc --noEmit`으로 실행하되, `.vue` 파일 모듈 선언 누락 오류(TS2307)와 `import.meta.env` 오류(TS2339)는 기존부터 있는 구조적 문제이므로 무시한다.
 
 ## 아키텍처
 
