@@ -372,6 +372,9 @@ export default defineComponent({
     'update:currentPage',
     'update:pageSize',
     'update:checked',
+    'update:checkedIds',
+    'update:filters',
+    'update:sort',
     'click:add',
     'click:delete',
     'click:insert',
@@ -381,7 +384,6 @@ export default defineComponent({
     'reorder:rows',
     'sort',
     'click:row',
-    'update:filters',
     'perf',
   ],
   props: {
@@ -451,6 +453,24 @@ export default defineComponent({
     plugins:            { type: Array as PropType<WZGridPlugin[]>, default: () => [] },
     /** 성능 모니터링 활성화. @perf 이벤트로 측정값을 전달합니다. */
     performance:        { type: Boolean, default: false },
+    /**
+     * (controlled) 외부에서 체크 상태를 제어하기 위한 id 배열입니다.
+     * `v-model:checkedIds`로 사용하면 양방향 바인딩됩니다. `undefined`면 내부 상태만 사용합니다.
+     * 기존 `@update:checked` 이벤트(행 객체 배열)는 하위 호환을 위해 그대로 유지됩니다.
+     */
+    checkedIds:         { type: Array as PropType<any[]>, default: undefined },
+    /**
+     * (controlled) 외부에서 필터 상태를 제어하기 위한 맵. 키는 column.key, 값은 필터 객체입니다.
+     * `v-model:filters`로 사용하면 양방향 바인딩됩니다. `undefined`면 내부 상태만 사용합니다.
+     * 기존 `@update:filters` 이벤트(서버사이드 debounce)는 그대로 유지됩니다.
+     */
+    filters:            { type: Object as PropType<Record<string, any>>, default: undefined },
+    /**
+     * (controlled) 외부에서 정렬 상태를 제어하기 위한 SortConfig 배열.
+     * `v-model:sort`로 사용하면 양방향 바인딩됩니다. `undefined`면 내부 상태만 사용합니다.
+     * 기존 `@sort` 이벤트는 하위 호환을 위해 그대로 유지됩니다.
+     */
+    sort:               { type: Array as PropType<SortConfig[]>, default: undefined },
   },
 
   setup(props, { emit, slots }) {
@@ -479,6 +499,36 @@ export default defineComponent({
     watch(() => props.showExcelExport,    (val) => { if (val) warnDeprecatedOnce('showExcelExport', 'useExcelExport'); },      { immediate: true });
     watch(() => (props as any).serverSide, (val) => { if (val) warnDeprecatedOnce('serverSide', 'useServerSide'); },           { immediate: true });
 
+    // ── 상호배제 / 성능 가이드 경고 (dev 모드, 세션당 1회) ────────────
+    // 사용자가 서로 배타적이거나 성능 영향이 큰 조합을 쓸 때 가이드 링크를 출력한다.
+    // 프로덕션 번들에서는 tree-shake 되도록 import.meta.env.DEV 분기로 감싼다.
+    if (import.meta.env && import.meta.env.DEV) {
+      const _mutualExWarned = new Set<string>();
+      const warnMutualOnce = (id: string, msg: string) => {
+        if (_mutualExWarned.has(id)) return;
+        _mutualExWarned.add(id);
+        console.warn(`[WZGrid] ${msg}`);
+      };
+      // useTree + groupBy → groupBy 무시
+      watch(() => [props.useTree, props.groupBy] as const, ([t, g]) => {
+        if (t && g) warnMutualOnce('tree+group',
+          'useTree와 groupBy는 함께 사용할 수 없습니다. groupBy는 무시됩니다. https://cheerjo.github.io/wz-grid/guide/tree.html');
+      }, { immediate: true });
+      // serverSide + useTree → 비권장
+      watch(() => [props.serverSide || props.useServerSide, props.useTree] as const, ([s, t]) => {
+        if (s && t) warnMutualOnce('server+tree',
+          'useServerSide + useTree 조합은 클라이언트 평탄화가 필요해 일반적으로 권장되지 않습니다. https://cheerjo.github.io/wz-grid/guide/server-side.html');
+      }, { immediate: true });
+      // 병합 활성 + 대량 데이터 → 가상 스크롤 비활성화 경고
+      watch(() => [
+        (props.autoMergeCols?.length ?? 0) > 0 || !!props.mergeCells,
+        props.rows?.length ?? 0,
+      ] as const, ([merge, n]) => {
+        if (merge && n > 1000) warnMutualOnce('merge+bigdata',
+          `셀 병합이 활성화되어 가상 스크롤이 비활성화됩니다 (rows=${n}). 대량 데이터에서 성능 저하가 발생할 수 있습니다. https://cheerjo.github.io/wz-grid/guide/merge.html`);
+      }, { immediate: true });
+    }
+
     // ── eff computed: alias prop 병합 ────────────────────────────────
     // alias prop(useColumnSettings, useExcelExport, useServerSide)은 기존 prop과 || 로 병합됩니다.
     const effShowColumnSettings = computed(() => props.showColumnSettings || props.useColumnSettings);
@@ -503,12 +553,31 @@ export default defineComponent({
 
     // ── 정렬 (데이터 흐름 최상단: props.rows → sortedRows) ──────────────
     // serverSide=true이면 정렬을 수행하지 않고 원본 rows를 그대로 반환합니다.
+    // v-model:sort를 위해 외부 `sort` prop이 주어지면 내부 sortConfigs를 동기화합니다.
+    let _syncingSortFromProp = false;
     const { sortConfigs, getSortEntry, getSortIndex, toggleSort, sortedRows } = useSort(
-      (configs) => emit('sort', configs),
+      (configs) => {
+        if (_syncingSortFromProp) return;
+        // 하위 호환: 기존 `@sort` 이벤트
+        emit('sort', configs);
+        // v-model:sort용 `update:sort`
+        emit('update:sort', configs);
+      },
       () => props.rows,
       () => effServerSide.value,
       () => props.columns
     );
+    // 외부 sort prop → 내부 sortConfigs 동기화
+    watch(() => props.sort, (nextSort) => {
+      if (nextSort === undefined) return;
+      // 얕은 동등성 검사로 순환 방지
+      const cur = sortConfigs.value;
+      const same = cur.length === nextSort.length && cur.every((s, i) => s.key === nextSort[i]?.key && s.order === nextSort[i]?.order);
+      if (same) return;
+      _syncingSortFromProp = true;
+      sortConfigs.value = [...nextSort];
+      Promise.resolve().then(() => { _syncingSortFromProp = false; });
+    }, { immediate: true, deep: true });
 
     // ── 마스터-디테일 Row Expand ─────────────────────────────────────
     const expandedRowIds = reactive(new Set<any>());
@@ -601,24 +670,36 @@ export default defineComponent({
       () => props.useFilter && !effServerSide.value  // 서버사이드 모드에서는 클라이언트 필터링 비활성화
     );
 
-    // 서버사이드 모드: 필터 변경 시 debounce + IME 안전하게 emit
+    // 필터 변경 시 emit (debounce + IME 안전 처리)
     // - IME(한글/일본어/중국어) 조합 중에는 조합 종료까지 emit 보류
     // - filterDebounceMs(기본 300ms) 동안 마지막 입력만 반영 → 서버 요청 최소화
+    // - v-model:filters가 연결된 경우: 모든 모드에서 emit (전체 filters 스냅샷)
+    // - 서버사이드 모드: 기존 동작 유지 (활성 키만 emit)
     let _filterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     let _imeComposing = false;
+    let _syncingFiltersFromProp = false;
 
     const emitFilterState = (source: Record<string, any>) => {
-      if (!effServerSide.value || !props.useFilter) return;
+      if (!props.useFilter) return;
       const filterState: Record<string, any> = {};
-      for (const col of props.columns) {
-        if (isFilterActive(col.key)) {
-          filterState[col.key] = { ...source[col.key] };
+      if (effServerSide.value) {
+        // 서버사이드: 활성 키만 (payload 최소화)
+        for (const col of props.columns) {
+          if (isFilterActive(col.key)) filterState[col.key] = { ...source[col.key] };
         }
+      } else if (props.filters !== undefined) {
+        // v-model 제어 모드(클라이언트): 전체 스냅샷
+        for (const col of props.columns) {
+          if (source[col.key] !== undefined) filterState[col.key] = { ...source[col.key] };
+        }
+      } else {
+        return; // 비제어 + 비서버 → emit 없음 (기존 동작)
       }
       emit('update:filters', filterState);
     };
 
     const scheduleFilterEmit = (source: Record<string, any>) => {
+      if (_syncingFiltersFromProp) return; // 외부→내부 동기화 중에는 재emit 금지
       if (_imeComposing) return; // 조합 끝날 때 다시 호출됨
       if (_filterDebounceTimer !== null) clearTimeout(_filterDebounceTimer);
       const delay = Math.max(0, props.filterDebounceMs | 0);
@@ -641,6 +722,23 @@ export default defineComponent({
     };
 
     watch(filters, (newFilters) => { scheduleFilterEmit(newFilters); }, { deep: true });
+
+    // 외부 filters prop → 내부 reactive 동기화 (v-model:filters)
+    watch(() => props.filters, (nextFilters) => {
+      if (nextFilters === undefined) return;
+      _syncingFiltersFromProp = true;
+      for (const col of props.columns) {
+        const src = nextFilters[col.key];
+        const cur = filters[col.key];
+        if (!src || !cur) continue;
+        // 얕은 병합 (min/max/value/from/to/values 등 알려진 필드만)
+        for (const k of Object.keys(src)) {
+          if ((cur as any)[k] !== (src as any)[k]) (cur as any)[k] = (src as any)[k];
+        }
+      }
+      // flush 후 플래그 해제 (다음 microtask)
+      Promise.resolve().then(() => { _syncingFiltersFromProp = false; });
+    }, { immediate: true, deep: true });
 
     onBeforeUnmount(() => {
       if (_filterDebounceTimer !== null) {
@@ -775,11 +873,30 @@ export default defineComponent({
     const asSubtotal    = (idx: number) => getItem(idx) as SubtotalItem;
 
     // ── 6. 체크박스 ────────────────────────────────────────────────────
+    // 내부-외부 sync 중복 emit 방지 플래그
+    let _syncingCheckedFromProp = false;
     const { checkedIds, isAllChecked, isIndeterminate, checkedCount, isRowChecked, toggleAll, toggleRow } = useCheckbox(
       () => filteredRows.value,
       () => props.rows,
-      (checked) => emit('update:checked', checked)
+      (checkedRows) => {
+        if (_syncingCheckedFromProp) return;
+        // legacy: 행 객체 배열 (하위 호환)
+        emit('update:checked', checkedRows);
+        // v-model:checkedIds 용 id 배열
+        emit('update:checkedIds', checkedRows.map((r: any) => r.id));
+      }
     );
+    // 외부 checkedIds prop → 내부 Set 동기화
+    watch(() => props.checkedIds, (nextIds) => {
+      if (nextIds === undefined) return;
+      const nextSet = new Set(nextIds);
+      const curSet  = checkedIds.value;
+      // 얕은 비교 후 동일하면 스킵 (순환 방지)
+      if (curSet.size === nextSet.size && [...curSet].every(id => nextSet.has(id))) return;
+      _syncingCheckedFromProp = true;
+      checkedIds.value = nextSet;
+      _syncingCheckedFromProp = false;
+    }, { immediate: true, deep: true });
 
     const handleDelete = () => {
       const checked = props.rows.filter(r => checkedIds.value.has(r.id));
