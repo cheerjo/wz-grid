@@ -116,6 +116,19 @@
         </svg>
         Excel
       </button>
+
+      <!-- CSV 내보내기 -->
+      <button
+        v-if="effUseCsvExport"
+        @click="$emit('csv-export')"
+        :aria-label="t('toolbar.csvExport')"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded border transition-all bg-white border-emerald-300 text-emerald-700 hover:bg-emerald-600 hover:text-white hover:border-emerald-600"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        CSV
+      </button>
     </div>
   </div>
 </template>
@@ -139,6 +152,7 @@ export default defineComponent({
     showAdd:             { type: Boolean, required: true },
     showDelete:          { type: Boolean, required: true },
     effShowExcelExport:  { type: Boolean, required: true },
+    effUseCsvExport:     { type: Boolean, required: true },
     checkedCount:        { type: Number, required: true },
     hasToolbarSlot:      { type: Boolean, required: true },
   },
@@ -152,6 +166,7 @@ export default defineComponent({
     'delete',
     'add',
     'excel-export',
+    'csv-export',
   ],
   setup() {
     const t = inject<TFunction>(I18N_KEY, (key: string) => key);
