@@ -1,9 +1,4 @@
 <!-- src/components/WZGridRow.vue -->
-<!--
-  단일 데이터 행을 렌더링하는 컴포넌트.
-  cell-* 슬롯과 detail 슬롯은 부모(WZGrid)의 $slots를 parentSlots prop으로 받아
-  renderSlot 유틸로 렌더링합니다. (Vue 2/3 호환 슬롯 포워딩)
--->
 <template>
   <tr
     role="row"
@@ -117,17 +112,17 @@
           v-if="col.type === 'date'"
           ref="editInput" :value="editValue" type="date"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
-          @blur="$emit('stop-editing', true)" @keydown.enter.exact.stop="$emit('stop-editing', true, true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
+          @blur="handleStopEditing(true)" @keydown.enter.exact.stop="handleStopEditing(true, true)" @keydown.esc="handleStopEditing(false)" @mousedown.stop
           @input="$emit('update:editValue', getEventValue($event))"
-          @change="$emit('stop-editing', true)"
+          @change="handleStopEditing(true)"
         />
         <input
           v-else-if="col.type === 'datetime'"
           ref="editInput" :value="editValue" type="datetime-local"
           class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
-          @blur="$emit('stop-editing', true)" @keydown.enter.exact.stop="$emit('stop-editing', true, true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
+          @blur="handleStopEditing(true)" @keydown.enter.exact.stop="handleStopEditing(true, true)" @keydown.esc="handleStopEditing(false)" @mousedown.stop
           @input="$emit('update:editValue', getEventValue($event))"
-          @change="$emit('stop-editing', true)"
+          @change="handleStopEditing(true)"
         />
         <div
           v-else-if="col.type === 'textarea'"
@@ -149,15 +144,16 @@
             <button type="button" @mousedown.prevent @click.stop="$emit('stop-editing', false)" class="px-2 py-1 text-[10px] font-medium text-gray-600 hover:bg-gray-200 rounded transition-colors">취소 (ESC)</button>
           </div>
         </div>
-        <input
-          v-else-if="col.type !== 'select' && col.type !== 'boolean' && col.type !== 'tag' && col.type !== 'color' && col.type !== 'rating' && col.type !== 'sparkline'"
-          ref="editInput" :value="editValue"
-          :type="col.type === 'number' || col.type === 'currency' ? 'number' : col.type === 'email' ? 'email' : 'text'"
-          class="w-full h-full px-2 text-sm border-2 border-blue-500 outline-none shadow-inner"
-          @blur="$emit('stop-editing', true)" @keydown.enter.exact.stop="$emit('stop-editing', true, true)" @keydown.esc="$emit('stop-editing', false)" @mousedown.stop
-          @input="$emit('update:editValue', getEventValue($event)); $emit('handle-input', col)"
+        <component
+          v-else-if="getEditorComponent(col.type)"
+          :is="getEditorComponent(col.type)"
+          :model-value="editValue"
+          @update:model-value="$emit('update:editValue', $event)"
+          :col="col"
+          @stop-editing="handleStopEditing"
+          @handle-input="$emit('handle-input', $event)"
         />
-        <select v-else-if="col.type === 'select'" ref="editInput" :value="editValue" class="w-full h-full px-1 text-sm border-2 border-blue-500 outline-none" @blur="$emit('stop-editing', true)" @keydown.enter.exact.stop="$emit('stop-editing', true, true)" @change="$emit('update:editValue', getEventValue($event)); $emit('stop-editing', true)" @mousedown.stop>
+        <select v-else-if="col.type === 'select'" ref="editInput" :value="editValue" class="w-full h-full px-1 text-sm border-2 border-blue-500 outline-none" @blur="handleStopEditing(true)" @keydown.enter.exact.stop="handleStopEditing(true, true)" @change="$emit('update:editValue', getEventValue($event)); handleStopEditing(true)" @mousedown.stop>
           <option v-for="opt in col.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
         </select>
       </div>
@@ -201,16 +197,16 @@
         <template v-else-if="col.type === 'textarea'">
           <span class="truncate min-w-0 block w-full whitespace-pre">{{ row?.[col.key] || '' }}</span>
         </template>
-        <template v-else-if="!col.type || col.type === 'text' || col.type === 'number' || col.type === 'date'">
-          <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">
-            {{ col.type === 'number' ? Number(row?.[col.key] || 0).toLocaleString() : (row?.[col.key] || '') }}
-          </span>
-        </template>
-        <template v-else-if="col.type === 'datetime'">
-          <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">
-            {{ formatDatetime(row?.[col.key]) }}
-          </span>
-        </template>
+        <component
+          v-else-if="getCellComponent(col.type)"
+          :is="getCellComponent(col.type)"
+          :row="row"
+          :col="col"
+          :value="row?.[col.key]"
+          :item-idx="itemIdx"
+          @toggle-boolean="handleToggleBoolean"
+        />
+
         <template v-else-if="col.type === 'rating'">
           <div class="flex items-center gap-0.5" @mousedown.stop>
             <span
@@ -222,17 +218,6 @@
               @click="$emit('update-cell-from-item', itemIdx, col.key, star)"
             >&#9733;</span>
           </div>
-        </template>
-        <template v-else-if="col.type === 'select'">
-          <span :class="col.truncate !== false ? 'truncate min-w-0 block w-full' : 'whitespace-normal break-words'">{{ getOptionLabel(itemIdx, col) }}</span>
-        </template>
-        <template v-else-if="col.type === 'boolean'">
-          <div class="flex items-center justify-center w-full h-full" @mousedown.stop>
-            <input type="checkbox" :checked="!!row?.[col.key]" @change="$emit('toggle-boolean', itemIdx, col.key)" class="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer" />
-          </div>
-        </template>
-        <template v-else-if="col.type === 'badge'">
-          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm" :class="getBadgeColor(itemIdx, col)">{{ getOptionLabel(itemIdx, col) }}</span>
         </template>
         <template v-else-if="col.type === 'progress'">
           <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden border border-gray-200 mx-1">
@@ -387,11 +372,29 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, h, ref, watch, nextTick } from 'vue-demi';
+import { defineComponent, PropType, h, ref, watch, nextTick, computed } from 'vue-demi';
 import type { Column } from '../types/grid';
+
+// Cells
+import CellText from './cells/CellText.vue';
+import CellBadge from './cells/CellBadge.vue';
+import CellBoolean from './cells/CellBoolean.vue';
+import CellSelect from './cells/CellSelect.vue';
+import CellDateTime from './cells/CellDateTime.vue';
+
+// Editors
+import EditorText from './editors/EditorText.vue';
 
 export default defineComponent({
   name: 'WZGridRow',
+  components: {
+    CellText,
+    CellBadge,
+    CellBoolean,
+    CellSelect,
+    CellDateTime,
+    EditorText,
+  },
   props: {
     itemIdx:            { type: Number, required: true },
     row:                { type: Object as PropType<any>, default: null },
@@ -413,8 +416,6 @@ export default defineComponent({
     cellClass:          { type: Function as PropType<(row: any, column: Column, rowIndex: number) => any>, default: null },
     getMerge:           { type: Function as PropType<(itemIdx: number, colKey: string) => any>, required: true },
     isSelected:         { type: Function as PropType<(rowIdx: number, colIdx: number) => boolean>, required: true },
-    // selection 변경 시 WZGridRow 리렌더링을 보장하기 위한 키.
-    // WZGrid의 selectionKey computed가 변경되면 shouldUpdateComponent=true → 반드시 리렌더링.
     selectionKey:       { type: String, default: '' },
     isEditing:          { type: Function as PropType<(rowIdx: number, colIdx: number) => boolean>, required: true },
     isRowChecked:       { type: Function as PropType<(rowId: any) => boolean>, required: true },
@@ -430,43 +431,20 @@ export default defineComponent({
     hasError:           { type: Function as PropType<(idx: number, colKey: string) => boolean>, required: true },
     getError:           { type: Function as PropType<(idx: number, colKey: string) => string>, required: true },
     editValue:          { type: [String, Number, Boolean] as PropType<any>, default: '' },
-    // 현재 편집 중인 행 ID와 컬럼 인덱스. 포커스 자동 부여에 사용.
-    // editingRowId가 null → non-null로 바뀌면 새 편집 세션이 시작된 것.
     editingRowId:       { type: [String, Number], default: null },
     editingColIdx:      { type: Number, default: -1 },
-    // 부모의 $slots 참조 — cell-* 슬롯 포워딩용
     parentSlots:        { type: Object as PropType<Record<string, any> | null>, default: null },
   },
   emits: [
-    'row-click',
-    'row-drag-over',
-    'row-drop',
-    'row-drag-end',
-    'row-drag-start',
-    'toggle-detail',
-    'toggle-row',
-    'start-selection',
-    'update-selection',
-    'end-selection',
-    'start-editing',
-    'stop-editing',
-    'handle-input',
-    'open-context-menu',
-    'toggle-boolean',
-    'toggle-node',
-    'button-click',
-    'update-cell-from-item',
+    'row-click', 'row-drag-over', 'row-drop', 'row-drag-end', 'row-drag-start',
+    'toggle-detail', 'toggle-row', 'start-selection', 'update-selection', 'end-selection',
+    'start-editing', 'stop-editing', 'handle-input', 'open-context-menu',
+    'toggle-boolean', 'toggle-node', 'button-click', 'update-cell-from-item',
     'update:editValue',
   ],
-  setup(props) {
-    /**
-     * 편집 input 엘리먼트 ref.
-     * editingRowId prop이 이 행을 가리키는 값으로 바뀌면 nextTick 후 자동 포커스를 부여한다.
-     */
+  setup(props, { emit }) {
     const editInput = ref<HTMLInputElement | HTMLSelectElement | null>(null);
 
-    // editingRowId + editingColIdx 조합 변화를 감지.
-    // editingRowId가 null이 아닌 값으로 바뀌고 이 행이 편집 대상이면 포커스 부여.
     watch(
       () => [props.editingRowId, props.editingColIdx] as const,
       async ([newRowId, newColIdx]) => {
@@ -479,43 +457,16 @@ export default defineComponent({
       { flush: 'post' }
     );
 
-    /**
-     * 부모의 슬롯 함수를 호출하여 vnode를 렌더링.
-     * Vue 2/3 모두 $slots[name]은 함수(Vue 3) 또는 VNode 배열(Vue 2)이므로
-     * vue-demi의 h를 통해 감싸서 반환합니다.
-     */
-    /**
-     * ISO 8601 / "YYYY-MM-DDTHH:mm..." 문자열을 "YYYY-MM-DD HH:mm" 포맷으로 변환.
-     */
-    const formatDatetime = (val: any): string => {
-      if (!val) return '';
-      const s = String(val);
-      // "T" 구분자가 있으면 날짜/시간 분리, 없으면 그대로 반환
-      const tIdx = s.indexOf('T');
-      if (tIdx === -1) return s;
-      const datePart = s.substring(0, tIdx);
-      const timePart = s.substring(tIdx + 1, tIdx + 6); // HH:mm
-      return `${datePart} ${timePart}`;
-    };
-
     const renderParentSlot = (name: string, slotProps: Record<string, any>) => {
       if (!props.parentSlots) return null;
       const slotFn = props.parentSlots[name];
       if (!slotFn) return null;
-      // Vue 3: slotFn is a function returning VNode[]
-      // Vue 2 (via @vue/composition-api): slotFn is also callable
       try {
         const nodes = typeof slotFn === 'function' ? slotFn(slotProps) : slotFn;
         return h('span', { class: 'contents' }, Array.isArray(nodes) ? nodes : [nodes]);
-      } catch {
-        return null;
-      }
+      } catch { return null; }
     };
 
-    /**
-     * currency 타입 포매터.
-     * currencySymbol(기본 '₩'), decimals(기본 0) 옵션을 반영한다.
-     */
     const formatCurrency = (value: any, symbol?: string, decimals?: number): string => {
       const num = Number(value ?? 0);
       if (isNaN(num)) return String(value ?? '');
@@ -533,13 +484,6 @@ export default defineComponent({
       return target ? target.value : '';
     };
 
-    // ── Sparkline 헬퍼 ────────────────────────────────────────────────────
-
-    /**
-     * number[] → SVG 공통 정규화 유틸
-     * viewBox width=100, height=svgHeight, 상하 pad=2px
-     * 반환: { x, y }[] (0-based normalized)
-     */
     const normalizeSparkline = (values: number[], svgHeight: number, pad = 2) => {
       const min = Math.min(...values);
       const max = Math.max(...values);
@@ -551,21 +495,11 @@ export default defineComponent({
       }));
     };
 
-    /**
-     * line / area 타입용 — polyline points 문자열 반환.
-     * viewBox width=100, height=svgHeight (2px 상하 패딩 포함)
-     */
     const getSparklinePoints = (values: number[], svgHeight: number): string => {
       if (!values || values.length < 2) return '';
-      return normalizeSparkline(values, svgHeight)
-        .map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`)
-        .join(' ');
+      return normalizeSparkline(values, svgHeight).map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
     };
 
-    /**
-     * area 타입용 — 채움 polygon points 문자열 반환.
-     * 라인 포인트 + 우하단 → 좌하단 으로 닫는 경로
-     */
     const getSparklineAreaPoints = (values: number[], svgHeight: number): string => {
       if (!values || values.length < 2) return '';
       const pad = 2;
@@ -577,53 +511,53 @@ export default defineComponent({
       return `${linePts} ${lastX},${baseline} ${firstX},${baseline}`;
     };
 
-    /**
-     * bar 타입 (수평) — rect 배열 데이터 반환.
-     * 각 값을 행으로 배치: y는 등분, 막대 너비는 값에 비례 (0~100)
-     */
-    const getSparklineBarRects = (
-      values: number[],
-      svgHeight: number,
-    ): { x: number; y: number; w: number; h: number }[] => {
+    const getSparklineBarRects = (values: number[], svgHeight: number) => {
       if (!values || values.length < 1) return [];
-      const min = 0; // 0 기준 (음수 미지원)
       const max = Math.max(...values) || 1;
       const count = values.length;
-      const totalH = svgHeight - 4; // 상하 2px 여유
-      const barH = Math.max(1, totalH / count - 1); // 1px 간격
-      return values.map((v, i) => {
-        const w = ((v - min) / (max - min)) * 96; // 최대 96px
-        const y = 2 + i * (barH + 1);
-        return { x: 0, y, w, h: barH };
-      });
+      const totalH = svgHeight - 4;
+      const barH = Math.max(1, totalH / count - 1);
+      return values.map((v, i) => ({ x: 0, y: 2 + i * (barH + 1), w: (v / max) * 96, h: barH }));
     };
 
-    /**
-     * column 타입 (수직) — rect 배열 데이터 반환.
-     * 각 값을 열로 배치: x는 등분, 막대 높이는 값에 비례
-     */
-    const getSparklineColumnRects = (
-      values: number[],
-      svgHeight: number,
-    ): { x: number; y: number; w: number; h: number }[] => {
+    const getSparklineColumnRects = (values: number[], svgHeight: number) => {
       if (!values || values.length < 1) return [];
       const max = Math.max(...values) || 1;
       const count = values.length;
       const pad = 2;
-      const totalW = 100;
-      const barW = Math.max(1, totalW / count - 1); // 1px 간격
       const usableH = svgHeight - pad * 2;
-      return values.map((v, i) => {
-        const h = (v / max) * usableH;
-        const x = i * (barW + 1);
-        const y = svgHeight - pad - h;
-        return { x, y, w: barW, h: Math.max(1, h) };
-      });
+      const barW = Math.max(1, 100 / count - 1);
+      return values.map((v, i) => ({ x: i * (barW + 1), y: svgHeight - pad - (v / max) * usableH, w: barW, h: Math.max(1, (v / max) * usableH) }));
+    };
+
+    const getCellComponent = (type?: string) => {
+      if (!type || type === 'text' || type === 'number' || type === 'date') return 'CellText';
+      if (type === 'datetime') return 'CellDateTime';
+      if (type === 'select') return 'CellSelect';
+      if (type === 'badge') return 'CellBadge';
+      if (type === 'boolean') return 'CellBoolean';
+      return null;
+    };
+
+    const getEditorComponent = (type?: string) => {
+      const skip = ['select', 'boolean', 'tag', 'color', 'rating', 'sparkline', 'date', 'datetime', 'textarea'];
+      if (!type || !skip.includes(type)) return 'EditorText';
+      return null;
+    };
+
+    const handleStopEditing = (save: boolean, moveNext?: boolean) => {
+      emit('stop-editing', save, moveNext);
+    };
+
+    const handleToggleBoolean = (idx: number, key: string) => {
+      emit('toggle-boolean', idx, key);
     };
 
     return {
-      editInput, renderParentSlot, formatCurrency, formatDatetime, getEventValue,
+      editInput, renderParentSlot, formatCurrency, getEventValue,
       getSparklinePoints, getSparklineAreaPoints, getSparklineBarRects, getSparklineColumnRects,
+      getCellComponent, getEditorComponent,
+      handleStopEditing, handleToggleBoolean,
     };
   },
 });
@@ -633,7 +567,7 @@ export default defineComponent({
 .sticky { position: sticky !important; }
 .z-10 { z-index: 10; }
 .z-30 { z-index: 30; }
-
 .row-drag-over-top    td { box-shadow: 0 -2px 0 0 #3b82f6 inset; }
 .row-drag-over-bottom td { box-shadow: 0 2px 0 0 #3b82f6; }
 </style>
+

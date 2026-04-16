@@ -47,8 +47,8 @@ export function useClipboard(
     const startRow = Math.min(selection.startRow, selection.endRow);
     const startCol = Math.min(selection.startCol, selection.endCol);
 
-    // CLAUDE.md 기준 편집 불가 타입: badge, progress, image, button, link, tag, sparkline
-    // 이 타입의 컬럼에는 붙여넣기를 차단한다.
+    // NON_EDITABLE_TYPES에서 클릭 토글 타입(boolean, radio, rating, color)을 제외한 읽기 전용 타입.
+    // 클릭 토글 타입은 셀 값 자체는 변경 가능하므로 붙여넣기 차단 대상에서 제외한다.
     // tag는 배열 값이고 sparkline도 숫자 배열이므로 문자열 붙여넣기 시 데이터가 깨진다.
     const READ_ONLY_TYPES = new Set(['badge', 'progress', 'image', 'button', 'link', 'tag', 'sparkline']);
 

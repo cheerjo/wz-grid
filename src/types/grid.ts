@@ -2,6 +2,11 @@
 export type ColumnType = 'text' | 'number' | 'date' | 'datetime' | 'boolean' | 'select' | 'badge' | 'progress' | 'image' | 'button' | 'link' | 'radio' | 'tag' | 'currency' | 'color' | 'email' | 'rating' | 'sparkline' | 'textarea';
 export type Align = 'left' | 'center' | 'right';
 
+/** 텍스트 편집이 불가능한 컬럼 타입 (클릭 토글 + 읽기 전용) */
+export const NON_EDITABLE_TYPES: ReadonlySet<string> = new Set([
+  'boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating', 'color', 'tag', 'sparkline'
+]);
+
 /**
  * WZGrid에 전달하는 행 데이터 타입.
  * 제네릭 T로 행 데이터 스키마를 지정하면 TypeScript 자동완성을 활용할 수 있습니다.

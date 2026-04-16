@@ -1,5 +1,5 @@
 // src/composables/useValidation.ts
-import { reactive, watch } from 'vue-demi';
+import { reactive, watch, onBeforeUnmount } from 'vue-demi';
 import type { Column, GridRow } from '../types/grid';
 import type { TFunction } from './useI18n';
 
@@ -73,6 +73,13 @@ export function useValidation(
       prevRowMap = nextRowMap;
     }, 50);
   };
+
+  onBeforeUnmount(() => {
+    if (debounceTimer !== null) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
+  });
 
   // 초기 실행: 검증 가능한 컬럼이 있는 경우에만 전체 검증
   const runInitial = () => {
