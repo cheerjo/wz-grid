@@ -16,4 +16,5 @@ export * from './composables/useValidation';
 export * from './composables/useI18n';
 export * from './composables/usePlugins';
 export * from './composables/usePerformance';
+export * from './composables/useFocusTrap';
 export * from './types/plugin';
