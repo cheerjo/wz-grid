@@ -21,10 +21,12 @@
       class="sticky left-0 z-10 border-b border-r border-gray-200 p-0 bg-white cursor-grab active:cursor-grabbing"
       :style="{ width: rowDragWidth + 'px', minWidth: rowDragWidth + 'px' }"
       draggable="true"
+      role="button"
+      :aria-label="t('aria.rowDragHandle')"
       @dragstart="$emit('row-drag-start', itemIdx)"
       @mousedown.stop
     >
-      <div class="flex items-center justify-center w-full h-full text-gray-300 hover:text-gray-500 transition-colors">
+      <div class="flex items-center justify-center w-full h-full text-gray-300 hover:text-gray-500 transition-colors" aria-hidden="true">
         <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M8 6a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm8-16a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4zm0 8a2 2 0 110-4 2 2 0 010 4z"/>
         </svg>
@@ -36,10 +38,13 @@
       v-if="effUseDetail"
       class="sticky z-10 border-b border-r border-gray-200 p-0 bg-white"
       :style="{ left: (effUseRowDrag ? rowDragWidth : 0) + 'px', width: detailExpandWidth + 'px', minWidth: detailExpandWidth + 'px' }"
+      role="button"
+      :aria-label="t('aria.toggleDetail')"
+      :aria-expanded="isDetailExpanded(row && row.id)"
       @mousedown.stop
       @click.stop="$emit('toggle-detail', row && row.id)"
     >
-      <div class="flex items-center justify-center w-full h-full cursor-pointer text-gray-400 hover:text-blue-600 transition-colors">
+      <div class="flex items-center justify-center w-full h-full cursor-pointer text-gray-400 hover:text-blue-600 transition-colors" aria-hidden="true">
         <svg
           class="w-3.5 h-3.5 transition-transform duration-150"
           :class="isDetailExpanded(row && row.id) ? 'rotate-90' : ''"
@@ -62,6 +67,7 @@
         <input
           type="checkbox"
           :checked="row && isRowChecked(row.id)"
+          :aria-label="t('aria.selectRow')"
           @change="row && $emit('toggle-row', row.id)"
           class="w-4 h-4 rounded border-gray-400 cursor-pointer accent-blue-500"
         />
@@ -169,6 +175,9 @@
         <template v-if="useTree && col.key === effectiveTreeKey">
           <button
             v-if="getTreeHasChildren(itemIdx)"
+            type="button"
+            :aria-label="t('aria.toggleExpand')"
+            :aria-expanded="isExpanded(row && row.id)"
             @click.stop="$emit('toggle-node', row && row.id)"
             @mousedown.stop
             @dblclick.stop
@@ -178,6 +187,7 @@
               class="w-3 h-3 transition-transform duration-150"
               :class="isExpanded(row && row.id) ? 'rotate-90' : ''"
               fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
             </svg>
@@ -372,8 +382,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, h, ref, watch, nextTick, computed } from 'vue-demi';
+import { defineComponent, PropType, h, ref, watch, nextTick, computed, inject } from 'vue-demi';
 import type { Column } from '../types/grid';
+import type { TFunction } from '../composables/useI18n';
+import { I18N_KEY } from '../composables/useI18n';
 
 // Cells
 import CellText from './cells/CellText.vue';
@@ -444,6 +456,7 @@ export default defineComponent({
   ],
   setup(props, { emit }) {
     const editInput = ref<HTMLInputElement | HTMLSelectElement | null>(null);
+    const t = inject<TFunction>(I18N_KEY, (key: string) => key);
 
     watch(
       () => [props.editingRowId, props.editingColIdx] as const,
@@ -554,6 +567,7 @@ export default defineComponent({
     };
 
     return {
+      t,
       editInput, renderParentSlot, formatCurrency, getEventValue,
       getSparklinePoints, getSparklineAreaPoints, getSparklineBarRects, getSparklineColumnRects,
       getCellComponent, getEditorComponent,

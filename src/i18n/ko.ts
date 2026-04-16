@@ -51,6 +51,17 @@ export const ko = {
     filterCleared: '필터가 초기화되었습니다.',
     asc: '오름차순',
     desc: '내림차순',
+    selectRow: '행 선택',
+    selectAll: '전체 선택',
+    rowDragHandle: '행 드래그하여 순서 변경',
+    toggleExpand: '펼치기/접기',
+    toggleDetail: '상세 보기 토글',
+    loading: '데이터를 불러오는 중입니다.',
+    empty: '표시할 데이터가 없습니다.',
+  },
+  state: {
+    empty: '표시할 데이터가 없습니다.',
+    loading: '불러오는 중...',
   },
 } as const;
 

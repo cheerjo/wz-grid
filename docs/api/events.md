@@ -15,7 +15,35 @@
 | `@click:delete` | `any[]` | 삭제 버튼 또는 컨텍스트 메뉴 행 삭제 |
 | `@click:button` | `{ rowIdx, row, colKey }` | `button` 타입 셀 클릭 |
 | `@click:row` | `{ rowIdx, row }` | 데이터 행 클릭 |
-| `@update:filters` | `Record<string, any>` | 서버사이드 모드에서 필터 변경 시 발생 |
+| `@update:filters` | `Record<string, any>` | 서버사이드 모드에서 필터 변경 시 발생. 기본 300ms debounce + IME(한글) 조합 완료까지 자동 보류 (`filterDebounceMs` prop으로 조정) |
+
+## 이벤트 페이로드 타입
+
+모든 이벤트 페이로드는 `wz-grid` 루트에서 타입으로 export됩니다.
+
+```ts
+import type {
+  CellUpdateEvent,      // @update:cell
+  SortChangeEvent,      // @sort
+  FilterChangeEvent,    // @update:filters
+  SelectionChangeEvent, // 셀/범위 선택 변경
+  PagingChangeEvent,    // 페이지/페이지 크기 변경
+  CheckedChangeEvent,   // @update:checked
+  CellSlotProps,        // #cell-* 스코프드 슬롯 props
+  DetailSlotProps,      // #detail 스코프드 슬롯 props
+} from 'wz-grid'
+```
+
+| 타입 | 대응 이벤트/슬롯 | 비고 |
+| :--- | :--- | :--- |
+| `CellUpdateEvent<T>` | `@update:cell` | `{ rowIdx, row, colKey, value, oldValue? }` |
+| `SortChangeEvent` | `@sort` | `SortConfig[]` alias |
+| `FilterChangeEvent` | `@update:filters` | 컬럼 key → 필터 상태 맵 |
+| `SelectionChangeEvent` | 셀/범위 선택 변경 | `{ startRow, startCol, endRow, endCol }` |
+| `PagingChangeEvent` | `@update:currentPage`, `@update:pageSize` | `{ currentPage, pageSize }` |
+| `CheckedChangeEvent` | `@update:checked` | 체크된 행 id 배열 |
+| `CellSlotProps<T>` | `#cell-{key}` | `{ row, column, value, rowIndex }` |
+| `DetailSlotProps<T>` | `#detail` | 마스터-디테일 슬롯 스코프 |
 
 ::: tip 자동 처리 이벤트
 다음 이벤트들은 WZGrid가 **내부적으로 자동 처리**합니다. 핸들러 바인딩 없이도 기능이 동작하며, 외부에서 추가 제어가 필요한 경우에만 핸들러를 연결하면 됩니다:
