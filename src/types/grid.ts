@@ -21,7 +21,21 @@ export const NON_EDITABLE_TYPES: ReadonlySet<string> = new Set([
  */
 export type GridRow<T extends Record<string, any> = Record<string, any>> = { id: string | number } & T;
 
-export type FooterAggr = 'sum' | 'avg' | 'count' | 'min' | 'max' | ((rows: GridRow[]) => any);
+/**
+ * 푸터 집계 방식.
+ * 제네릭 T로 행 타입을 지정하면 커스텀 집계 함수(`rows => any`)의 인자 타입을 강화할 수 있습니다.
+ *
+ * @example
+ * interface Employee { salary: number }
+ * const col: Column<Employee> = {
+ *   key: 'salary',
+ *   title: '급여',
+ *   footer: (rows) => rows.reduce((s, r) => s + r.salary, 0) / rows.length, // rows: GridRow<Employee>[]
+ * };
+ */
+export type FooterAggr<T extends Record<string, any> = Record<string, any>> =
+  | 'sum' | 'avg' | 'count' | 'min' | 'max'
+  | ((rows: GridRow<T>[]) => any);
 
 /**
  * 컬럼 정의 타입.
@@ -35,6 +49,14 @@ export type FooterAggr = 'sum' | 'avg' | 'count' | 'min' | 'max' | ((rows: GridR
  * interface Employee { name: string; dept: string }
  * const columns: Column<Employee>[] = [{ key: 'name', title: '이름' }]; // key는 'name' | 'dept'만 허용
  */
+/**
+ * 컬럼에서 "현재 컬럼의 셀 값" 타입.
+ * 제네릭 T가 주어지면 T의 string 키들이 가지는 값의 union 타입이 됩니다.
+ * T가 기본값(`Record<string, any>`)이면 `any`로 동작해 하위 호환됩니다.
+ */
+export type ColumnCellValue<T extends Record<string, any> = Record<string, any>> =
+  keyof T & string extends never ? any : T[keyof T & string];
+
 export type Column<T extends Record<string, any> = Record<string, any>> = {
   key: keyof T & string;
   title: string;
@@ -45,13 +67,21 @@ export type Column<T extends Record<string, any> = Record<string, any>> = {
   options?: { label: string; value?: any; color?: string }[]; // value는 button 타입처럼 불필요한 경우를 위해 optional로 선언
   pinned?: boolean;    // true이면 해당 컬럼을 좌측에 고정(sticky)
   required?: boolean;  // 필수값 여부
-  validator?: (value: any, row: any) => string | null; // 커스텀 유효성 검사 함수
-  onInput?: (value: any) => any; // 실시간 입력 가공 함수
+  /**
+   * 커스텀 유효성 검사 함수.
+   * 제네릭 T가 주어지면 `value`는 T의 셀 값 union, `row`는 `GridRow<T>`로 타입이 강화됩니다.
+   */
+  validator?: (value: ColumnCellValue<T>, row: GridRow<T>) => string | null;
+  /**
+   * 실시간 입력 가공 함수. 반환값으로 편집 중인 `value`를 덮어씁니다.
+   */
+  onInput?: (value: ColumnCellValue<T>) => ColumnCellValue<T>;
   editable?: boolean;   // 직접 편집 가능 여부 (기본: 컬럼 타입 기본 규칙 사용)
   rules?: any[];        // 외부 폼 컴포넌트 등과의 연동을 위한 검증 룰 배열
   truncate?: boolean;   // 내용이 길 때 말줄임표(...) 처리 (기본: true)
   tooltip?: boolean;    // 호버 시 전체 내용을 툴팁으로 표시
-  footer?: FooterAggr;  // 푸터 집계 방식
+  /** 푸터 집계 방식 (제네릭 T 전파) */
+  footer?: FooterAggr<T>;
   footerLabel?: string; // 집계 값 앞에 표시할 레이블 (예: '합계')
   // currency 타입 전용
   currencySymbol?: string; // 통화 기호 (기본값: '₩')
@@ -128,8 +158,10 @@ export type Messages = {
 export type CellUpdateEvent<T extends Record<string, any> = Record<string, any>> = {
   row: GridRow<T>;
   key: keyof T & string;
-  value: any;
-  oldValue: any;
+  /** 변경된 새 값. 제네릭 T가 주어지면 T의 셀 값 union 타입. */
+  value: ColumnCellValue<T>;
+  /** 변경 전 값. 제네릭 T가 주어지면 T의 셀 값 union 타입. */
+  oldValue: ColumnCellValue<T>;
 };
 
 export type SortConfig = {
@@ -195,7 +227,8 @@ export type CheckedChangeEvent = {
 export type CellSlotProps<T extends Record<string, any> = Record<string, any>> = {
   row: GridRow<T>;
   column: Column<T>;
-  value: any;
+  /** 현재 셀 값. 제네릭 T가 주어지면 T의 셀 값 union 타입. */
+  value: ColumnCellValue<T>;
   rowIndex: number;
 };
 
@@ -258,9 +291,12 @@ export interface Selection {
 }
 
 // 그룹핑/가상 스크롤에서 사용하는 행 아이템 타입
-export type DataItem = {
+/**
+ * 데이터 행 아이템. 제네릭 T로 `row`의 스키마를 지정할 수 있습니다.
+ */
+export type DataItem<T extends Record<string, any> = Record<string, any>> = {
   type: 'data';
-  row: GridRow;
+  row: GridRow<T>;
   level?: number;
   hasChildren?: boolean;
 };
@@ -272,7 +308,12 @@ export type GroupHeader = {
   collapsed: boolean;
 };
 export type SubtotalItem = { type: 'subtotal'; key: string; count: number; sums: Record<string, number> };
-export type GridItem = DataItem | GroupHeader | SubtotalItem;
+/**
+ * 가상 스크롤/페이징에서 렌더링되는 행 단위 유니온.
+ * 제네릭 T는 `DataItem.row`에 전파됩니다.
+ */
+export type GridItem<T extends Record<string, any> = Record<string, any>> =
+  | DataItem<T> | GroupHeader | SubtotalItem;
 
 export type MergeState = { rowspan: number; colspan: number; hidden: boolean };
 

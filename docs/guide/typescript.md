@@ -52,6 +52,59 @@ const columns: Column<Employee>[] = [
 
 `key`는 `keyof T & string`으로 추론되므로, 존재하지 않는 필드명 입력 시 IDE에서 즉시 오류를 표시합니다.
 
+### validator / onInput / footer 제네릭 전파
+
+`Column<T>`에 `T`를 지정하면 `validator`·`onInput`·`footer` 콜백의 인자 타입도 함께 강화됩니다.
+
+```ts
+interface Employee {
+  name: string
+  salary: number
+}
+
+const columns: Column<Employee>[] = [
+  {
+    key: 'salary',
+    title: '급여',
+    // value: Employee의 셀 값 union, row: GridRow<Employee>
+    validator: (value, row) => {
+      const numeric = typeof value === 'number' ? value : Number(value)
+      return numeric < 0 ? '음수 불가' : null
+    },
+    // rows: GridRow<Employee>[]
+    footer: (rows) => rows.reduce((sum, r) => sum + r.salary, 0) / rows.length,
+  },
+]
+```
+
+`onInput`도 동일하게 `(value: ColumnCellValue<T>) => ColumnCellValue<T>` 시그니처를 갖습니다.
+
+### ColumnCellValue\<T\>
+
+`ColumnCellValue<T>`는 "현재 컬럼의 셀 값" 타입으로, `T`의 string 키 값들의 union입니다. `T`를 생략하면 `any`가 되어 기존 코드와 하위 호환됩니다.
+
+```ts
+import type { ColumnCellValue } from 'wz-grid'
+type EmployeeCell = ColumnCellValue<Employee>  // string | number
+```
+
+## CellSlotProps\<T\> / DetailSlotProps\<T\>
+
+`#cell-{key}` 커스텀 슬롯을 TypeScript로 작성할 때 slot props를 단언하면 자동완성이 가능합니다.
+
+```vue
+<template>
+  <WZGrid :columns="columns" :rows="rows">
+    <template #cell-salary="slotProps">
+      <!-- slotProps를 CellSlotProps<Employee>로 단언 -->
+      <strong>{{ (slotProps as CellSlotProps<Employee>).value.toLocaleString() }}원</strong>
+    </template>
+  </WZGrid>
+</template>
+```
+
+`DetailSlotProps<T>`는 `#detail` 슬롯에 전달되는 `{ row: GridRow<T>; rowIndex: number }` 타입입니다.
+
 ## CellUpdateEvent\<T\>
 
 `@update:cell` 이벤트의 페이로드 타입입니다. `T`를 지정하면 `key`와 `row` 필드에 자동완성이 적용됩니다.
