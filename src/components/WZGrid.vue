@@ -74,7 +74,7 @@
       <!-- 빈 상태 ─ 데이터 없음 && 로딩 아님 ───────────────────────── -->
       <div
         v-else-if="!loading && activeItems.length === 0"
-        class="wz-grid-empty absolute inset-x-0 top-12 flex items-center justify-center pointer-events-none"
+        class="wz-grid-empty absolute inset-x-0 top-12 flex flex-col items-center justify-center gap-2 pointer-events-auto"
         role="status"
         :aria-label="t('aria.empty')"
       >
@@ -83,6 +83,10 @@
             {{ emptyText || t('aria.empty') }}
           </div>
         </slot>
+        <!-- 빈 상태 CTA(새로고침/필터 초기화 등). 슬롯 미제공 시 렌더하지 않음 -->
+        <div v-if="$slots['empty-actions']" class="flex items-center gap-2 pb-2">
+          <slot name="empty-actions" />
+        </div>
       </div>
 
       <div :style="{ paddingTop: topPadding + 'px', paddingBottom: bottomPadding + 'px', minWidth: 'max-content' }">
@@ -307,6 +311,7 @@
     @clear-cell="ctxClearCell"
     @insert="ctxInsert"
     @delete-row="ctxDeleteRow"
+    @close="ctxMenu.visible = false"
   />
 
 
@@ -1269,6 +1274,58 @@ export default defineComponent({
         const focusRow = e.shiftKey ? selection.endRow : selection.startRow;
         const focusCol = e.shiftKey ? selection.endCol : selection.startCol;
         scrollToCell(focusRow, focusCol);
+      } else if (e.key === 'Home' || e.key === 'End' || e.key === 'PageUp' || e.key === 'PageDown') {
+        // Home/End: 현재 행의 처음/끝 컬럼으로, Ctrl+Home/End: 첫/마지막 데이터 셀로
+        // PageUp/PageDown: 한 페이지(= pageSize) 단위로 상하 이동
+        e.preventDefault();
+        if (containerEl.value && document.activeElement !== containerEl.value) {
+          containerEl.value.focus({ preventScroll: true });
+        }
+
+        const colsLen = visibleColumns.value.length;
+        const rowsLen = pagedItems.value.length;
+        if (colsLen === 0 || rowsLen === 0) return;
+
+        // 데이터 행이 아닌 인덱스는 step 방향으로 스킵
+        const findDataRow = (from: number, step: number): number => {
+          let i = from;
+          while (i >= 0 && i < rowsLen && pagedItems.value[i].type !== 'data') i += step;
+          if (i < 0 || i >= rowsLen) return -1;
+          return i;
+        };
+
+        const curRow = selection.startRow === -1 ? findDataRow(0, 1) : selection.startRow;
+        if (curRow === -1) return;
+
+        let targetRow = curRow;
+        let targetCol = selection.startCol === -1 ? 0 : selection.startCol;
+
+        if (e.key === 'Home') {
+          if (e.ctrlKey || e.metaKey) { targetRow = findDataRow(0, 1); targetCol = 0; }
+          else targetCol = 0;
+        } else if (e.key === 'End') {
+          if (e.ctrlKey || e.metaKey) { targetRow = findDataRow(rowsLen - 1, -1); targetCol = colsLen - 1; }
+          else targetCol = colsLen - 1;
+        } else if (e.key === 'PageUp') {
+          const step = Math.max(1, (props.pageSize || rowsLen) - 1);
+          targetRow = findDataRow(Math.max(0, curRow - step), -1);
+          if (targetRow === -1) targetRow = findDataRow(0, 1);
+        } else if (e.key === 'PageDown') {
+          const step = Math.max(1, (props.pageSize || rowsLen) - 1);
+          targetRow = findDataRow(Math.min(rowsLen - 1, curRow + step), 1);
+          if (targetRow === -1) targetRow = findDataRow(rowsLen - 1, -1);
+        }
+
+        if (targetRow === -1 || targetCol < 0 || targetCol >= colsLen) return;
+
+        if (e.shiftKey) {
+          selection.endRow = targetRow;
+          selection.endCol = targetCol;
+        } else {
+          selection.startRow = selection.endRow = targetRow;
+          selection.startCol = selection.endCol = targetCol;
+        }
+        scrollToCell(targetRow, targetCol);
       } else if (e.key === 'Enter') {
         e.preventDefault(); startEditing(selection.startRow, selection.startCol);
       } else if (e.key === 'Escape') {

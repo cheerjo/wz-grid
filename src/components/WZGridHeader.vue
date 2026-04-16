@@ -101,16 +101,26 @@
           <input v-model="filters[col.key].max" type="number" :placeholder="t('filter.maxPlaceholder')" class="filter-input" />
         </div>
 
-        <!-- date: from / to -->
+        <!-- date: from / to + preset 버튼 -->
         <div v-else-if="col.type === 'date'" class="flex flex-col gap-0.5">
           <input v-model="filters[col.key].from" type="date" class="filter-input" style="font-size:10px;" />
           <input v-model="filters[col.key].to"   type="date" class="filter-input" style="font-size:10px;" />
+          <div class="flex items-center gap-0.5 mt-0.5" role="group" :aria-label="t('datePreset.today')">
+            <button type="button" class="date-preset" @click.stop="applyDatePreset(col.key, 'today')">{{ t('datePreset.today') }}</button>
+            <button type="button" class="date-preset" @click.stop="applyDatePreset(col.key, 'last7Days')">{{ t('datePreset.last7Days') }}</button>
+            <button type="button" class="date-preset" @click.stop="applyDatePreset(col.key, 'thisMonth')">{{ t('datePreset.thisMonth') }}</button>
+          </div>
         </div>
 
-        <!-- datetime: from / to (datetime-local) -->
+        <!-- datetime: from / to (datetime-local) + preset 버튼 -->
         <div v-else-if="col.type === 'datetime'" class="flex flex-col gap-0.5">
           <input v-model="filters[col.key].from" type="datetime-local" class="filter-input" style="font-size:10px;" />
           <input v-model="filters[col.key].to"   type="datetime-local" class="filter-input" style="font-size:10px;" />
+          <div class="flex items-center gap-0.5 mt-0.5" role="group" :aria-label="t('datePreset.today')">
+            <button type="button" class="date-preset" @click.stop="applyDatePreset(col.key, 'today', true)">{{ t('datePreset.today') }}</button>
+            <button type="button" class="date-preset" @click.stop="applyDatePreset(col.key, 'last7Days', true)">{{ t('datePreset.last7Days') }}</button>
+            <button type="button" class="date-preset" @click.stop="applyDatePreset(col.key, 'thisMonth', true)">{{ t('datePreset.thisMonth') }}</button>
+          </div>
         </div>
 
         <!-- tag: 텍스트 포함 검색 -->
@@ -238,7 +248,38 @@ export default defineComponent({
         headerCheckboxEl.value.indeterminate = props.isIndeterminate;
       }
     });
-    return { headerCheckboxEl, t };
+
+    // 날짜 프리셋 적용. datetime=true이면 YYYY-MM-DDThh:mm 형식으로 from/to를 설정
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const fmtDate     = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const fmtDateTime = (d: Date) => `${fmtDate(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+    const applyDatePreset = (colKey: string, preset: 'today' | 'last7Days' | 'thisMonth', datetime = false) => {
+      const now   = new Date();
+      const start = new Date(now);
+      const end   = new Date(now);
+
+      if (preset === 'today') {
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 0, 0);
+      } else if (preset === 'last7Days') {
+        start.setDate(now.getDate() - 6);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 0, 0);
+      } else if (preset === 'thisMonth') {
+        start.setDate(1);
+        start.setHours(0, 0, 0, 0);
+        end.setMonth(now.getMonth() + 1, 0);
+        end.setHours(23, 59, 0, 0);
+      }
+
+      const target = props.filters[colKey];
+      if (!target) return;
+      target.from = datetime ? fmtDateTime(start) : fmtDate(start);
+      target.to   = datetime ? fmtDateTime(end)   : fmtDate(end);
+    };
+
+    return { headerCheckboxEl, t, applyDatePreset };
   },
   emits: [
     'toggle-all',
@@ -276,4 +317,20 @@ export default defineComponent({
 }
 .filter-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
 .filter-input::placeholder { color: #9ca3af; }
+
+.date-preset {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 1px 2px;
+  font-size: 9px;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.12s, border-color 0.12s;
+}
+.date-preset:hover        { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; }
+.date-preset:focus-visible { outline: 2px solid #3b82f6; outline-offset: 1px; }
 </style>

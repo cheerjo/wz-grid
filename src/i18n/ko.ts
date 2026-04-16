@@ -58,6 +58,12 @@ export const ko = {
     toggleDetail: '상세 보기 토글',
     loading: '데이터를 불러오는 중입니다.',
     empty: '표시할 데이터가 없습니다.',
+    contextMenu: '셀 컨텍스트 메뉴',
+  },
+  datePreset: {
+    today:      '오늘',
+    last7Days:  '최근 7일',
+    thisMonth:  '이번 달',
   },
   state: {
     empty: '표시할 데이터가 없습니다.',

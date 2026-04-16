@@ -57,6 +57,8 @@ export default defineConfig({
             { text: '마스터-디테일', link: '/guide/master-detail' },
             { text: '인쇄 & 내보내기', link: '/guide/export' },
             { text: 'Excel 내보내기', link: '/guide/export#excel-내보내기' },
+            { text: '접근성 (a11y)', link: '/guide/accessibility' },
+            { text: 'UX 팁', link: '/guide/ux-tips' },
             { text: '라이선스', link: '/guide/license' },
           ],
         },
