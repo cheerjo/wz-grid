@@ -340,6 +340,9 @@ import WZContextMenu         from './WZContextMenu.vue';
 import WZGridToolbar         from './WZGridToolbar.vue';
 import WZGridHeader          from './WZGridHeader.vue';
 import WZGridRow             from './WZGridRow.vue';
+import WZGridGroupHeader     from './WZGridGroupHeader.vue';
+import WZGridSubtotal        from './WZGridSubtotal.vue';
+import WZGridDetailRow       from './WZGridDetailRow.vue';
 
 const CHECKBOX_WIDTH = 40;
 const ROW_DRAG_WIDTH = 28;
@@ -354,12 +357,15 @@ function warnDeprecatedOnce(oldProp: string, newProp: string) {
 
 export default defineComponent({
   name: 'WZGrid',
-  components: { 
-    WZGridPagination, 
-    WZContextMenu, 
-    WZGridToolbar, 
-    WZGridHeader, 
+  components: {
+    WZGridPagination,
+    WZContextMenu,
+    WZGridToolbar,
+    WZGridHeader,
     WZGridRow,
+    WZGridGroupHeader,
+    WZGridSubtotal,
+    WZGridDetailRow,
   },
   emits: [
     'update:cell',
