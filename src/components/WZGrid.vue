@@ -44,15 +44,52 @@
       @copy="onCopy"
       @paste="onPaste"
       @keydown="handleKeyDown"
+      @compositionstart.capture="onCompositionStart"
+      @compositionend.capture="onCompositionEnd"
       tabindex="0"
+      :aria-busy="loading ? 'true' : 'false'"
     >
       <!-- aria-live: 정렬/필터 변경 시 스크린리더에 알림 -->
       <div role="status" aria-live="polite" aria-atomic="true" class="sr-only">{{ ariaLiveMessage }}</div>
+
+      <!-- 로딩 상태 ─ 슬롯 우선, 없으면 기본 스켈레톤 ─────────────────── -->
+      <div
+        v-if="loading"
+        class="wz-grid-loading absolute inset-0 z-20 flex items-start justify-center pt-10 bg-white/70 backdrop-blur-[1px] pointer-events-auto"
+        role="status"
+        :aria-label="t('aria.loading')"
+      >
+        <slot name="loading">
+          <div class="w-full px-4 space-y-2" :aria-hidden="true">
+            <div
+              v-for="n in loadingRowCount"
+              :key="'wz-skel-' + n"
+              class="h-4 bg-gray-200 rounded animate-pulse"
+              :style="{ width: (70 + (n * 13) % 25) + '%' }"
+            />
+          </div>
+        </slot>
+      </div>
+
+      <!-- 빈 상태 ─ 데이터 없음 && 로딩 아님 ───────────────────────── -->
+      <div
+        v-else-if="!loading && activeItems.length === 0"
+        class="wz-grid-empty absolute inset-x-0 top-12 flex items-center justify-center pointer-events-none"
+        role="status"
+        :aria-label="t('aria.empty')"
+      >
+        <slot name="empty">
+          <div class="text-sm text-gray-500 py-6 select-none">
+            {{ emptyText || t('aria.empty') }}
+          </div>
+        </slot>
+      </div>
 
       <div :style="{ paddingTop: topPadding + 'px', paddingBottom: bottomPadding + 'px', minWidth: 'max-content' }">
         <table
           role="grid"
           :aria-rowcount="activeItems.length"
+          :aria-busy="loading ? 'true' : 'false'"
           class="table-fixed border-separate border-spacing-0"
         >
 
@@ -378,6 +415,24 @@ export default defineComponent({
     /** serverSide의 통일된 네이밍 alias (권장). 두 prop 중 하나라도 true이면 활성화됩니다. */
     useServerSide:      { type: Boolean, default: false },
     totalRows:          { type: Number, default: 0 },
+    /**
+     * 서버사이드 모드에서 필터 입력 시 `update:filters` emit 지연(ms).
+     * IME(한글) 조합 중에는 조합 종료 후에만 emit합니다. 0이면 즉시.
+     */
+    filterDebounceMs:   { type: Number, default: 300 },
+    /**
+     * 로딩 상태. true이면 데이터 영역을 비활성화하고 `#loading` 슬롯(없으면 기본 스켈레톤)을 표시합니다.
+     */
+    loading:            { type: Boolean, default: false },
+    /**
+     * 기본 스켈레톤을 사용할 때 표시할 행 수(기본 5). `#loading` 슬롯이 있으면 무시됩니다.
+     */
+    loadingRowCount:    { type: Number, default: 5 },
+    /**
+     * 빈 상태 텍스트 오버라이드. 지정하지 않으면 i18n `aria.empty`를 사용합니다.
+     * `#empty` 슬롯을 사용하면 이 값은 무시됩니다.
+     */
+    emptyText:          { type: String, default: '' },
     /** 개발 시 데이터 유효성 경고를 활성화합니다. 프로덕션에서는 false로 설정하세요. */
     debug:              { type: Boolean, default: false },
     /** debug보다 강력한 검증 모드. console.error로 중복 id·타입 불일치 등을 검사합니다. strict=true이면 debug도 자동 활성화됩니다. */
@@ -540,18 +595,53 @@ export default defineComponent({
       () => props.useFilter && !effServerSide.value  // 서버사이드 모드에서는 클라이언트 필터링 비활성화
     );
 
-    // 서버사이드 모드: 필터 변경 시 이벤트 emit
-    watch(filters, (newFilters) => {
-      if (effServerSide.value && props.useFilter) {
-        const filterState: Record<string, any> = {};
-        for (const col of props.columns) {
-          if (isFilterActive(col.key)) {
-            filterState[col.key] = { ...newFilters[col.key] };
-          }
+    // 서버사이드 모드: 필터 변경 시 debounce + IME 안전하게 emit
+    // - IME(한글/일본어/중국어) 조합 중에는 조합 종료까지 emit 보류
+    // - filterDebounceMs(기본 300ms) 동안 마지막 입력만 반영 → 서버 요청 최소화
+    let _filterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let _imeComposing = false;
+
+    const emitFilterState = (source: Record<string, any>) => {
+      if (!effServerSide.value || !props.useFilter) return;
+      const filterState: Record<string, any> = {};
+      for (const col of props.columns) {
+        if (isFilterActive(col.key)) {
+          filterState[col.key] = { ...source[col.key] };
         }
-        emit('update:filters', filterState);
       }
-    }, { deep: true });
+      emit('update:filters', filterState);
+    };
+
+    const scheduleFilterEmit = (source: Record<string, any>) => {
+      if (_imeComposing) return; // 조합 끝날 때 다시 호출됨
+      if (_filterDebounceTimer !== null) clearTimeout(_filterDebounceTimer);
+      const delay = Math.max(0, props.filterDebounceMs | 0);
+      if (delay === 0) {
+        emitFilterState(source);
+      } else {
+        _filterDebounceTimer = setTimeout(() => {
+          _filterDebounceTimer = null;
+          emitFilterState(source);
+        }, delay);
+      }
+    };
+
+    // IME 조합 추적 (컨테이너 레벨에서 capture)
+    const onCompositionStart = () => { _imeComposing = true; };
+    const onCompositionEnd   = () => {
+      _imeComposing = false;
+      // 조합 직후 현재 필터 상태로 한 번 emit (debounce 재스케줄)
+      scheduleFilterEmit(filters as any);
+    };
+
+    watch(filters, (newFilters) => { scheduleFilterEmit(newFilters); }, { deep: true });
+
+    onBeforeUnmount(() => {
+      if (_filterDebounceTimer !== null) {
+        clearTimeout(_filterDebounceTimer);
+        _filterDebounceTimer = null;
+      }
+    });
 
     // ── 2-1. 푸터 집계 ─────────────────────────────────────────────────
     const footerValues = computed((): Record<string, any> => {
@@ -712,9 +802,15 @@ export default defineComponent({
     const openContextMenu = (e: MouseEvent, itemIdx: number, colIdx: number) => {
       e.preventDefault();
       e.stopPropagation();
+      // 메뉴 실제 크기는 렌더 직후에야 알 수 있어 근사값을 쓰되 음수·화면 밖 좌표를
+      // 방지하도록 양방향 클램프. (정밀 보정은 WZContextMenu가 mount 후 필요 시 수행)
       const menuW = 170, menuH = 180;
-      ctxMenu.x = e.clientX + menuW > window.innerWidth  ? e.clientX - menuW : e.clientX;
-      ctxMenu.y = e.clientY + menuH > window.innerHeight ? e.clientY - menuH : e.clientY;
+      const vw = window.innerWidth  || document.documentElement.clientWidth  || 0;
+      const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+      const rawX = e.clientX + menuW > vw ? e.clientX - menuW : e.clientX;
+      const rawY = e.clientY + menuH > vh ? e.clientY - menuH : e.clientY;
+      ctxMenu.x = Math.max(0, Math.min(rawX, Math.max(0, vw - menuW)));
+      ctxMenu.y = Math.max(0, Math.min(rawY, Math.max(0, vh - menuH)));
       ctxMenu.itemIdx = itemIdx; ctxMenu.colIdx = colIdx; ctxMenu.visible = true;
     };
 
@@ -1167,6 +1263,8 @@ export default defineComponent({
       topPadding, bottomPadding, onScroll, visibleRowsRange, filteredRows, footerEl,
       isSelected, selectionKey, startSelection, updateSelection, endSelection,
       onCopy, onPaste,
+      // IME composition (서버사이드 필터 debounce용)
+      onCompositionStart, onCompositionEnd,
       // editing
       editing, isEditing, startEditing, stopEditing, editValue,
       toggleBoolean, handleInput, updateCell, updateCellFromItem,

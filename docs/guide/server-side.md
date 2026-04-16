@@ -42,6 +42,58 @@
 
 고급 필터 사용 시 필터 타입에 따라 구조화된 페이로드가 전달됩니다.
 
+### Debounce & IME 처리
+
+서버사이드 모드에서 사용자가 필터 인풋을 타이핑하면 매 입력마다 서버 요청이 발생하는 것을 피하기 위해, 그리드는 **자동으로 emit을 debounce**합니다.
+
+| 항목 | 동작 |
+|:-----|:-----|
+| 기본 딜레이 | 마지막 변경 후 `300ms` 경과 시 `@update:filters` emit |
+| 조정 | `filterDebounceMs` prop으로 재정의. `0`이면 즉시 emit |
+| IME 보호 | 한글·일본어·중국어 등 IME 조합 중에는 `compositionend`까지 emit 보류 후 한 번에 전송 |
+| unmount | 대기 중인 debounce 타이머는 unmount 시점에 취소되어 leak 없음 |
+
+```vue
+<!-- 500ms로 지연을 넓히기 -->
+<WZGrid
+  :serverSide="true"
+  :useFilter="true"
+  :filterDebounceMs="500"
+  @update:filters="handleServerFilter"
+/>
+
+<!-- 즉시 emit (테스트/자동화용) -->
+<WZGrid
+  :serverSide="true"
+  :useFilter="true"
+  :filterDebounceMs="0"
+  @update:filters="handleServerFilter"
+/>
+```
+
+## 로딩 오버레이 / 빈 상태
+
+서버 응답 대기 중에는 `loading` prop으로 스켈레톤/커스텀 오버레이를 표시하고, 결과가 0건일 때는 `#empty` 슬롯으로 안내 화면을 렌더합니다.
+
+```vue
+<WZGrid
+  :serverSide="true"
+  :rows="currentPageRows"
+  :loading="isFetching"
+  :loadingRowCount="6"
+  emptyText="조건에 맞는 데이터가 없습니다."
+>
+  <template #loading>
+    <div class="text-sm text-gray-500">불러오는 중...</div>
+  </template>
+  <template #empty>
+    <button class="text-blue-500 text-sm" @click="fetchData">다시 시도</button>
+  </template>
+</WZGrid>
+```
+
+로딩 중에는 컨테이너와 테이블 모두에 `aria-busy="true"`가 자동 부여됩니다.
+
 ```ts
 // 페이로드 예시
 {

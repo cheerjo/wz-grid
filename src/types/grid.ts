@@ -91,7 +91,25 @@ export type Messages = {
   pagination?: Partial<{ filteredCount: string; totalCount: string; selected: string; pageSize: string }>;
   contextMenu?: Partial<{ clearCell: string; insertAbove: string; insertBelow: string; deleteRow: string }>;
   validation?: Partial<{ required: string }>;
-  aria?: Partial<{ sortCleared: string; sortChanged: string; filterActive: string; filterCleared: string }>;
+  aria?: Partial<{
+    sortCleared: string; sortChanged: string; filterActive: string; filterCleared: string;
+    /** 행 체크박스 라벨 */
+    selectRow: string;
+    /** 헤더 전체 선택 체크박스 라벨 */
+    selectAll: string;
+    /** 행 드래그 핸들 라벨 */
+    rowDragHandle: string;
+    /** 트리 노드 펼침/접기 버튼 라벨 */
+    toggleExpand: string;
+    /** 상세 행 토글 버튼 라벨 */
+    toggleDetail: string;
+    /** 로딩 상태 안내 */
+    loading: string;
+    /** 빈 상태 안내 */
+    empty: string;
+  }>;
+  /** 빈/로딩 상태 텍스트 */
+  state?: Partial<{ empty: string; loading: string }>;
 };
 
 
@@ -117,6 +135,76 @@ export type CellUpdateEvent<T extends Record<string, any> = Record<string, any>>
 export type SortConfig = {
   key: string;
   order: 'asc' | 'desc';
+};
+
+/**
+ * `sort` 이벤트 페이로드 타입.
+ * 정렬이 변경될 때 emit되는 데이터 구조입니다.
+ *
+ * @example
+ * function onSort(event: SortChangeEvent) {
+ *   console.log(event.configs);  // [{ key: 'name', order: 'asc' }]
+ * }
+ */
+export type SortChangeEvent = {
+  /** 현재 활성 정렬 설정 (배열 — 다중 정렬 지원 대비) */
+  configs: SortConfig[];
+};
+
+/**
+ * `update:filters` 이벤트 페이로드 타입.
+ * serverSide 모드에서 필터가 변경될 때 emit됩니다.
+ */
+export type FilterChangeEvent = {
+  /** 컬럼 키 → 필터 값 맵 (활성 필터만 포함) */
+  filters: Record<string, any>;
+  /** 활성 필터 개수 */
+  activeCount: number;
+};
+
+/**
+ * 셀 선택 범위 이벤트 페이로드.
+ */
+export type SelectionChangeEvent = {
+  /** 현재 선택 범위. null이면 선택 해제 */
+  selection: Selection | null;
+};
+
+/**
+ * 페이징 변경 이벤트 페이로드.
+ */
+export type PagingChangeEvent = {
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+  totalCount: number;
+};
+
+/**
+ * 체크박스(행 선택) 변경 이벤트 페이로드.
+ */
+export type CheckedChangeEvent = {
+  /** 체크된 행 id 배열 */
+  checked: (string | number)[];
+};
+
+/**
+ * 셀 슬롯(`#cell-{key}`)에 전달되는 props 타입.
+ * 사용자 정의 셀 템플릿을 작성할 때 이 타입으로 slot props를 단언하면 자동완성을 얻을 수 있습니다.
+ */
+export type CellSlotProps<T extends Record<string, any> = Record<string, any>> = {
+  row: GridRow<T>;
+  column: Column<T>;
+  value: any;
+  rowIndex: number;
+};
+
+/**
+ * 상세 행 슬롯(`#detail`)에 전달되는 props 타입.
+ */
+export type DetailSlotProps<T extends Record<string, any> = Record<string, any>> = {
+  row: GridRow<T>;
+  rowIndex: number;
 };
 
 /** @deprecated GridRow를 사용하세요 */
