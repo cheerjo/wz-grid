@@ -51,5 +51,16 @@ export const en = {
     filterCleared: 'Filters cleared.',
     asc: 'ascending',
     desc: 'descending',
+    selectRow: 'Select row',
+    selectAll: 'Select all rows',
+    rowDragHandle: 'Drag to reorder row',
+    toggleExpand: 'Expand or collapse',
+    toggleDetail: 'Toggle detail row',
+    loading: 'Loading data.',
+    empty: 'No data to display.',
+  },
+  state: {
+    empty: 'No data to display.',
+    loading: 'Loading...',
   },
 } as const;

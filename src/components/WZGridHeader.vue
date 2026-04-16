@@ -28,6 +28,7 @@
             ref="headerCheckboxEl"
             type="checkbox"
             :checked="isAllChecked"
+            :aria-label="t('aria.selectAll')"
             @change="$emit('toggle-all')"
             class="w-4 h-4 rounded border-gray-400 cursor-pointer accent-blue-500"
           />
