@@ -18,4 +18,5 @@ export * from './composables/useI18n';
 export * from './composables/usePlugins';
 export * from './composables/usePerformance';
 export * from './composables/useFocusTrap';
+export * from './composables/useUndoRedo';
 export * from './types/plugin';
