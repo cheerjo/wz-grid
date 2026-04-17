@@ -93,47 +93,44 @@
         @mousedown.stop
         @click.stop
       >
-        <!-- ── Pro 고급 필터 모드 ── -->
-        <template v-if="effUseAdvancedFilter">
-          <!-- text / link / radio / color / email / 기타 -->
-          <input
-            v-if="!col.type || col.type === 'text' || col.type === 'link' || col.type === 'radio' || col.type === 'color' || col.type === 'email'"
-            v-model="filters[col.key].value"
-            type="text"
-            :placeholder="t('filter.searchPlaceholder')"
-            class="filter-input"
-          />
+        <!-- number / currency / rating: min ~ max -->
+        <div v-if="col.type === 'number' || col.type === 'currency' || col.type === 'rating'" class="flex items-center gap-0.5">
+          <input v-model="filters[col.key].min" type="number" :placeholder="t('filter.minPlaceholder')" class="filter-input" />
+          <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
+          <input v-model="filters[col.key].max" type="number" :placeholder="t('filter.maxPlaceholder')" class="filter-input" />
+        </div>
 
-          <!-- number / currency / rating: min ~ max -->
-          <div v-else-if="col.type === 'number' || col.type === 'currency' || col.type === 'rating'" class="flex items-center gap-0.5">
-            <input v-model="filters[col.key].min" type="number" :placeholder="t('filter.minPlaceholder')" class="filter-input" />
-            <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
-            <input v-model="filters[col.key].max" type="number" :placeholder="t('filter.maxPlaceholder')" class="filter-input" />
-          </div>
+        <!-- date: from / to -->
+        <div v-else-if="col.type === 'date'" class="flex flex-col gap-0.5">
+          <input v-model="filters[col.key].from" type="date" class="filter-input" style="font-size:10px;" />
+          <input v-model="filters[col.key].to"   type="date" class="filter-input" style="font-size:10px;" />
+        </div>
 
-          <!-- tag: 텍스트 포함 검색 -->
-          <input
-            v-else-if="col.type === 'tag'"
-            v-model="filters[col.key].value"
-            type="text"
-            :placeholder="t('filter.tagSearchPlaceholder')"
-            class="filter-input"
-          />
+        <!-- datetime: from / to (datetime-local) -->
+        <div v-else-if="col.type === 'datetime'" class="flex flex-col gap-0.5">
+          <input v-model="filters[col.key].from" type="datetime-local" class="filter-input" style="font-size:10px;" />
+          <input v-model="filters[col.key].to"   type="datetime-local" class="filter-input" style="font-size:10px;" />
+        </div>
 
-          <!-- date: from / to -->
-          <div v-else-if="col.type === 'date'" class="flex flex-col gap-0.5">
-            <input v-model="filters[col.key].from" type="date" class="filter-input" style="font-size:10px;" />
-            <input v-model="filters[col.key].to"   type="date" class="filter-input" style="font-size:10px;" />
-          </div>
+        <!-- tag: 텍스트 포함 검색 -->
+        <input
+          v-else-if="col.type === 'tag'"
+          v-model="filters[col.key].value"
+          type="text"
+          :placeholder="t('filter.tagSearchPlaceholder')"
+          class="filter-input"
+        />
 
-          <!-- datetime: from / to (datetime-local) -->
-          <div v-else-if="col.type === 'datetime'" class="flex flex-col gap-0.5">
-            <input v-model="filters[col.key].from" type="datetime-local" class="filter-input" style="font-size:10px;" />
-            <input v-model="filters[col.key].to"   type="datetime-local" class="filter-input" style="font-size:10px;" />
-          </div>
+        <!-- boolean -->
+        <select v-else-if="col.type === 'boolean'" v-model="filters[col.key].value" class="filter-input">
+          <option value="">{{ t('filter.all') }}</option>
+          <option value="true">{{ t('filter.yes') }}</option>
+          <option value="false">{{ t('filter.no') }}</option>
+        </select>
 
-          <!-- select / badge: 다중 선택 드롭다운 -->
-          <div v-else-if="col.type === 'select' || col.type === 'badge'" class="relative">
+        <!-- select / badge: 고급 필터=다중 선택 드롭다운, 기본=단순 텍스트 검색 -->
+        <template v-else-if="col.type === 'select' || col.type === 'badge'">
+          <div v-if="effUseAdvancedFilter" class="relative">
             <button
               @click.stop="$emit('toggle-multi-select-filter-open', col.key)"
               class="filter-input text-left flex items-center justify-between cursor-pointer"
@@ -167,74 +164,26 @@
               </div>
             </div>
           </div>
-
-          <!-- boolean -->
-          <select v-else-if="col.type === 'boolean'" v-model="filters[col.key].value" class="filter-input">
-            <option value="">{{ t('filter.all') }}</option>
-            <option value="true">{{ t('filter.yes') }}</option>
-            <option value="false">{{ t('filter.no') }}</option>
-          </select>
-
-          <!-- 나머지 타입(image, button, progress, sparkline): 빈 칸 -->
-          <template v-else></template>
-        </template>
-
-        <!-- ── Community 기본 텍스트 필터 ── -->
-        <template v-else>
-          <!-- number / currency / rating: min ~ max -->
-          <div v-if="col.type === 'number' || col.type === 'currency' || col.type === 'rating'" class="flex items-center gap-0.5">
-            <input v-model="filters[col.key].min" type="number" :placeholder="t('filter.minPlaceholder')" class="filter-input" />
-            <span class="text-[9px] text-gray-400 flex-shrink-0">~</span>
-            <input v-model="filters[col.key].max" type="number" :placeholder="t('filter.maxPlaceholder')" class="filter-input" />
-          </div>
-
-          <!-- date: from / to -->
-          <div v-else-if="col.type === 'date'" class="flex flex-col gap-0.5">
-            <input v-model="filters[col.key].from" type="date" class="filter-input" style="font-size:10px;" />
-            <input v-model="filters[col.key].to"   type="date" class="filter-input" style="font-size:10px;" />
-          </div>
-
-          <!-- datetime: from / to (datetime-local) -->
-          <div v-else-if="col.type === 'datetime'" class="flex flex-col gap-0.5">
-            <input v-model="filters[col.key].from" type="datetime-local" class="filter-input" style="font-size:10px;" />
-            <input v-model="filters[col.key].to"   type="datetime-local" class="filter-input" style="font-size:10px;" />
-          </div>
-
-          <!-- select / badge: 단순 텍스트 검색 (value 기반) -->
           <input
-            v-else-if="col.type === 'select' || col.type === 'badge'"
+            v-else
             v-model="filters[col.key].value"
             type="text"
             :placeholder="t('filter.searchPlaceholder')"
             class="filter-input"
           />
-
-          <!-- tag: 텍스트 포함 검색 -->
-          <input
-            v-else-if="col.type === 'tag'"
-            v-model="filters[col.key].value"
-            type="text"
-            :placeholder="t('filter.tagSearchPlaceholder')"
-            class="filter-input"
-          />
-
-          <!-- boolean -->
-          <select v-else-if="col.type === 'boolean'" v-model="filters[col.key].value" class="filter-input">
-            <option value="">{{ t('filter.all') }}</option>
-            <option value="true">{{ t('filter.yes') }}</option>
-            <option value="false">{{ t('filter.no') }}</option>
-          </select>
-
-          <!-- text / link / radio / 기타 (편집 불가 타입 및 별도 처리 타입 제외) -->
-          <input
-            v-else-if="col.type !== 'image' && col.type !== 'button' && col.type !== 'progress' && col.type !== 'sparkline'"
-            v-model="filters[col.key].value"
-            type="text"
-            :placeholder="t('filter.searchPlaceholder')"
-            class="filter-input"
-          />
-          <template v-else></template>
         </template>
+
+        <!-- image / button / progress / sparkline: 빈 칸 -->
+        <template v-else-if="col.type === 'image' || col.type === 'button' || col.type === 'progress' || col.type === 'sparkline'"></template>
+
+        <!-- text / link / radio / color / email / 기타 -->
+        <input
+          v-else
+          v-model="filters[col.key].value"
+          type="text"
+          :placeholder="t('filter.searchPlaceholder')"
+          class="filter-input"
+        />
 
         <!-- 개별 필터 초기화 -->
         <button

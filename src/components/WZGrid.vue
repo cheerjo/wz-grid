@@ -99,51 +99,37 @@
             <template v-for="itemIdx in visibleRowsRange" :key="itemIdx">
 
               <!-- ── 그룹 헤더 행 ────────────────────────────────────────── -->
-              <tr
+              <WZGridGroupHeader
                 v-if="getItem(itemIdx)?.type === 'group-header'"
-                :style="{ height: rowHeight + 'px' }"
-                class="bg-blue-50 hover:bg-blue-100 cursor-pointer select-none"
-                @click="toggleGroup(asGroupHeader(itemIdx).key)"
-                @mousedown.prevent
-              >
-                <td v-if="effUseRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-b border-r border-gray-200 p-0 sticky left-0 z-10 bg-blue-50"></td>
-                <td v-if="effUseDetail" :style="{ width: DETAIL_EXPAND_WIDTH + 'px', minWidth: DETAIL_EXPAND_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-blue-50"></td>
-                <td v-if="useCheckbox" :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + (effUseDetail ? DETAIL_EXPAND_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-blue-50"></td>
-                <td :colspan="visibleColumns.length" class="border-b border-gray-300 px-3 py-0">
-                  <div class="flex items-center gap-2">
-                    <span class="text-blue-500 w-3 text-center flex-shrink-0">{{ asGroupHeader(itemIdx).collapsed ? '&#9654;' : '&#9660;' }}</span>
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ groupColTitle }}</span>
-                    <span class="text-sm font-semibold text-blue-700">{{ asGroupHeader(itemIdx).label }}</span>
-                    <span class="text-[11px] text-gray-400 bg-blue-100 px-1.5 py-0.5 rounded-full">{{ asGroupHeader(itemIdx).count.toLocaleString() }}{{ t('grid.rowUnit') }}</span>
-                  </div>
-                </td>
-              </tr>
+                :group-header="asGroupHeader(itemIdx)"
+                :row-height="rowHeight"
+                :visible-columns-count="visibleColumns.length"
+                :eff-use-row-drag="effUseRowDrag"
+                :eff-use-detail="effUseDetail"
+                :use-checkbox="useCheckbox"
+                :row-drag-width="ROW_DRAG_WIDTH"
+                :detail-expand-width="DETAIL_EXPAND_WIDTH"
+                :checkbox-width="CHECKBOX_WIDTH"
+                :group-col-title="groupColTitle"
+                :t="t"
+                @toggle-group="toggleGroup"
+              />
 
               <!-- ── 소계 행 ─────────────────────────────────────────────── -->
-              <tr
+              <WZGridSubtotal
                 v-else-if="getItem(itemIdx)?.type === 'subtotal'"
-                :style="{ height: rowHeight + 'px' }"
-                class="bg-amber-50"
-              >
-                <td v-if="effUseRowDrag" :style="{ width: ROW_DRAG_WIDTH + 'px', minWidth: ROW_DRAG_WIDTH + 'px' }" class="border-b border-r border-gray-200 p-0 sticky left-0 z-10 bg-amber-50"></td>
-                <td v-if="effUseDetail" :style="{ width: DETAIL_EXPAND_WIDTH + 'px', minWidth: DETAIL_EXPAND_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-amber-50"></td>
-                <td v-if="useCheckbox" :style="{ width: CHECKBOX_WIDTH + 'px', minWidth: CHECKBOX_WIDTH + 'px', left: (effUseRowDrag ? ROW_DRAG_WIDTH : 0) + (effUseDetail ? DETAIL_EXPAND_WIDTH : 0) + 'px' }" class="border-b border-r border-gray-200 p-0 sticky z-10 bg-amber-50"></td>
-                <td
-                  v-for="(col, colIdx) in visibleColumns"
-                  :key="'sub-' + col.key"
-                  :style="getColumnStyle(col, colIdx)"
-                  :class="{ 'sticky left-0 z-10 bg-amber-50': col.pinned }"
-                  class="border-b border-r border-gray-200 px-2 py-1"
-                >
-                  <template v-if="colIdx === 0">
-                    <span class="text-[11px] font-bold text-amber-700">{{ t('grid.subtotal') }}</span>
-                    <span class="text-[10px] text-gray-400 ml-1">({{ asSubtotal(itemIdx).count.toLocaleString() }}{{ t('grid.rowUnit') }})</span>
-                  </template>
-                  <template v-else-if="col.type === 'number'">
-                    <div class="text-xs font-semibold text-gray-700 text-right w-full">{{ asSubtotal(itemIdx).sums[col.key]?.toLocaleString() }}</div>
-                  </template>
-                </td>
-              </tr>
+                :subtotal="asSubtotal(itemIdx)"
+                :row-height="rowHeight"
+                :visible-columns="visibleColumns"
+                :eff-use-row-drag="effUseRowDrag"
+                :eff-use-detail="effUseDetail"
+                :use-checkbox="useCheckbox"
+                :row-drag-width="ROW_DRAG_WIDTH"
+                :detail-expand-width="DETAIL_EXPAND_WIDTH"
+                :checkbox-width="CHECKBOX_WIDTH"
+                :get-column-style="getColumnStyle"
+                :t="t"
+              />
 
               <!-- ── 데이터 행 ───────────────────────────────────────────── -->
               <WZGridRow
@@ -207,23 +193,15 @@
               />
 
               <!-- ── 디테일 확장 행 ─────────────────────────────────────── -->
-              <tr
+              <WZGridDetailRow
                 v-if="effUseDetail && getItem(itemIdx)?.type === 'data' && isDetailExpanded(getRow(itemIdx)?.id)"
-                class="bg-gray-50"
+                :visible-columns-count="visibleColumns.length"
+                :eff-use-row-drag="effUseRowDrag"
+                :eff-use-detail="effUseDetail"
+                :use-checkbox="useCheckbox"
               >
-                <td
-                  :colspan="visibleColumns.length + (effUseRowDrag ? 1 : 0) + (effUseDetail ? 1 : 0) + (useCheckbox ? 1 : 0)"
-                  class="border-b border-gray-200 p-0"
-                >
-                  <div class="px-4 py-3">
-                    <slot
-                      name="detail"
-                      :row="getRow(itemIdx)"
-                      :rowIndex="itemIdx"
-                    />
-                  </div>
-                </td>
-              </tr>
+                <slot name="detail" :row="getRow(itemIdx)" :rowIndex="itemIdx" />
+              </WZGridDetailRow>
 
             </template>
           </tbody>
@@ -300,6 +278,7 @@
 <script lang="ts">
 import { defineComponent, computed, PropType, ref, reactive, watch, provide, onMounted, onBeforeUnmount } from 'vue-demi';
 import type { Column, SortConfig, GridItem, DataItem, GroupHeader, SubtotalItem, GridRow, Locale, Messages } from '../types/grid';
+import { NON_EDITABLE_TYPES } from '../types/grid';
 import type { WZGridPlugin } from '../types/plugin';
 import { useI18n, I18N_KEY } from '../composables/useI18n';
 import { usePlugins } from '../composables/usePlugins';
@@ -338,7 +317,13 @@ function warnDeprecatedOnce(oldProp: string, newProp: string) {
 
 export default defineComponent({
   name: 'WZGrid',
-  components: { WZGridPagination, WZContextMenu, WZGridToolbar, WZGridHeader, WZGridRow },
+  components: { 
+    WZGridPagination, 
+    WZContextMenu, 
+    WZGridToolbar, 
+    WZGridHeader, 
+    WZGridRow,
+  },
   emits: [
     'update:cell',
     'update:currentPage',
@@ -902,7 +887,7 @@ export default defineComponent({
     const startEditing = (rIdx: number, cIdx: number, initialValue?: string) => {
       const row = getRow(rIdx);
       const col = visibleColumns.value[cIdx];
-      if (!row || !col || ['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating', 'color', 'tag', 'sparkline'].includes(col.type || '')) return;
+      if (!row || !col || NON_EDITABLE_TYPES.has(col.type || '')) return;
       editing.rowId = row.id; editing.colIdx = cIdx;
       const type = col.type as any;
       const useInitial = initialValue !== undefined && type !== 'date' && type !== 'datetime' && type !== 'textarea';
@@ -1071,7 +1056,7 @@ export default defineComponent({
         clearSelection();
       } else if (e.key === 'Backspace' || e.key === 'Delete') {
         const col = visibleColumns.value[selection.startCol];
-        if (col && !['boolean', 'progress', 'badge', 'image', 'button', 'link', 'radio', 'rating', 'color', 'tag', 'sparkline'].includes(col.type || '')) {
+        if (col && !NON_EDITABLE_TYPES.has(col.type || '')) {
           updateCellFromItem(selection.startRow, col.key, '');
         }
       } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
