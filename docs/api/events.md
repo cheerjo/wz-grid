@@ -2,7 +2,9 @@
 
 | 이벤트 | 페이로드 | 설명 |
 | :--- | :--- | :--- |
-| `@update:cell` | `{ rowIdx, row, colKey, value }` | 셀 값 변경 시 발생 |
+| `@update:cell` | `{ rowIdx, row, colKey, key, value, oldValue }` | 셀 값 변경 시 발생. `key`는 `colKey`의 하위 호환 별칭. `oldValue`는 변경 전 값 |
+| `@undo` | `HistoryEntry` | `useUndo=true` + `Ctrl+Z`/`Cmd+Z`로 Undo 발생. 페이로드 `{ rowId, colKey, oldValue, newValue }` — 직후 `@update:cell`이 `value=oldValue`로 재 emit 됨 |
+| `@redo` | `HistoryEntry` | `Ctrl+Y` 또는 `Ctrl+Shift+Z`로 Redo 발생. 페이로드 구조는 `@undo`와 동일, `@update:cell`은 `value=newValue`로 재 emit |
 | `@update:currentPage` | `number` | 페이지 변경 |
 | `@update:pageSize` | `number` | 페이지 크기 변경 |
 | `@update:checked` | `any[]` | 체크된 **행 객체** 배열 변경 (하위 호환용) |
@@ -38,7 +40,8 @@ import type {
 
 | 타입 | 대응 이벤트/슬롯 | 비고 |
 | :--- | :--- | :--- |
-| `CellUpdateEvent<T>` | `@update:cell` | `{ rowIdx, row, colKey, value, oldValue? }` |
+| `CellUpdateEvent<T>` | `@update:cell` | `{ rowIdx, row, colKey, key?, value, oldValue }` — `key`는 `colKey`와 동일한 값의 deprecated 별칭 |
+| `HistoryEntry<T>` | `@undo` / `@redo` | `{ rowId, colKey, oldValue, newValue }` — `useUndoRedo`·`useUndo` 히스토리 단위 |
 | `SortChangeEvent` | `@sort` | `SortConfig[]` alias |
 | `FilterChangeEvent` | `@update:filters` | 컬럼 key → 필터 상태 맵 |
 | `SelectionChangeEvent` | 셀/범위 선택 변경 | `{ startRow, startCol, endRow, endCol }` |

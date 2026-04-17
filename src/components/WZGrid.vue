@@ -343,6 +343,7 @@ import { useRowDragDrop }    from '../composables/useRowDragDrop';
 import { useValidation, runStructureValidation } from '../composables/useValidation';
 import { useCheckbox }       from '../composables/useCheckbox';
 import { useTree }           from '../composables/useTree';
+import { useUndoRedo, type HistoryEntry } from '../composables/useUndoRedo';
 import WZGridPagination      from './WZGridPagination.vue';
 import WZContextMenu         from './WZContextMenu.vue';
 import WZGridToolbar         from './WZGridToolbar.vue';
@@ -393,6 +394,8 @@ export default defineComponent({
     'sort',
     'click:row',
     'perf',
+    'undo',
+    'redo',
   ],
   props: {
     columns:            { type: Array as PropType<Column[]>, required: true },
@@ -426,6 +429,15 @@ export default defineComponent({
     csvFilename:        { type: String,  default: 'export.csv' },
     /** CSV 필드 구분자 (기본: ',') */
     csvDelimiter:       { type: String,  default: ',' },
+    /**
+     * 셀 편집 Undo/Redo 히스토리 활성화.
+     * true면 `Ctrl+Z`/`Cmd+Z`로 되돌리기, `Ctrl+Y`/`Ctrl+Shift+Z`/`Cmd+Shift+Z`로 다시 실행이 가능합니다.
+     * 내부적으로 히스토리만 관리하고 `@update:cell` 이벤트를 역방향/재방향 값으로 다시 emit 하므로
+     * 부모 컴포넌트의 단방향 데이터 흐름은 그대로 유지됩니다.
+     */
+    useUndo:            { type: Boolean, default: false },
+    /** Undo/Redo 히스토리 최대 depth (기본 50). 초과 시 오래된 항목이 FIFO로 제거됩니다. */
+    maxUndoDepth:       { type: Number,  default: 50 },
     showFooter:         { type: Boolean, default: false },
     useTree:            { type: Boolean, default: false },
     treeKey:            { type: String,  default: '' },
@@ -1120,9 +1132,54 @@ export default defineComponent({
       return row && editing.rowId === row.id && editing.colIdx === cIdx;
     };
 
+    // ── Undo/Redo 히스토리 ────────────────────────────────────────────
+    // useUndo=false 일 때도 훅은 존재(무비용)하지만 push는 스킵되어 메모리 0.
+    const undoRedo = useUndoRedo<any>({ getMaxDepth: () => props.maxUndoDepth });
+    // true면 현재 emit 되는 `update:cell`이 undo/redo 재생 중이라 push를 건너뛰어야 함.
+    let _suppressHistory = false;
+
     const updateCell = (fullIdx: number, key: string, val: any) => {
       const row = props.rows[fullIdx];
-      if (row) emit('update:cell', { rowIdx: fullIdx, row, colKey: key, value: val });
+      if (!row) return;
+      const oldValue = (row as any)[key];
+      // 실제 값 변경이 있을 때만 히스토리에 push (no-op 편집은 무시)
+      if (props.useUndo && !_suppressHistory && oldValue !== val) {
+        undoRedo.push({
+          rowId: row.id,
+          colKey: key,
+          oldValue,
+          newValue: val,
+        });
+      }
+      emit('update:cell', { rowIdx: fullIdx, row, colKey: key, key, value: val, oldValue });
+    };
+
+    /**
+     * 내부: Undo/Redo 재생 — rowId로 현재 rows 배열에서 인덱스를 찾아 역/재 값으로 emit.
+     * `_suppressHistory=true`로 순환 push를 방지.
+     */
+    const applyHistoryEntry = (entry: HistoryEntry<any>, direction: 'undo' | 'redo') => {
+      const fullIdx = props.rows.findIndex(r => r.id === entry.rowId);
+      if (fullIdx === -1) return; // 행이 이미 제거됨 → 조용히 스킵
+      const row = props.rows[fullIdx];
+      const value = direction === 'undo' ? entry.oldValue : entry.newValue;
+      const oldValue = (row as any)[entry.colKey];
+      _suppressHistory = true;
+      try {
+        emit('update:cell', { rowIdx: fullIdx, row, colKey: entry.colKey, key: entry.colKey, value, oldValue });
+      } finally {
+        _suppressHistory = false;
+      }
+      emit(direction, { ...entry });
+    };
+
+    const triggerUndo = () => {
+      const entry = undoRedo.undo();
+      if (entry) applyHistoryEntry(entry, 'undo');
+    };
+    const triggerRedo = () => {
+      const entry = undoRedo.redo();
+      if (entry) applyHistoryEntry(entry, 'redo');
     };
 
     const updateCellFromItem = (itemIdx: number, key: string, val: any) => {
@@ -1259,6 +1316,25 @@ export default defineComponent({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (editing.rowId !== null) return;
+
+      // ── Undo / Redo (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z) ────────────────
+      // useUndo=false면 네이티브 동작(없음)에 위임하도록 아예 건드리지 않는다.
+      if (props.useUndo && (e.ctrlKey || e.metaKey)) {
+        const k = e.key.toLowerCase();
+        // Redo: Ctrl+Y OR Ctrl+Shift+Z
+        if (k === 'y' || (k === 'z' && e.shiftKey)) {
+          e.preventDefault();
+          triggerRedo();
+          return;
+        }
+        // Undo: Ctrl+Z (단, shift 미동반)
+        if (k === 'z' && !e.shiftKey) {
+          e.preventDefault();
+          triggerUndo();
+          return;
+        }
+      }
+
       const dirs: any = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
       if (dirs[e.key]) {
         e.preventDefault();
@@ -1441,6 +1517,9 @@ export default defineComponent({
       CHECKBOX_WIDTH, ROW_DRAG_WIDTH,
       handleExcelExport,
       handleCsvExport,
+      // undo/redo (외부에서 프로그래매틱 호출·UI 버튼 확장용으로 노출)
+      triggerUndo, triggerRedo,
+      canUndo: undoRedo.canUndo, canRedo: undoRedo.canRedo,
       // eff computed (template에서 사용)
       effShowColumnSettings, effUseContextMenu, effUseRowDrag, effUseAdvancedFilter, effServerSide, effShowExcelExport, effUseCsvExport,
       effUseDetail, expandedRowIds, DETAIL_EXPAND_WIDTH, toggleDetailExpand, isDetailExpanded,
