@@ -77,13 +77,13 @@ props.rows
 | `useFilter` | filters Map 관리. `treeAllFlat`을 입력으로 받아 tree/일반 모드 통합 |
 | `useGrouping` | `useTree` 활성 시 빈 배열/빈 키를 전달받아 자동으로 no-op |
 | `useTree` | `collapsedIds Set` 관리. `getFilteredIds`가 null이면 필터 없음, Set이면 일치 노드 + 조상만 표시 |
-| `useMerge` | `getAutoMergeCols`, `getMergeCellsFn` 기반으로 `MergeState` 맵 생성. `hasActiveMerge`가 true면 가상 스크롤 비활성화 |
+| `useMerge` | `getAutoMergeCols`, `getMergeCellsFn` 기반으로 `MergeState` 맵 생성. `hasActiveMerge`가 true면 기본 동작에서 가상 스크롤 비활성화. `getMergeSpan(itemIdx)`는 병합 블록 `[start, end)` 범위를 반환 — `virtualizeWithMerge=true` 시 가상 range 확장에 사용 |
 | `useSelection` | `{ startRow, startCol, endRow, endCol }` 범위. 클립보드와 연동 |
 | `useColumnDrag` | 리사이즈 중(`getIsResizing()`) drag 차단 로직 포함 |
 
 ### 셀 병합 주의사항
 
-`autoMergeCols` 또는 `mergeCells`가 활성화되면 `hasActiveMerge`가 true가 되어 가상 스크롤이 비활성화되고 전체 행을 렌더링한다. 대량 데이터와 함께 사용 시 성능 저하가 발생할 수 있다.
+`autoMergeCols` 또는 `mergeCells`가 활성화되면 `hasActiveMerge`가 true가 되어 **기본 동작**에서 가상 스크롤이 비활성화되고 전체 행을 렌더링한다. 대량 데이터와 함께 사용 시 성능 저하가 발생할 수 있다. 이를 완화하려면 `virtualizeWithMerge: true` prop(opt-in)을 활성화하면 된다 — `useMerge.getMergeSpan`으로 가상 range를 병합 블록 경계까지 확장해 블록이 절단되지 않으면서도 viewport 밖 행은 렌더하지 않는다.
 
 ### 문서 (`docs/`)
 

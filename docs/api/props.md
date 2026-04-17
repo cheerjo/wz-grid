@@ -41,6 +41,7 @@
 | `csvDelimiter` | `string` | `','` | CSV 필드 구분자 (탭 TSV 원하면 `'\t'`) |
 | `useUndo` | `boolean` | `false` | 셀 편집 Undo/Redo 활성화. `Ctrl+Z`/`Ctrl+Y`/`Ctrl+Shift+Z` 단축키 바인딩 |
 | `maxUndoDepth` | `number` | `50` | Undo 히스토리 최대 depth. 초과 시 오래된 항목 FIFO drain |
+| `virtualizeWithMerge` | `boolean` | `false` | 병합 활성 상태에서도 가상 스크롤 유지(opt-in). 병합 블록 경계까지 range 자동 확장. 대량 데이터 + 병합 시나리오의 성능 개선 |
 | `serverSide` ⚠️ | `boolean` | `false` | 서버사이드 모드. `useServerSide` 사용 권장 |
 | `useServerSide` | `boolean` | `false` | 서버사이드 모드. 정렬/필터/페이징을 서버에 위임 (`serverSide`의 권장 alias) |
 | `totalRows` | `number` | `0` | 서버사이드 모드에서 전체 행 수. 페이징 UI 계산에 사용 |

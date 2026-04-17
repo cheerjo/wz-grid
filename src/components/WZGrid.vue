@@ -448,6 +448,15 @@ export default defineComponent({
     serverSide:         { type: Boolean, default: false },
     /** serverSide의 통일된 네이밍 alias (권장). 두 prop 중 하나라도 true이면 활성화됩니다. */
     useServerSide:      { type: Boolean, default: false },
+    /**
+     * 병합(`autoMergeCols` / `mergeCells`)이 활성화된 상태에서도
+     * 가상 스크롤을 유지할지 여부. 기본 `false` — 기존 동작(병합 활성 시 전체 렌더).
+     *
+     * `true`로 설정하면 `useMerge.getMergeSpan`으로 가상 range를 병합 블록 경계까지
+     * 확장해 **병합 블록이 절단되지 않으면서도 viewport 밖 행은 렌더하지 않습니다.**
+     * 대량 데이터 + 병합 시나리오에서 성능이 크게 개선됩니다.
+     */
+    virtualizeWithMerge: { type: Boolean, default: false },
     totalRows:          { type: Number, default: 0 },
     /**
      * 서버사이드 모드에서 필터 입력 시 `update:filters` emit 지연(ms).
@@ -859,9 +868,15 @@ export default defineComponent({
       return activeItems.value.slice(start, start + props.pageSize);
     });
 
-    // ── 5. 가상 스크롤 ─────────────────────────────────────────────────
-    const hasActiveMerge = computed(() => effAutoMergeCols.value.length > 0 || !!effMergeCells.value);
+    // ── 5. 셀 병합 (가상 스크롤 계산의 입력으로 쓰여 먼저 선언) ──────
+    const { getMerge, getMergeSpan, hasActiveMerge } = useMerge(
+      () => pagedItems.value,
+      () => visibleColumns.value,
+      () => effAutoMergeCols.value,
+      () => effMergeCells.value,
+    );
 
+    // ── 6. 가상 스크롤 ─────────────────────────────────────────────────
     const getActualRowHeight = () => props.rowHeight + 1; // 1px for border-b
 
     const _vs = useVirtualScroll(
@@ -870,8 +885,46 @@ export default defineComponent({
       () => props.height
     );
 
-    const topPadding    = computed(() => hasActiveMerge.value ? 0 : _vs.topPadding.value);
-    const bottomPadding = computed(() => hasActiveMerge.value ? 0 : _vs.bottomPadding.value);
+    // 병합 활성 + virtualizeWithMerge=false: 전체 렌더 (기존 동작, 대량 데이터에서 비권장)
+    // 병합 활성 + virtualizeWithMerge=true:  가상 range를 병합 블록 경계까지 확장 (성능 개선)
+    // 병합 비활성:                           일반 가상 스크롤
+    const mergeVirtualActive = computed(() => hasActiveMerge.value && !props.virtualizeWithMerge);
+
+    /**
+     * 병합 블록이 절단되지 않도록 `_vs.visibleRange`를 확장한 `[start, end)`.
+     * virtualizeWithMerge=false 이거나 병합이 없으면 원본 range 그대로.
+     */
+    const expandedVirtualRange = computed((): { start: number; end: number } => {
+      const total = pagedItems.value.length;
+      const { startIdx, endIdx } = _vs.visibleRange.value;
+      let start = Math.max(0, startIdx);
+      let end = Math.min(total, endIdx);
+
+      if (hasActiveMerge.value && props.virtualizeWithMerge) {
+        // viewport 상단 경계가 병합 블록 중간에 있으면 블록 시작까지 끌어올림
+        const startSpan = getMergeSpan(start);
+        if (startSpan && startSpan.start < start) start = startSpan.start;
+        // viewport 하단 경계 - 1 이 병합 블록 중간에 있으면 블록 끝까지 확장
+        if (end > 0) {
+          const endSpan = getMergeSpan(end - 1);
+          if (endSpan && endSpan.end > end) end = Math.min(total, endSpan.end);
+        }
+      }
+      return { start, end };
+    });
+
+    const topPadding    = computed(() => {
+      if (mergeVirtualActive.value) return 0;
+      // virtualizeWithMerge=true거나 병합이 없을 때는 확장된 start 기준으로 padding 계산
+      const rowHeight = getActualRowHeight();
+      return expandedVirtualRange.value.start * rowHeight;
+    });
+    const bottomPadding = computed(() => {
+      if (mergeVirtualActive.value) return 0;
+      const rowHeight = getActualRowHeight();
+      const total = pagedItems.value.length;
+      return (total - expandedVirtualRange.value.end) * rowHeight;
+    });
     const onScroll      = (e: Event) => {
       _vs.onScroll(e);
       // 푸터 수평 스크롤 동기화
@@ -881,9 +934,13 @@ export default defineComponent({
     };
 
     const visibleRowsRange = computed(() => {
-      if (hasActiveMerge.value) return Array.from({ length: pagedItems.value.length }, (_, i) => i);
-      const range = [];
-      for (let i = _vs.visibleRange.value.startIdx; i < _vs.visibleRange.value.endIdx; i++) {
+      // 기존 동작: 병합 활성 + virtualizeWithMerge=false → 전체 렌더
+      if (mergeVirtualActive.value) {
+        return Array.from({ length: pagedItems.value.length }, (_, i) => i);
+      }
+      const { start, end } = expandedVirtualRange.value;
+      const range: number[] = [];
+      for (let i = start; i < end; i++) {
         if (i < pagedItems.value.length) range.push(i);
       }
       return range;
@@ -952,15 +1009,7 @@ export default defineComponent({
       });
     };
 
-    // ── 7. 셀 병합 ─────────────────────────────────────────────────────
-    const { getMerge } = useMerge(
-      () => pagedItems.value,
-      () => visibleColumns.value,
-      () => effAutoMergeCols.value,
-      () => effMergeCells.value
-    );
-
-    // ── 8. 컨텍스트 메뉴 ──────────────────────────────────────────────
+    // ── 7. 컨텍스트 메뉴 ──────────────────────────────────────────────
     const ctxMenu = reactive({ visible: false, x: 0, y: 0, itemIdx: -1, colIdx: -1 });
 
     const openContextMenu = (e: MouseEvent, itemIdx: number, colIdx: number) => {
