@@ -93,4 +93,63 @@ describe('useMerge', () => {
     );
     expect(getMerge(0, '__does_not_exist__')).toBeUndefined();
   });
+
+  // ── getMergeSpan: 병합+가상 스크롤 부분 지원용 ───────────────────────
+  describe('getMergeSpan', () => {
+    it('no merge → null', () => {
+      const items = toItems([{ id: 1, region: 'A' }, { id: 2, region: 'B' }]);
+      const { getMergeSpan } = useMerge(() => items, () => cols, () => ['region'], () => null);
+      expect(getMergeSpan(0)).toBeNull();
+      expect(getMergeSpan(1)).toBeNull();
+    });
+
+    it('autoMerge 블록의 모든 행에 동일 span 반환', () => {
+      const rows = [
+        { id: 1, region: 'A', team: 'dev' },
+        { id: 2, region: 'A', team: 'dev' },
+        { id: 3, region: 'A', team: 'ops' },
+        { id: 4, region: 'B', team: 'ops' },
+      ];
+      const { getMergeSpan } = useMerge(
+        () => toItems(rows), () => cols, () => ['region'], () => null
+      );
+      // region 'A'는 0..2 → span=[0, 3)
+      expect(getMergeSpan(0)).toEqual({ start: 0, end: 3 });
+      expect(getMergeSpan(1)).toEqual({ start: 0, end: 3 });
+      expect(getMergeSpan(2)).toEqual({ start: 0, end: 3 });
+      // region 'B'는 단일 행 → 병합 아님
+      expect(getMergeSpan(3)).toBeNull();
+    });
+
+    it('여러 컬럼의 병합이 겹치면 가장 넓은 범위로 확장', () => {
+      const rows = [
+        { id: 1, region: 'A', team: 'dev' },
+        { id: 2, region: 'A', team: 'dev' },
+        { id: 3, region: 'A', team: 'ops' },
+        { id: 4, region: 'A', team: 'ops' },
+      ];
+      // region: 0..3 (span=[0,4)), team: dev 0..1, ops 2..3
+      const { getMergeSpan } = useMerge(
+        () => toItems(rows), () => cols, () => ['region', 'team'], () => null
+      );
+      // 모든 행이 region 블록에 포함 → 가장 넓은 span=[0,4)
+      expect(getMergeSpan(0)).toEqual({ start: 0, end: 4 });
+      expect(getMergeSpan(1)).toEqual({ start: 0, end: 4 });
+      expect(getMergeSpan(2)).toEqual({ start: 0, end: 4 });
+      expect(getMergeSpan(3)).toEqual({ start: 0, end: 4 });
+    });
+
+    it('mergeCells 콜백의 rowspan도 span으로 노출', () => {
+      const rows = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }];
+      const { getMergeSpan } = useMerge(
+        () => toItems(rows), () => cols, () => [],
+        () => (row, colKey) => row.id === 1 && colKey === 'region' ? { rowspan: 3, colspan: 1 } : null,
+      );
+      // rowspan=3 at item 0 → span=[0, 3)
+      expect(getMergeSpan(0)).toEqual({ start: 0, end: 3 });
+      expect(getMergeSpan(1)).toEqual({ start: 0, end: 3 });
+      expect(getMergeSpan(2)).toEqual({ start: 0, end: 3 });
+      expect(getMergeSpan(3)).toBeNull();
+    });
+  });
 });

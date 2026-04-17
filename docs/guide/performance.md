@@ -46,7 +46,7 @@ WZ-Grid는 대량 데이터를 다루는 두 가지 전략을 제공합니다.
 
 ## 셀 병합 활성 시 성능 주의사항
 
-`autoMergeCols` 또는 `mergeCells`가 활성화되면 `hasActiveMerge`가 `true`가 되어 **가상 스크롤이 자동으로 비활성화**됩니다. 이 경우 그리드는 모든 행을 한 번에 렌더링합니다.
+`autoMergeCols` 또는 `mergeCells`가 활성화되면 기본 동작에서 **가상 스크롤이 자동으로 비활성화**됩니다. 이 경우 그리드는 모든 행을 한 번에 렌더링합니다. (opt-in 옵션 `virtualizeWithMerge: true`로 우회 가능 — 아래 4번 항목 참고.)
 
 ```vue
 <!-- 주의: 이 설정에서는 가상 스크롤이 비활성화됨 -->
@@ -74,6 +74,19 @@ WZ-Grid는 대량 데이터를 다루는 두 가지 전략을 제공합니다.
 2. **데이터 양 제한** — 병합이 필요한 경우 표시 데이터를 1,000행 이하로 유지하는 것을 권장합니다.
 
 3. **서버사이드 페이징** — 서버에서 페이지 단위로 데이터를 받아 렌더링 행 수 자체를 줄입니다.
+
+4. **`virtualizeWithMerge: true` 활성화** (권장) — 병합 상태에서도 가상 스크롤을 유지합니다. 렌더 범위가 병합 블록 경계까지 자동으로 확장되어 블록이 절단되지 않으면서 viewport 밖 행은 렌더되지 않습니다.
+
+```vue
+<WZGrid
+  :columns="columns"
+  :rows="largeRows"
+  :auto-merge-cols="['dept']"
+  :virtualize-with-merge="true"
+/>
+```
+
+병합 블록의 최대 크기가 viewport 높이보다 작을 때 가장 효과적입니다. 자세한 설명은 [셀 병합 가이드](./merge.md#병합-가상-스크롤-virtualizewithmerge) 참고.
 
 ---
 
