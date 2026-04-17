@@ -65,3 +65,71 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 - 컴포넌트 마운트 시 전체 rows에 대해 즉시 실행
 - `rows` prop 변경 시 자동 재검증
 - 셀 편집 후 저장 시 해당 셀 재검증
+
+## Undo / Redo (편집 히스토리)
+
+`useUndo` prop을 활성화하면 셀 편집 히스토리가 자동으로 쌓이고 **Ctrl+Z / Ctrl+Y** 단축키로 되돌릴 수 있습니다.
+
+```vue
+<WZGrid
+  :columns="columns"
+  :rows="rows"
+  :use-undo="true"
+  :max-undo-depth="100"
+  @update:cell="handleUpdate"
+/>
+```
+
+| Prop | 타입 | 기본값 | 설명 |
+|:-----|:-----|:------:|:-----|
+| `useUndo` | `boolean` | `false` | 편집 히스토리 + 키보드 단축키 활성화 |
+| `maxUndoDepth` | `number` | `50` | 최대 depth. 초과 시 오래된 항목 FIFO drain |
+
+**키보드 단축키:**
+
+| 조합 | 동작 |
+|:-----|:-----|
+| `Ctrl+Z` / `Cmd+Z` | Undo |
+| `Ctrl+Y` / `Ctrl+Shift+Z` / `Cmd+Shift+Z` | Redo |
+
+::: info 단방향 데이터 흐름 유지
+WZGrid는 `rows` prop을 직접 mutate 하지 않습니다. Undo/Redo 재생은 **이미 연결돼 있는 `@update:cell` 핸들러**에 역/재 값으로 이벤트를 다시 emit 하는 방식입니다. 즉, 부모의 데이터 쓰기 로직 하나로 편집·언두·리두가 모두 처리됩니다.
+:::
+
+```ts
+function handleUpdate({ rowIdx, colKey, value }: CellUpdateEvent) {
+  // 편집, Undo, Redo 모두 이 핸들러 하나로 처리됨
+  rows.value[rowIdx][colKey] = value
+}
+```
+
+**선택적 `@undo` / `@redo` 이벤트**
+
+Undo/Redo가 발생할 때 부모에게 별도 UI 피드백(예: "되돌렸습니다" 토스트)을 주고 싶으면 구독하세요. 페이로드는 `HistoryEntry` — `{ rowId, colKey, oldValue, newValue }`.
+
+```vue
+<WZGrid
+  :use-undo="true"
+  @update:cell="handleUpdate"
+  @undo="(e) => toast('되돌렸습니다: ' + e.colKey)"
+  @redo="(e) => toast('다시 실행했습니다: ' + e.colKey)"
+/>
+```
+
+**직접 Composable 사용**
+
+내부 히스토리 스택을 직접 관리하고 싶다면 `useUndoRedo` 를 그대로 임포트할 수 있습니다 (예: 커스텀 버튼 UI).
+
+```ts
+import { useUndoRedo } from 'wz-grid'
+
+const { push, undo, redo, canUndo, canRedo, clear } = useUndoRedo({
+  getMaxDepth: () => 100,
+})
+```
+
+**주의사항:**
+
+- 히스토리 단위는 **셀 단건**입니다. 여러 셀 일괄 편집(붙여넣기·삭제)은 각 셀마다 별도 entry로 push됩니다.
+- `rows` 배열이 교체되거나 편집된 행이 제거되면 해당 entry는 조용히 스킵됩니다 (에러 없음).
+- `no-op` 편집(같은 값)은 push되지 않습니다.

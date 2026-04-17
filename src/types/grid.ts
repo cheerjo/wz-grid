@@ -158,8 +158,13 @@ export type Messages = {
  * }
  */
 export type CellUpdateEvent<T extends Record<string, any> = Record<string, any>> = {
+  /** 원본 `rows` 배열에서의 인덱스. 페이징·트리·그룹핑 무관한 절대 위치. */
+  rowIdx: number;
   row: GridRow<T>;
-  key: keyof T & string;
+  /** 편집 대상 컬럼 key. `key`는 하위 호환용 별칭입니다(동일 값). */
+  colKey: keyof T & string;
+  /** @deprecated `colKey`를 사용하세요. 하위 호환을 위해 유지됩니다. */
+  key?: keyof T & string;
   /** 변경된 새 값. 제네릭 T가 주어지면 T의 셀 값 union 타입. */
   value: ColumnCellValue<T>;
   /** 변경 전 값. 제네릭 T가 주어지면 T의 셀 값 union 타입. */
