@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, computed } from 'vue-demi';
-import type { Column } from '@anthropic/wz-grid-core';
+import type { Column } from '@wezon/wz-grid-core';
 
 export default defineComponent({
   name: 'CellBadge',

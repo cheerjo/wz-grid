@@ -1,6 +1,6 @@
 // packages/vue/src/composables/useSelection.ts
 import { ref, reactive } from 'vue-demi';
-import type { Selection } from '@anthropic/wz-grid-core';
+import type { Selection } from '@wezon/wz-grid-core';
 
 export function useSelection() {
   const selection = reactive<Selection>({

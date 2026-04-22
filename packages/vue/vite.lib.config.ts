@@ -22,7 +22,7 @@ export default defineConfig({
   resolve: {
     alias: {
       // 개발 시 workspace 패키지를 소스로 직접 참조
-      '@anthropic/wz-grid-core': resolve(__dirname, '../core/src/index.ts'),
+      '@wezon/wz-grid-core': resolve(__dirname, '../core/src/index.ts'),
     },
   },
   build: {
@@ -38,7 +38,7 @@ export default defineConfig({
         'vue-demi',
         '@vue/composition-api',
         'exceljs',
-        '@anthropic/wz-grid-core',
+        '@wezon/wz-grid-core',
       ],
       output: {
         globals: {
@@ -46,7 +46,7 @@ export default defineConfig({
           'vue-demi': 'VueDemi',
           '@vue/composition-api': 'VueCompositionAPI',
           exceljs: 'ExcelJS',
-          '@anthropic/wz-grid-core': 'WZGridCore',
+          '@wezon/wz-grid-core': 'WZGridCore',
         },
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === 'style.css') return 'wz-grid-vue.css';

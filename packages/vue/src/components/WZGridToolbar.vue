@@ -135,7 +135,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, inject } from 'vue-demi';
-import type { Column } from '@anthropic/wz-grid-core';
+import type { Column } from '@wezon/wz-grid-core';
 import type { TFunction } from '../composables/useI18n';
 import { I18N_KEY } from '../composables/useI18n';
 

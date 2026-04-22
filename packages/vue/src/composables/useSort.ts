@@ -1,7 +1,7 @@
 // packages/vue/src/composables/useSort.ts
 import { ref, computed } from 'vue-demi';
 import type { Ref, ComputedRef } from 'vue-demi';
-import type { SortConfig, GridRow, Column } from '@anthropic/wz-grid-core';
+import type { SortConfig, GridRow, Column } from '@wezon/wz-grid-core';
 
 export interface UseSortReturn {
   /** 현재 활성화된 정렬 기준 목록 (다중 정렬 지원) */

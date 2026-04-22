@@ -31,7 +31,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue-demi';
-import type { SubtotalItem, Column } from '@anthropic/wz-grid-core';
+import type { SubtotalItem, Column } from '@wezon/wz-grid-core';
 
 export default defineComponent({
   name: 'WZGridSubtotal',

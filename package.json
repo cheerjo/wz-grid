@@ -61,9 +61,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "build:core": "pnpm --filter @anthropic/wz-grid-core build",
+    "build:core": "pnpm --filter @wezon/wz-grid-core build",
     "build:vue-pkg": "pnpm --filter wz-grid-vue build",
-    "build:packages": "pnpm --filter @anthropic/wz-grid-core build && pnpm --filter wz-grid-vue build"
+    "build:packages": "pnpm --filter @wezon/wz-grid-core build && pnpm --filter wz-grid-vue build"
   },
   "dependencies": {
     "exceljs": ">=4.3.0",

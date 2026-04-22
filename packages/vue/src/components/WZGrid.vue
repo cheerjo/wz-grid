@@ -321,15 +321,15 @@
 
 <script lang="ts">
 import { defineComponent, computed, PropType, ref, reactive, watch, provide, onMounted, onBeforeUnmount } from 'vue-demi';
-import type { Column, SortConfig, GridItem, DataItem, GroupHeader, SubtotalItem, GridRow, Locale, Messages } from '@anthropic/wz-grid-core';
-import { NON_EDITABLE_TYPES } from '@anthropic/wz-grid-core';
-import type { WZGridPlugin } from '@anthropic/wz-grid-core';
+import type { Column, SortConfig, GridItem, DataItem, GroupHeader, SubtotalItem, GridRow, Locale, Messages } from '@wezon/wz-grid-core';
+import { NON_EDITABLE_TYPES } from '@wezon/wz-grid-core';
+import type { WZGridPlugin } from '@wezon/wz-grid-core';
 import { useI18n, I18N_KEY } from '../composables/useI18n';
 import { usePlugins } from '../composables/usePlugins';
 import { usePerformance } from '../composables/usePerformance';
 import type { PerfEntry } from '../composables/usePerformance';
-import { exportExcel } from '@anthropic/wz-grid-core';
-import { exportCSV } from '@anthropic/wz-grid-core';
+import { exportExcel } from '@wezon/wz-grid-core';
+import { exportCSV } from '@wezon/wz-grid-core';
 import { useSelection }      from '../composables/useSelection';
 import { useClipboard }      from '../composables/useClipboard';
 import { useVirtualScroll }  from '../composables/useVirtualScroll';

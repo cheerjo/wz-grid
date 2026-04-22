@@ -1,7 +1,7 @@
 // packages/vue/src/composables/useI18n.ts
 import { computed } from 'vue-demi';
-import { ko, en, I18N_KEY } from '@anthropic/wz-grid-core';
-import type { TFunction } from '@anthropic/wz-grid-core';
+import { ko, en, I18N_KEY } from '@wezon/wz-grid-core';
+import type { TFunction } from '@wezon/wz-grid-core';
 
 // TFunction, I18N_KEY는 코어에서 re-export됨
 export type { TFunction };

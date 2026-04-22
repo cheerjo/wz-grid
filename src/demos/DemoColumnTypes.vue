@@ -76,7 +76,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { WZGrid } from 'wz-grid-vue';
-import type { Column } from '@anthropic/wz-grid-core';
+import type { Column } from '@wezon/wz-grid-core';
 
 // ── 컬럼 정의 (18종) ──────────────────────────────────────────────────────
 const columns: Column[] = [

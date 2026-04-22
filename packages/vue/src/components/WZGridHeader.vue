@@ -211,7 +211,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, inject, watchEffect } from 'vue-demi';
-import type { Column, SortConfig } from '@anthropic/wz-grid-core';
+import type { Column, SortConfig } from '@wezon/wz-grid-core';
 import type { TFunction } from '../composables/useI18n';
 import { I18N_KEY } from '../composables/useI18n';
 

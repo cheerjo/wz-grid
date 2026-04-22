@@ -1,6 +1,6 @@
 // packages/vue/src/composables/useValidation.ts
 import { reactive, watch, onBeforeUnmount } from 'vue-demi';
-import type { Column, GridRow, TFunction } from '@anthropic/wz-grid-core';
+import type { Column, GridRow, TFunction } from '@wezon/wz-grid-core';
 
 export interface UseValidationReturn {
   /** 셀별 오류 메시지 맵. key 형식: `{rowId}:{columnKey}` */
@@ -91,4 +91,4 @@ export function useValidation(
 }
 
 // runStructureValidation은 코어에서 re-export됨
-export { runStructureValidation } from '@anthropic/wz-grid-core';
+export { runStructureValidation } from '@wezon/wz-grid-core';

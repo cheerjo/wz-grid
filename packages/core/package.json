@@ -1,5 +1,5 @@
 {
-  "name": "@anthropic/wz-grid-core",
+  "name": "@wezon/wz-grid-core",
   "version": "0.1.0",
   "description": "WZ-Grid headless core — pure TypeScript, no framework dependency",
   "license": "MIT",

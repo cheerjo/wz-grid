@@ -1,5 +1,5 @@
 // packages/vue/src/composables/usePlugins.ts
-import type { WZGridPlugin, PluginHook, PluginCallback, PluginContext } from '@anthropic/wz-grid-core';
+import type { WZGridPlugin, PluginHook, PluginCallback, PluginContext } from '@wezon/wz-grid-core';
 
 export function usePlugins() {
   const hooks = new Map<PluginHook, PluginCallback[]>();

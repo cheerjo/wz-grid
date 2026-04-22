@@ -16,7 +16,7 @@
     "outDir": "dist",
     "composite": true,
     "paths": {
-      "@anthropic/wz-grid-core": ["../core/src/index.ts"]
+      "@wezon/wz-grid-core": ["../core/src/index.ts"]
     }
   },
   "references": [

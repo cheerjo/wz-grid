@@ -1,6 +1,6 @@
 // packages/vue/src/composables/useColumnSettings.ts
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue-demi';
-import type { Column } from '@anthropic/wz-grid-core';
+import type { Column } from '@wezon/wz-grid-core';
 
 export function useColumnSettings(getColumns: () => Column[]) {
   const hiddenColKeys = ref<string[]>([]);

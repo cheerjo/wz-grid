@@ -39,7 +39,7 @@
 - [x] useValidation → validateCellValue/createValidationEngine (watch/lifecycle 제거)
 - [ ] useFocusTrap → 순수 TS 변환 (getCurrentInstance 제거, DOM 의존 불가피 — Phase 4 래퍼에서 처리)
 - [x] packages/core/src/index.ts에 모든 composable export 추가
-- [x] pnpm --filter @anthropic/wz-grid-core build 성공 (33.81 kB es / 25.70 kB cjs)
+- [x] pnpm --filter @wezon/wz-grid-core build 성공 (33.81 kB es / 25.70 kB cjs)
 - [x] 빌드 결과물에 vue 관련 코드 없음 확인
 - [x] npm run test 66개 통과
 - [x] npm run build:lib 성공
@@ -48,7 +48,7 @@
 - [x] `src/components/` → `packages/vue/src/components/` 복사 (WZGrid + 하위 컴포넌트 전체)
 - [x] `src/i18n/` → `packages/vue/src/i18n/` 복사
 - [x] `src/lib.css` → `packages/vue/src/lib.css` 복사
-- [x] Vue 컴포저블 래퍼 작성 18개 (`packages/vue/src/composables/`) — import 경로를 `@anthropic/wz-grid-core`로 교체
+- [x] Vue 컴포저블 래퍼 작성 18개 (`packages/vue/src/composables/`) — import 경로를 `@wezon/wz-grid-core`로 교체
 - [x] `useFocusTrap` DOM/lifecycle 전용 — 코어 변환 없이 Vue 래퍼에 직접 유지
 - [x] 코어와 충돌하는 export 이름 제거 (`MergeRowSpan`, `HistoryEntry`, `TFunction`, `I18N_KEY`, `runStructureValidation`)
 - [x] `packages/vue/src/index.ts` 작성 (WZGrid + 코어 re-export + Vue 컴포저블 명시적 export)
@@ -58,7 +58,7 @@
 
 ## Phase 5: 통합 검증
 - [x] 기존 테스트 66개 마이그레이션 + 전부 통과
-  - vitest.config.ts에 `@anthropic/wz-grid-core`, `wz-grid-vue` alias 추가 (소스 직접 참조)
+  - vitest.config.ts에 `@wezon/wz-grid-core`, `wz-grid-vue` alias 추가 (소스 직접 참조)
   - tests/ 모든 파일 import 경로를 packages 경로로 교체
 - [x] 데모 앱 (`npm run dev`) 정상 동작
   - vite.config.ts에 동일한 alias 추가

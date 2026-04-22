@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ref } from 'vue-demi';
 import { useMerge } from 'wz-grid-vue';
-import type { Column, GridItem } from '@anthropic/wz-grid-core';
+import type { Column, GridItem } from '@wezon/wz-grid-core';
 
 const cols: Column[] = [
   { key: 'region', title: '지역', type: 'text' },

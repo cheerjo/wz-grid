@@ -1,6 +1,6 @@
 // packages/vue/src/composables/useGrouping.ts
 import { ref, computed } from 'vue-demi';
-import type { Column, GridItem } from '@anthropic/wz-grid-core';
+import type { Column, GridItem } from '@wezon/wz-grid-core';
 
 export function useGrouping(
   getFilteredRows: () => any[],

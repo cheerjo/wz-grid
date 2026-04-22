@@ -1,7 +1,7 @@
 // packages/vue/src/composables/useFilter.ts
 import { reactive, computed, watch } from 'vue-demi';
 import type { ComputedRef } from 'vue-demi';
-import type { Column } from '@anthropic/wz-grid-core';
+import type { Column } from '@wezon/wz-grid-core';
 
 export interface UseFilterReturn {
   /** 컬럼별 필터 값 맵. key는 column.key. */

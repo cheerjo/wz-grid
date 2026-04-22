@@ -76,12 +76,12 @@ importers:
 
   packages/vue:
     dependencies:
-      '@anthropic/wz-grid-core':
-        specifier: workspace:*
-        version: link:../core
       '@vue/composition-api':
         specifier: ^1.0.0-rc.1
         version: 1.7.2(vue@3.5.32(typescript@5.9.3))
+      '@wezon/wz-grid-core':
+        specifier: workspace:*
+        version: link:../core
       vue-demi:
         specifier: ^0.14.6
         version: 0.14.10(@vue/composition-api@1.7.2(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3))

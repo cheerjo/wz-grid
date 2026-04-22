@@ -1,6 +1,6 @@
 // packages/vue/src/composables/useClipboard.ts
-import type { Selection, Column } from '@anthropic/wz-grid-core';
-import { parseTSV, stringifyTSV } from '@anthropic/wz-grid-core';
+import type { Selection, Column } from '@wezon/wz-grid-core';
+import { parseTSV, stringifyTSV } from '@wezon/wz-grid-core';
 
 export function useClipboard(
   selection: Selection,

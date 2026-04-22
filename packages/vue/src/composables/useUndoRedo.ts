@@ -1,7 +1,7 @@
 // packages/vue/src/composables/useUndoRedo.ts
 import { computed, ref } from 'vue-demi';
 import type { ComputedRef } from 'vue-demi';
-import type { HistoryEntry } from '@anthropic/wz-grid-core';
+import type { HistoryEntry } from '@wezon/wz-grid-core';
 
 // HistoryEntry는 코어에서 re-export됨
 export type { HistoryEntry };

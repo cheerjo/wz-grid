@@ -48,7 +48,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue-demi';
-import type { GroupHeader } from '@anthropic/wz-grid-core';
+import type { GroupHeader } from '@wezon/wz-grid-core';
 
 export default defineComponent({
   name: 'WZGridGroupHeader',

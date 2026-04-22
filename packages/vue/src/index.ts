@@ -5,7 +5,7 @@ import './lib.css';
 export { default as WZGrid } from './components/WZGrid.vue';
 
 // ─── 코어 타입/유틸 re-export ─────────────────────────────────────────────────
-export * from '@anthropic/wz-grid-core';
+export * from '@wezon/wz-grid-core';
 
 // ─── Vue 컴포저블 (Vue 반응형 상태 포함) ────────────────────────────────────────
 // 코어와 이름 충돌이 없는 것들만 * re-export

@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType, computed, ref, onMounted } from 'vue-demi';
-import type { Column } from '@anthropic/wz-grid-core';
+import type { Column } from '@wezon/wz-grid-core';
 
 export default defineComponent({
   name: 'EditorText',

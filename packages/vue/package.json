@@ -23,7 +23,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@anthropic/wz-grid-core": "workspace:*",
+    "@wezon/wz-grid-core": "workspace:*",
     "vue-demi": "^0.14.6"
   },
   "peerDependencies": {

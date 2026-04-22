@@ -1,7 +1,7 @@
 // packages/vue/src/composables/useColumnDrag.ts
 // 컬럼 헤더 드래그 앤 드롭으로 순서 변경 — 내부 상태 자체 관리 방식
 import { ref, computed } from 'vue-demi';
-import type { Column } from '@anthropic/wz-grid-core';
+import type { Column } from '@wezon/wz-grid-core';
 
 export function useColumnDrag(
   getColumns: () => Column[],

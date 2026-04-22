@@ -1,7 +1,7 @@
 // packages/vue/src/composables/useTree.ts
 import { ref, computed } from 'vue-demi';
 import type { ComputedRef } from 'vue-demi';
-import type { DataItem } from '@anthropic/wz-grid-core';
+import type { DataItem } from '@wezon/wz-grid-core';
 
 export interface UseTreeReturn {
   /** 접기/펼치기 상태가 반영된 평탄화 트리 아이템 목록 */

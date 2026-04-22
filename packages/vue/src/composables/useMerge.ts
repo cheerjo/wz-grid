@@ -1,6 +1,6 @@
 // packages/vue/src/composables/useMerge.ts
 import { computed } from 'vue-demi';
-import type { Column, GridItem, MergeState, MergeRowSpan } from '@anthropic/wz-grid-core';
+import type { Column, GridItem, MergeState, MergeRowSpan } from '@wezon/wz-grid-core';
 
 type MergeCellsFn = (row: any, colKey: string) => { rowspan?: number; colspan?: number } | null | void;
 
