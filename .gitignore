@@ -3,4 +3,4 @@ node_modules
 dist
 docs/.vitepress/cache/
 .claude
-.harness
+.harnesscoverage/
