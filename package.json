@@ -1,7 +1,8 @@
 {
   "name": "wz-grid",
   "version": "1.5.0",
-  "description": "Vue 2/3 Universal High-Quality Grid Component",
+  "private": true,
+  "description": "Vue 2/3 Universal High-Quality Grid Component (workspace root)",
   "keywords": [
     "vue",
     "grid",
@@ -59,7 +60,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:core": "pnpm --filter @anthropic/wz-grid-core build",
+    "build:vue-pkg": "pnpm --filter wz-grid-vue build",
+    "build:packages": "pnpm --filter @anthropic/wz-grid-core build && pnpm --filter wz-grid-vue build"
   },
   "dependencies": {
     "exceljs": ">=4.3.0",

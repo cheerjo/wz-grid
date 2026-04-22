@@ -1,0 +1,58 @@
+# Headless Core 분리 태스크
+
+> 플랜: [2026-04-22-headless-core.md](../plans/2026-04-22-headless-core.md)
+
+## Phase 1: 모노레포 인프라 구축
+- [x] pnpm-workspace.yaml 생성
+- [x] `packages/core/` 디렉토리 + package.json + tsconfig.json 생성
+- [x] `packages/vue/` 디렉토리 + package.json + tsconfig.json 생성
+- [x] 루트 package.json을 workspace 루트로 전환
+- [x] 루트 tsconfig.json에 project references 설정
+
+## Phase 2: 코어 패키지 — 타입 & 유틸 이동
+- [ ] `src/types/` → `packages/core/src/types/` 이동
+- [ ] `src/utils/` → `packages/core/src/utils/` 이동 (브라우저 API 주입 분리)
+- [ ] `packages/core/src/index.ts` 작성 (타입, 유틸 re-export)
+- [ ] 코어 빌드 설정 (vite.config.ts)
+- [ ] 코어 단독 빌드 성공 확인
+
+## Phase 3: 코어 패키지 — 컴포저블 순수 TS 변환
+- [ ] 코어 상태 관리 primitives 정의 (State, Derived, subscribe 패턴)
+- [ ] useSort → 순수 TS 변환
+- [ ] useFilter → 순수 TS 변환
+- [ ] useTree → 순수 TS 변환
+- [ ] useGrouping → 순수 TS 변환
+- [ ] useMerge → 순수 TS 변환
+- [ ] useVirtualScroll → 순수 TS 변환
+- [ ] useSelection → 순수 TS 변환
+- [ ] useCheckbox → 순수 TS 변환
+- [ ] useUndoRedo → 순수 TS 변환
+- [ ] useColumnDrag → 순수 TS 변환
+- [ ] useRowDragDrop → 순수 TS 변환
+- [ ] useI18n → 순수 TS 변환
+- [ ] usePlugins → 이동 (이미 순수 TS)
+- [ ] usePerformance → 이동 (이미 순수 TS)
+- [ ] useClipboard → 이동 (DOM API 주입 분리)
+- [ ] useColumnSettings → 순수 TS 변환 (lifecycle 제거)
+- [ ] useValidation → 순수 TS 변환 (watch/lifecycle 제거)
+- [ ] useFocusTrap → 순수 TS 변환 (getCurrentInstance 제거)
+
+## Phase 4: Vue 래퍼 패키지
+- [ ] `src/components/` → `packages/vue/src/components/` 이동
+- [ ] `src/i18n/` → `packages/vue/src/i18n/` 이동
+- [ ] Vue 컴포저블 래퍼 작성 (코어 로직 + ref/computed 감싸기)
+- [ ] `packages/vue/src/index.ts` 작성 (WZGrid + 타입 re-export)
+- [ ] Vue 래퍼 빌드 설정 (vite.lib.config.ts)
+- [ ] Vue 래퍼 빌드 성공 확인
+
+## Phase 5: 통합 검증
+- [ ] 기존 테스트 66개 마이그레이션 + 전부 통과
+- [ ] 데모 앱 (`npm run dev`) 정상 동작
+- [ ] `packages/core`에 vue/vue-demi 의존성 없음 확인
+- [ ] VitePress 문서 빌드 정상
+- [ ] npm publish dry-run 성공 (core, vue 각각)
+
+---
+
+## 회고
+(완료 후 작성)
