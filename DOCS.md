@@ -34,13 +34,13 @@
 25. [CSV 내보내기](#25-csv-내보내기)
 26. [Excel 내보내기](#26-excel-내보내기)
 27. [종합 예제](#27-종합-예제)
-29. [내부 구조 (Architecture)](#29-내부-구조-architecture)
-30. [트리 구조 (Tree Grid)](#30-트리-구조-tree-grid)
-31. [푸터 집계 행](#31-푸터-집계-행)
-32. [셀 커스텀 렌더러 (Custom Cell Renderer)](#32-셀-커스텀-렌더러-custom-cell-renderer)
-33. [행 클릭 & 행/셀 스타일](#33-행-클릭--행셀-스타일)
-34. [서버사이드 모드](#34-서버사이드-모드)
-35. [마스터-디테일 Row Expand](#35-마스터-디테일-row-expand)
+28. [내부 구조 (Architecture)](#28-내부-구조-architecture)
+29. [트리 구조 (Tree Grid)](#29-트리-구조-tree-grid)
+30. [푸터 집계 행](#30-푸터-집계-행)
+31. [셀 커스텀 렌더러 (Custom Cell Renderer)](#31-셀-커스텀-렌더러-custom-cell-renderer)
+32. [행 클릭 & 행/셀 스타일](#32-행-클릭--행셀-스타일)
+33. [서버사이드 모드](#33-서버사이드-모드)
+34. [마스터-디테일 Row Expand](#34-마스터-디테일-row-expand)
 
 ---
 
@@ -1081,7 +1081,7 @@ const exportCSV = () => {
 
 ---
 
-## 28. 종합 예제
+## 27. 종합 예제
 
 ```vue
 <script setup lang="ts">
@@ -1235,7 +1235,7 @@ const exportCSV = () => downloadCSV(rows.value, columns.value, 'export.csv');
 
 ---
 
-## 29. 내부 구조 (Architecture)
+## 28. 내부 구조 (Architecture)
 
 ```
 src/
@@ -1418,7 +1418,7 @@ type GridItem     = DataItem | GroupHeader | SubtotalItem;
 
 ---
 
-## 30. 트리 구조 (Tree Grid)
+## 29. 트리 구조 (Tree Grid)
 
 계층적 데이터를 인덴트 + 토글 버튼으로 표현합니다.
 
@@ -1466,7 +1466,7 @@ const treeRows = [
 
 ---
 
-## 31. 푸터 집계 행
+## 30. 푸터 집계 행
 
 `showFooter="true"` 설정 시 그리드 하단에 집계 행이 고정 표시됩니다.
 각 컬럼의 `footer` 필드로 집계 방식을 지정합니다.
@@ -1532,7 +1532,7 @@ const columns = [
 
 ---
 
-## 32. 셀 커스텀 렌더러 (Custom Cell Renderer)
+## 31. 셀 커스텀 렌더러 (Custom Cell Renderer)
 
 `#cell-{colKey}` 스코프드 슬롯을 사용하면 특정 컬럼의 셀 내용을 자유롭게 커스터마이즈할 수 있습니다.
 
@@ -1686,7 +1686,7 @@ const columns = [
 
 ---
 
-## 33. 행 클릭 & 행/셀 스타일
+## 32. 행 클릭 & 행/셀 스타일
 
 ### `@click:row` 이벤트
 
@@ -1740,7 +1740,7 @@ const handleRowClick = ({ rowIdx, row }: { rowIdx: number; row: any }) => {
 
 ---
 
-## 34. 서버사이드 모드
+## 33. 서버사이드 모드
 
 `serverSide` prop을 `true`로 설정하면 정렬, 필터링, 페이징을 클라이언트에서 처리하지 않고 이벤트를 통해 서버에 위임합니다.
 
@@ -1819,7 +1819,7 @@ const handleServerFilter = (filters: Record<string, any>) => {
 
 ---
 
-## 35. 마스터-디테일 Row Expand
+## 34. 마스터-디테일 Row Expand
 
 `#detail` 스코프드 슬롯을 제공하면 각 행에 확장/축소 토글 버튼이 나타납니다. 행을 확장하면 해당 행 아래에 디테일 영역이 표시됩니다.
 
