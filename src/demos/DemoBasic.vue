@@ -266,10 +266,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import WZGrid from '../components/WZGrid.vue';
-import type { Column } from '../types/grid';
-import { downloadCSV } from '../utils/tsv';
-import { printGrid } from '../utils/print';
+import { WZGrid } from 'wz-grid-vue';
+import type { Column } from '@anthropic/wz-grid-core';
+import { downloadCSV, printGrid } from '@anthropic/wz-grid-core';
 
 // ── 기능 토글 상태 ──────────────────────────────────────────────────────────
 const pagingEnabled   = ref(true);

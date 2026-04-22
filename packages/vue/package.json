@@ -6,10 +6,10 @@
   "type": "module",
   "main": "dist/wz-grid-vue.cjs.js",
   "module": "dist/wz-grid-vue.es.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/src/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/src/index.d.ts",
       "import": "./dist/wz-grid-vue.es.js",
       "require": "./dist/wz-grid-vue.cjs.js"
     },

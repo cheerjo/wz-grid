@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { nextTick } from 'vue-demi';
-import { useFilter } from '../../src/composables/useFilter';
-import type { Column } from '../../src/types/grid';
+import { useFilter } from 'wz-grid-vue';
+import type { Column } from '@anthropic/wz-grid-core';
 
 const cols = (): Column[] => [
   { key: 'name',  title: '이름',   type: 'text'   },

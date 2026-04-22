@@ -57,13 +57,20 @@
 - [x] `npm run test` 66개 통과
 
 ## Phase 5: 통합 검증
-- [ ] 기존 테스트 66개 마이그레이션 + 전부 통과
-- [ ] 데모 앱 (`npm run dev`) 정상 동작
-- [ ] `packages/core`에 vue/vue-demi 의존성 없음 확인
-- [ ] VitePress 문서 빌드 정상
-- [ ] npm publish dry-run 성공 (core, vue 각각)
+- [x] 기존 테스트 66개 마이그레이션 + 전부 통과
+  - vitest.config.ts에 `@anthropic/wz-grid-core`, `wz-grid-vue` alias 추가 (소스 직접 참조)
+  - tests/ 모든 파일 import 경로를 packages 경로로 교체
+- [x] 데모 앱 (`npm run dev`) 정상 동작
+  - vite.config.ts에 동일한 alias 추가
+  - src/demos/*.vue 의 WZGrid·Column·downloadCSV·printGrid import를 패키지 경로로 교체
+  - `vite ready in 860ms` 확인, 오류 없음
+- [x] `packages/core`에 vue/vue-demi 의존성 없음 확인
+  - package.json: vue 항목 없음 / dist 빌드 결과물에 "vue" 문자열 0건
+- [x] VitePress 문서 빌드 정상 (29.93s 완료)
+- [x] npm publish dry-run 성공 (core: 32.5kB / vue: 83.9kB)
+  - packages/vue/package.json의 `types` 경로를 `dist/src/index.d.ts`로 수정 (dts 실제 출력 위치)
 
 ---
 
 ## 회고
-(완료 후 작성)
+Phase 1~5를 통해 WZGrid 모노레포 분리가 완료됐다. 핵심 주의점은 vite-plugin-dts의 `include: ['src']` + `outDir: 'dist'` 조합이 `dist/src/` 구조를 만든다는 점 — package.json `types` 경로를 실제 출력에 맞게 맞춰야 한다. 다음 작업에서 `rollupTypes: true`로 단일 d.ts로 합치는 방안도 검토할 것.

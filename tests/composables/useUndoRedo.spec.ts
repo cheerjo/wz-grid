@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { useUndoRedo, type HistoryEntry } from '../../src/composables/useUndoRedo';
+import { useUndoRedo } from 'wz-grid-vue';
+import type { HistoryEntry } from '@anthropic/wz-grid-core';
 
 const mk = (rowId: number, colKey: string, oldV: unknown, newV: unknown): HistoryEntry =>
   ({ rowId, colKey, oldValue: oldV, newValue: newV });

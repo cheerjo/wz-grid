@@ -21,7 +21,7 @@ import type {
   GridItem,
   GridRow,
   FooterAggr,
-} from '../../src/types/grid';
+} from '@anthropic/wz-grid-core';
 
 // --- 테스트 시나리오 1: 구체 스키마 ---
 interface Employee {

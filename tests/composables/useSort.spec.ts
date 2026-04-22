@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { useSort } from '../../src/composables/useSort';
-import type { Column, GridRow } from '../../src/types/grid';
+import { useSort } from 'wz-grid-vue';
+import type { Column, GridRow } from '@anthropic/wz-grid-core';
 
 function makeRows(): GridRow[] {
   return [

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { useTree } from '../../src/composables/useTree';
+import { useTree } from 'wz-grid-vue';
 
 function makeTree() {
   return [

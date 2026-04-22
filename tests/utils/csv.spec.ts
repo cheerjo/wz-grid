@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
-import { escapeCSVField, toCSV, exportCSV } from '../../src/utils/csv';
-import type { Column, GridRow } from '../../src/types/grid';
+import { escapeCSVField, toCSV, exportCSV } from '@anthropic/wz-grid-core';
+import type { Column, GridRow } from '@anthropic/wz-grid-core';
 
 describe('escapeCSVField', () => {
   it('null / undefined → 빈 문자열', () => {

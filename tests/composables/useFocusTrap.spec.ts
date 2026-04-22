@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ref, nextTick } from 'vue-demi';
-import { useFocusTrap } from '../../src/composables/useFocusTrap';
+import { useFocusTrap } from 'wz-grid-vue';
 
 function dispatchKey(key: string, opts: KeyboardEventInit = {}) {
   const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...opts });
