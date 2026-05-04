@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress';
 import tailwindcss from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
+import path from 'node:path';
 
 export default defineConfig({
   title: 'WZ-Grid',
@@ -12,6 +13,12 @@ export default defineConfig({
     css: {
       postcss: {
         plugins: [tailwindcss, autoprefixer],
+      },
+    },
+    resolve: {
+      alias: {
+        '@wezon/wz-grid-core': path.resolve(__dirname, '../../packages/core/src/index.ts'),
+        'wz-grid-vue': path.resolve(__dirname, '../../packages/vue/src/index.ts'),
       },
     },
   },

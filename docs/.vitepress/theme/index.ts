@@ -1,6 +1,6 @@
 import DefaultTheme from 'vitepress/theme';
-import { WZGrid } from '../../../src/index';
-import '../../../src/lib.css';
+import { WZGrid } from 'wz-grid-vue';
+import '../../../packages/vue/src/lib.css';
 import DemoGrid from '../components/DemoGrid.vue';
 
 // demos/ 폴더의 Demo*.vue를 자동 글로벌 등록

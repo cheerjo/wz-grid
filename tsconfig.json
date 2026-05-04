@@ -13,7 +13,7 @@
     "skipLibCheck": true,
     "isolatedModules": true
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "tests/**/*.ts"],
   "references": [
     { "path": "./packages/core" },
     { "path": "./packages/vue" }
