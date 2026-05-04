@@ -17,23 +17,26 @@
 - [x] VitePress 문서 빌드 정상 (npm run docs:build)
 
 ## Phase B: React 래퍼 패키지
-- [ ] packages/react/ 디렉토리 + package.json + tsconfig.json 생성
-- [ ] React + ReactDOM peerDependencies 설정
-- [ ] @wezon/wz-grid-core를 dependency로 설정
-- [ ] vite.config.ts (lib 모드, JSX 처리)
-- [ ] src/hooks/useSort.ts (코어 sortRows를 useState/useMemo로 감쌈)
-- [ ] src/hooks/useFilter.ts
-- [ ] src/hooks/useTree.ts
-- [ ] src/hooks/usePaging.ts
-- [ ] src/hooks/useVirtualScroll.ts
-- [ ] src/hooks/useSelection.ts
-- [ ] src/hooks/useCheckbox.ts
-- [ ] src/components/WZGrid.tsx (메인 컴포넌트)
-- [ ] src/components/WZGridHeader.tsx
-- [ ] src/components/WZGridRow.tsx
-- [ ] src/index.ts (export)
-- [ ] React 빌드 성공
-- [ ] React playground 데모 (packages/react/playground 또는 별도)
+- [x] packages/react/ 디렉토리 + package.json + tsconfig.json 생성
+- [x] React + ReactDOM peerDependencies 설정
+- [x] @wezon/wz-grid-core를 dependency로 설정
+- [x] vite.config.ts (lib 모드, JSX 처리)
+- [x] src/hooks/useSort.ts (코어 sortRows를 useState/useMemo로 감쌈)
+- [x] src/hooks/useFilter.ts
+- [x] src/hooks/useTree.ts
+- [x] src/hooks/usePaging.ts
+- [x] src/hooks/useVirtualScroll.ts
+- [x] src/hooks/useSelection.ts
+- [x] src/hooks/useCheckbox.ts
+- [x] src/hooks/useUndoRedo.ts
+- [x] src/components/WZGrid.tsx (메인 컴포넌트)
+- [x] src/components/WZGridHeader.tsx
+- [x] src/components/WZGridRow.tsx
+- [x] src/components/WZGridCell.tsx
+- [x] src/lib.css (그리드 기본 스타일)
+- [x] src/index.ts (export)
+- [x] React 빌드 성공 (ES + CJS, vue/vue-demi 번들 없음)
+- [x] React playground 데모 (packages/react/playground/)
 
 ## Phase C: npm publish 준비
 - [ ] packages/core/README.md 작성

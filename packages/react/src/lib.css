@@ -1,0 +1,227 @@
+/* packages/react/src/lib.css — WZGrid React 기본 스타일 */
+
+/* ── 그리드 래퍼 ─────────────────────────────────────────── */
+.wz-grid-wrapper {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* ── 그리드 컨테이너 ─────────────────────────────────────── */
+.wz-grid-container {
+  position: relative;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  overflow: auto;
+  background: #fff;
+  user-select: none;
+  flex: 1 1 0%;
+  outline: none;
+}
+.wz-grid-container:focus {
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+/* ── 테이블 ──────────────────────────────────────────────── */
+.wz-grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.875rem;
+}
+
+/* ── 헤더 ────────────────────────────────────────────────── */
+.wz-grid-thead {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: #f3f4f6;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.08);
+}
+.wz-grid-th {
+  border-bottom: 1px solid #d1d5db;
+  border-right: 1px solid #d1d5db;
+  padding: 0 8px;
+  height: 40px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.wz-grid-th:hover {
+  background: #e5e7eb;
+}
+.wz-grid-th--checkbox {
+  cursor: default;
+  width: 40px;
+  min-width: 40px;
+}
+.wz-grid-th--sorted {
+  background: #dbeafe;
+}
+
+/* 정렬 아이콘 */
+.wz-sort-icon {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 10px;
+  color: #3b82f6;
+}
+
+/* ── 본문 셀 ─────────────────────────────────────────────── */
+.wz-grid-td {
+  border-bottom: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+  padding: 0 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #111827;
+}
+.wz-grid-tr {
+  transition: background 0.08s;
+}
+.wz-grid-tr:hover .wz-grid-td {
+  background: #f9fafb;
+}
+.wz-grid-tr--checked .wz-grid-td {
+  background: #eff6ff;
+}
+.wz-grid-td--selected {
+  background: #dbeafe !important;
+  outline: 1px solid #3b82f6;
+  outline-offset: -1px;
+}
+.wz-grid-td--checkbox {
+  width: 40px;
+  min-width: 40px;
+  text-align: center;
+  cursor: default;
+}
+.wz-grid-td--editing {
+  padding: 0;
+}
+.wz-grid-td--editing input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: 2px solid #3b82f6;
+  padding: 0 8px;
+  font-size: inherit;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+/* ── 체크박스 ────────────────────────────────────────────── */
+.wz-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid #9ca3af;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+/* ── 빈 상태 ─────────────────────────────────────────────── */
+.wz-grid-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  pointer-events: none;
+  padding-top: 48px;
+}
+
+/* ── 로딩 상태 ───────────────────────────────────────────── */
+.wz-grid-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 40px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(1px);
+}
+.wz-skeleton {
+  height: 16px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  margin: 8px 16px;
+  animation: wz-pulse 1.5s ease-in-out infinite;
+}
+@keyframes wz-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── 페이저 ──────────────────────────────────────────────── */
+.wz-grid-pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 0.8125rem;
+  color: #374151;
+  flex-shrink: 0;
+}
+.wz-grid-pager button {
+  padding: 4px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  transition: background 0.1s;
+}
+.wz-grid-pager button:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+.wz-grid-pager button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.wz-grid-pager select {
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 0.8125rem;
+  background: #fff;
+}
+
+/* ── 뱃지·버튼 셀 타입 ───────────────────────────────────── */
+.wz-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e5e7eb;
+  color: #374151;
+}
+.wz-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.wz-progress-fill {
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 4px;
+  transition: width 0.2s;
+}
