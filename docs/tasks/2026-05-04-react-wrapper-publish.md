@@ -39,16 +39,16 @@
 - [x] React playground 데모 (packages/react/playground/)
 
 ## Phase C: npm publish 준비
-- [ ] packages/core/README.md 작성
-- [ ] packages/vue/README.md 작성
-- [ ] packages/react/README.md 작성
-- [ ] CHANGELOG.md 업데이트 (모노레포 전환, React 지원 추가)
-- [ ] 각 package.json: description, keywords, repository, homepage, license, author, files 필드 정비
-- [ ] @wezon 스코프 안내 (사용자가 npm 조직 등록 필요)
-- [ ] core, vue, react 각각 npm pack --dry-run 성공
+- [x] packages/core/README.md 작성
+- [x] packages/vue/README.md 작성
+- [x] packages/react/README.md 작성
+- [x] CHANGELOG.md 업데이트 (모노레포 전환, React 지원 추가)
+- [x] 각 package.json: description, keywords, repository, homepage, license, author, files 필드 정비
+- [x] @wezon 스코프 안내 (사용자가 npm 조직 등록 필요)
+- [x] core, vue, react 각각 npm pack --dry-run 성공
 - [ ] (선택) GitHub Actions에 publish workflow 추가
 
 ---
 
 ## 회고
-(완료 후 작성)
+Phase C 완료(2026-05-04): 3개 패키지 README · package.json · LICENSE · CHANGELOG 정비 완료. npm pack --dry-run 검증 통과(@wezon/wz-grid-core 35.6 kB, wz-grid-vue 87.2 kB, @wezon/wz-grid-react 19.6 kB). 실제 publish 전 npmjs.com/org/wezon 조직 등록이 선행되어야 함.

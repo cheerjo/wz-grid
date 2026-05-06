@@ -4,6 +4,24 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를 따르며, 이 프로젝트는
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)을 준수합니다.
 
+## [Unreleased]
+
+### Added
+- Headless core package `@wezon/wz-grid-core` with framework-agnostic TypeScript engines
+- React wrapper package `@wezon/wz-grid-react` (basic features: sort, filter, paging, virtual scroll, checkbox, text edit)
+- Monorepo structure with pnpm workspaces
+
+### Changed
+- `wz-grid` renamed to `wz-grid-vue` (Vue-specific package)
+- All Vue components now consume `@wezon/wz-grid-core` for shared logic
+
+### Migration
+- Existing Vue users: `npm install wz-grid-vue` (replace `wz-grid` import path)
+- CSS import: `import 'wz-grid-vue/dist/wz-grid-vue.css'`
+- Public API unchanged — no code changes required beyond the import path
+
+---
+
 ## [1.5.0] - 2026-04-17
 
 9개 단계(Phase 1 ~ Phase 4.4)에 걸친 대규모 기능 추가와 안정화 릴리즈입니다.

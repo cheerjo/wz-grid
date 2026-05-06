@@ -1,8 +1,35 @@
 {
   "name": "wz-grid-vue",
   "version": "1.5.0",
-  "description": "WZ-Grid Vue 2/3 wrapper",
+  "description": "Vue 2/3 component for WZ-Grid — 엔터프라이즈급 그리드 컴포넌트",
+  "keywords": [
+    "vue",
+    "vue2",
+    "vue3",
+    "grid",
+    "datagrid",
+    "table",
+    "virtual-scroll",
+    "typescript",
+    "tree",
+    "grouping",
+    "cell-merge",
+    "undo-redo",
+    "excel",
+    "csv",
+    "enterprise"
+  ],
   "license": "MIT",
+  "author": "(주)위존",
+  "homepage": "https://github.com/cheerjo/wz-grid#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cheerjo/wz-grid.git",
+    "directory": "packages/vue"
+  },
+  "bugs": {
+    "url": "https://github.com/cheerjo/wz-grid/issues"
+  },
   "type": "module",
   "main": "dist/wz-grid-vue.cjs.js",
   "module": "dist/wz-grid-vue.es.js",
@@ -16,7 +43,9 @@
     "./dist/wz-grid-vue.css": "./dist/wz-grid-vue.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE.md"
   ],
   "scripts": {
     "build": "vite build --config vite.lib.config.ts",

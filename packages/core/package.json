@@ -1,8 +1,37 @@
 {
   "name": "@wezon/wz-grid-core",
   "version": "0.1.0",
-  "description": "WZ-Grid headless core — pure TypeScript, no framework dependency",
+  "description": "Framework-agnostic headless core for WZ-Grid — pure TypeScript engines and types.",
+  "keywords": [
+    "grid",
+    "datagrid",
+    "table",
+    "virtual-scroll",
+    "typescript",
+    "headless",
+    "sort",
+    "filter",
+    "tree",
+    "grouping",
+    "merge",
+    "undo-redo",
+    "csv",
+    "excel"
+  ],
   "license": "MIT",
+  "author": "(주)위존",
+  "homepage": "https://github.com/cheerjo/wz-grid#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cheerjo/wz-grid.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/cheerjo/wz-grid/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "dist/wz-grid-core.cjs.js",
   "module": "dist/wz-grid-core.es.js",
@@ -15,7 +44,9 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE.md"
   ],
   "scripts": {
     "build": "vite build --config vite.config.ts",
