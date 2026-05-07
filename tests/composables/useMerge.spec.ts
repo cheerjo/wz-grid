@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { ref } from 'vue-demi';
-import { useMerge } from 'wz-grid-vue';
+import { useMerge } from '@wezon/wz-grid-vue';
 import type { Column, GridItem } from '@wezon/wz-grid-core';
 
 const cols: Column[] = [

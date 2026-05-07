@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { WZGrid } from 'wz-grid-vue';
+import { WZGrid } from '@wezon/wz-grid-vue';
 import type { Column } from '@wezon/wz-grid-core';
 
 // injectLicense 사용 가능 (현재 트리 데모는 라이선스 불필요)

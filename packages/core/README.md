@@ -10,7 +10,7 @@
 
 ## Why headless?
 
-`@wezon/wz-grid-core` ships **only pure TypeScript engines** — no DOM, no Vue, no React. Framework-specific wrappers (`wz-grid-vue`, `@wezon/wz-grid-react`) consume this package and expose their own idiomatic APIs. This separation means:
+`@wezon/wz-grid-core` ships **only pure TypeScript engines** — no DOM, no Vue, no React. Framework-specific wrappers (`@wezon/wz-grid-vue`, `@wezon/wz-grid-react`) consume this package and expose their own idiomatic APIs. This separation means:
 
 - You can use the engines in any runtime (browser, Node.js, Deno, Bun).
 - Tree-shaking works precisely — import only what you need.

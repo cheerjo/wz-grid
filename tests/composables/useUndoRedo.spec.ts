@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { useUndoRedo } from 'wz-grid-vue';
+import { useUndoRedo } from '@wezon/wz-grid-vue';
 import type { HistoryEntry } from '@wezon/wz-grid-core';
 
 const mk = (rowId: number, colKey: string, oldV: unknown, newV: unknown): HistoryEntry =>

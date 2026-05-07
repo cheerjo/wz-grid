@@ -29,7 +29,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:lib": "pnpm --filter wz-grid-vue build",
+    "build:lib": "pnpm --filter @wezon/wz-grid-vue build",
     "preview": "vite preview",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
@@ -39,8 +39,8 @@
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "build:core": "pnpm --filter @wezon/wz-grid-core build",
-    "build:vue-pkg": "pnpm --filter wz-grid-vue build",
-    "build:packages": "pnpm --filter @wezon/wz-grid-core build && pnpm --filter wz-grid-vue build"
+    "build:vue-pkg": "pnpm --filter @wezon/wz-grid-vue build",
+    "build:packages": "pnpm --filter @wezon/wz-grid-core build && pnpm --filter @wezon/wz-grid-vue build"
   },
   "dependencies": {
     "exceljs": ">=4.3.0",

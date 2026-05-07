@@ -1,8 +1,8 @@
-# wz-grid-vue
+# @wezon/wz-grid-vue
 
 > Vue 2/3 component for WZ-Grid — 엔터프라이즈급 그리드 컴포넌트
 
-[![npm version](https://img.shields.io/npm/v/wz-grid-vue.svg)](https://www.npmjs.com/package/wz-grid-vue)
+[![npm version](https://img.shields.io/npm/v/@wezon/wz-grid-vue.svg)](https://www.npmjs.com/package/@wezon/wz-grid-vue)
 [![Vue 2 & 3](https://img.shields.io/badge/Vue-2%20%26%203-42b883.svg)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6.svg)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE.md)
@@ -12,14 +12,14 @@
 ## 설치
 
 ```bash
-npm install wz-grid-vue
+npm install @wezon/wz-grid-vue
 ```
 
 CSS를 반드시 임포트해야 합니다:
 
 ```js
 // main.ts 또는 main.js
-import 'wz-grid-vue/dist/wz-grid-vue.css';
+import '@wezon/wz-grid-vue/dist/wz-grid-vue.css';
 ```
 
 Vue 2 사용자는 `@vue/composition-api`도 함께 설치해야 합니다:
@@ -35,8 +35,8 @@ npm install @vue/composition-api
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { WZGrid } from 'wz-grid-vue';
-import type { Column } from 'wz-grid-vue';
+import { WZGrid } from '@wezon/wz-grid-vue';
+import type { Column } from '@wezon/wz-grid-vue';
 
 const columns = ref<Column[]>([
   { key: 'id', title: 'ID', width: 60 },
@@ -135,21 +135,21 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 
 ---
 
-## 마이그레이션 (wz-grid → wz-grid-vue)
+## 마이그레이션 (wz-grid → @wezon/wz-grid-vue)
 
 기존 `wz-grid` 패키지를 사용 중이라면 패키지명만 변경하면 됩니다. Public API는 동일합니다.
 
 ```bash
 npm uninstall wz-grid
-npm install wz-grid-vue
+npm install @wezon/wz-grid-vue
 ```
 
 ```diff
 - import { WZGrid } from 'wz-grid';
-+ import { WZGrid } from 'wz-grid-vue';
++ import { WZGrid } from '@wezon/wz-grid-vue';
 
 - import 'wz-grid/dist/wz-grid.css';
-+ import 'wz-grid-vue/dist/wz-grid-vue.css';
++ import '@wezon/wz-grid-vue/dist/wz-grid-vue.css';
 ```
 
 ---

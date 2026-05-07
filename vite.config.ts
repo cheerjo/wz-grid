@@ -11,7 +11,7 @@ export default defineConfig({
       'vue': 'vue/dist/vue.esm-browser.js',
       // 패키지 소스 경로 alias (데모 앱에서 dist 없이 소스 직접 사용)
       '@wezon/wz-grid-core': path.resolve(__dirname, 'packages/core/src/index.ts'),
-      'wz-grid-vue': path.resolve(__dirname, 'packages/vue/src/index.ts'),
+      '@wezon/wz-grid-vue': path.resolve(__dirname, 'packages/vue/src/index.ts'),
     }
   }
 });

@@ -18,7 +18,7 @@ export default defineConfig({
     resolve: {
       alias: {
         '@wezon/wz-grid-core': path.resolve(__dirname, '../../packages/core/src/index.ts'),
-        'wz-grid-vue': path.resolve(__dirname, '../../packages/vue/src/index.ts'),
+        '@wezon/wz-grid-vue': path.resolve(__dirname, '../../packages/vue/src/index.ts'),
       },
     },
   },

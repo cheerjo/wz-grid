@@ -2,7 +2,7 @@
 
 ## Context
 
-Headless Core 분리(2026-04-22)가 완료되어 `@wezon/wz-grid-core`(순수 TS), `wz-grid-vue`(Vue 래퍼) 두 패키지가 모노레포로 구성된 상태. 이번 작업으로 React 지원을 추가하고 npm publish 준비까지 완료한다.
+Headless Core 분리(2026-04-22)가 완료되어 `@wezon/wz-grid-core`(순수 TS), `@wezon/wz-grid-vue`(Vue 래퍼) 두 패키지가 모노레포로 구성된 상태. 이번 작업으로 React 지원을 추가하고 npm publish 준비까지 완료한다.
 
 ## 목표/범위
 

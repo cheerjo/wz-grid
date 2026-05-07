@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { useSort } from 'wz-grid-vue';
+import { useSort } from '@wezon/wz-grid-vue';
 import type { Column, GridRow } from '@wezon/wz-grid-core';
 
 function makeRows(): GridRow[] {

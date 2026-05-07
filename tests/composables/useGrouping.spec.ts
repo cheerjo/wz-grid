@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { useGrouping } from 'wz-grid-vue';
+import { useGrouping } from '@wezon/wz-grid-vue';
 import type { Column } from '@wezon/wz-grid-core';
 
 const cols: Column[] = [

@@ -14,7 +14,7 @@
 | 패키지 | 버전 | 설명 |
 | --- | --- | --- |
 | [`@wezon/wz-grid-core`](./packages/core) | 0.1.0 | 프레임워크 독립 헤드리스 코어 (순수 TypeScript) |
-| [`wz-grid-vue`](./packages/vue) | 1.5.0 | Vue 2/3 컴포넌트 래퍼 |
+| [`@wezon/wz-grid-vue`](./packages/vue) | 1.5.0 | Vue 2/3 컴포넌트 래퍼 |
 | [`@wezon/wz-grid-react`](./packages/react) | 0.1.0 | React 컴포넌트 래퍼 |
 
 ---
@@ -24,11 +24,11 @@
 ### Vue
 
 ```bash
-npm install wz-grid-vue
+npm install @wezon/wz-grid-vue
 ```
 
 ```js
-import 'wz-grid-vue/dist/wz-grid-vue.css';
+import '@wezon/wz-grid-vue/dist/wz-grid-vue.css';
 ```
 
 ### React
@@ -72,8 +72,8 @@ npm install @wezon/wz-grid-core
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { WZGrid } from 'wz-grid-vue';
-import type { Column } from 'wz-grid-vue';
+import { WZGrid } from '@wezon/wz-grid-vue';
+import type { Column } from '@wezon/wz-grid-vue';
 
 const columns = ref<Column[]>([
   { key: 'id', title: 'ID', width: 60 },
@@ -118,7 +118,7 @@ pnpm dev
 pnpm --filter @wezon/wz-grid-core build
 
 # Vue 패키지 빌드
-pnpm --filter wz-grid-vue build
+pnpm --filter @wezon/wz-grid-vue build
 
 # React 패키지 빌드
 pnpm --filter @wezon/wz-grid-react build
@@ -132,20 +132,20 @@ pnpm docs:dev
 
 ---
 
-## wz-grid → wz-grid-vue 마이그레이션
+## wz-grid → @wezon/wz-grid-vue 마이그레이션
 
 기존 `wz-grid` 패키지 사용자는 패키지명만 교체하면 됩니다. API는 동일합니다.
 
 ```bash
 npm uninstall wz-grid
-npm install wz-grid-vue
+npm install @wezon/wz-grid-vue
 ```
 
 ```diff
 - import { WZGrid } from 'wz-grid';
-+ import { WZGrid } from 'wz-grid-vue';
++ import { WZGrid } from '@wezon/wz-grid-vue';
 - import 'wz-grid/dist/wz-grid.css';
-+ import 'wz-grid-vue/dist/wz-grid-vue.css';
++ import '@wezon/wz-grid-vue/dist/wz-grid-vue.css';
 ```
 
 ---

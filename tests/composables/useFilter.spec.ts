@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { nextTick } from 'vue-demi';
-import { useFilter } from 'wz-grid-vue';
+import { useFilter } from '@wezon/wz-grid-vue';
 import type { Column } from '@wezon/wz-grid-core';
 
 const cols = (): Column[] => [

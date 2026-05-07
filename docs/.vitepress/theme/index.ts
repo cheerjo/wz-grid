@@ -1,5 +1,5 @@
 import DefaultTheme from 'vitepress/theme';
-import { WZGrid } from 'wz-grid-vue';
+import { WZGrid } from '@wezon/wz-grid-vue';
 import '../../../packages/vue/src/lib.css';
 import DemoGrid from '../components/DemoGrid.vue';
 

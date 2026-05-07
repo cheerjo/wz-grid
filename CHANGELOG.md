@@ -12,12 +12,12 @@
 - Monorepo structure with pnpm workspaces
 
 ### Changed
-- `wz-grid` renamed to `wz-grid-vue` (Vue-specific package)
+- `wz-grid` renamed to `@wezon/wz-grid-vue` (Vue-specific package, scoped to @wezon)
 - All Vue components now consume `@wezon/wz-grid-core` for shared logic
 
 ### Migration
-- Existing Vue users: `npm install wz-grid-vue` (replace `wz-grid` import path)
-- CSS import: `import 'wz-grid-vue/dist/wz-grid-vue.css'`
+- Existing Vue users: `npm install @wezon/wz-grid-vue` (replace `wz-grid` import path)
+- CSS import: `import '@wezon/wz-grid-vue/dist/wz-grid-vue.css'`
 - Public API unchanged — no code changes required beyond the import path
 
 ---

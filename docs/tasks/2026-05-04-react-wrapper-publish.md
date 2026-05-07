@@ -51,4 +51,4 @@
 ---
 
 ## 회고
-Phase C 완료(2026-05-04): 3개 패키지 README · package.json · LICENSE · CHANGELOG 정비 완료. npm pack --dry-run 검증 통과(@wezon/wz-grid-core 35.6 kB, wz-grid-vue 87.2 kB, @wezon/wz-grid-react 19.6 kB). 실제 publish 전 npmjs.com/org/wezon 조직 등록이 선행되어야 함.
+Phase C 완료(2026-05-04): 3개 패키지 README · package.json · LICENSE · CHANGELOG 정비 완료. npm pack --dry-run 검증 통과(@wezon/wz-grid-core 35.6 kB, @wezon/wz-grid-vue 87.2 kB, @wezon/wz-grid-react 19.6 kB). 실제 publish 전 npmjs.com/org/wezon 조직 등록이 선행되어야 함.

@@ -266,7 +266,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { WZGrid } from 'wz-grid-vue';
+import { WZGrid } from '@wezon/wz-grid-vue';
 import type { Column } from '@wezon/wz-grid-core';
 import { downloadCSV, printGrid } from '@wezon/wz-grid-core';
 
