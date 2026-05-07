@@ -79,7 +79,7 @@ watch(filters, (f) => {
 ```vue
 <script setup>
 import { ref } from 'vue'
-import type { SortConfig } from 'wz-grid'
+import type { SortConfig } from '@wezon/wz-grid-vue'
 const sort = ref<SortConfig[]>([{ key: 'name', order: 'asc' }])
 </script>
 
@@ -102,7 +102,7 @@ const sort = ref<SortConfig[]>([{ key: 'name', order: 'asc' }])
 ```ts
 // stores/grid.ts
 import { defineStore } from 'pinia'
-import type { SortConfig } from 'wz-grid'
+import type { SortConfig } from '@wezon/wz-grid-vue'
 
 export const useGridStore = defineStore('grid', {
   state: () => ({

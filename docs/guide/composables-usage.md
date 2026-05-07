@@ -13,9 +13,9 @@ WZ-Grid가 공개하는 8개 composable을 활용하면 그리드 상태를 외�
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import WZGrid from 'wz-grid'
-import { useSort } from 'wz-grid'
-import type { GridRow, Column, SortConfig } from 'wz-grid'
+import WZGrid from '@wezon/wz-grid-vue'
+import { useSort } from '@wezon/wz-grid-vue'
+import type { GridRow, Column, SortConfig } from '@wezon/wz-grid-vue'
 
 const columns = ref<Column[]>([
   { key: 'name',   title: '이름',   width: 150 },
@@ -56,9 +56,9 @@ function clearSort() {
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import WZGrid from 'wz-grid'
-import { useFilter } from 'wz-grid'
-import type { GridRow, Column } from 'wz-grid'
+import WZGrid from '@wezon/wz-grid-vue'
+import { useFilter } from '@wezon/wz-grid-vue'
+import type { GridRow, Column } from '@wezon/wz-grid-vue'
 
 const columns = ref<Column[]>([
   { key: 'dept',   title: '부서',   type: 'select',
@@ -98,9 +98,9 @@ function filterByDept(dept: string) {
 ```vue
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import WZGrid from 'wz-grid'
-import { useFilter, useTree } from 'wz-grid'
-import type { GridRow, Column } from 'wz-grid'
+import WZGrid from '@wezon/wz-grid-vue'
+import { useFilter, useTree } from '@wezon/wz-grid-vue'
+import type { GridRow, Column } from '@wezon/wz-grid-vue'
 
 const columns = ref<Column[]>([...])
 const rows = ref<GridRow[]>([
@@ -165,9 +165,9 @@ const { flatTreeItems, expandAll, collapseAll } = useTree(
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import WZGrid from 'wz-grid'
-import { useCheckbox } from 'wz-grid'
-import type { GridRow } from 'wz-grid'
+import WZGrid from '@wezon/wz-grid-vue'
+import { useCheckbox } from '@wezon/wz-grid-vue'
+import type { GridRow } from '@wezon/wz-grid-vue'
 
 const rows = ref<GridRow[]>([...])
 
@@ -212,9 +212,9 @@ function deleteChecked() {
 ```vue
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import WZGrid from 'wz-grid'
-import { useValidation } from 'wz-grid'
-import type { GridRow, Column } from 'wz-grid'
+import WZGrid from '@wezon/wz-grid-vue'
+import { useValidation } from '@wezon/wz-grid-vue'
+import type { GridRow, Column } from '@wezon/wz-grid-vue'
 
 const columns = ref<Column[]>([
   { key: 'name',   title: '이름',   required: true },
@@ -259,7 +259,7 @@ function save() {
 ```vue
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useVirtualScroll } from 'wz-grid'
+import { useVirtualScroll } from '@wezon/wz-grid-vue'
 
 const items = ref(Array.from({ length: 10000 }, (_, i) => ({ id: i, text: `항목 ${i}` })))
 const ROW_HEIGHT = 40

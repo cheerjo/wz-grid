@@ -134,8 +134,8 @@ const rows = [{ id: 1, name: '루트', subItems: [{ id: 2, name: '자식' }] }]
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import { WZGrid } from 'wz-grid'
-import type { Column } from 'wz-grid'
+import { WZGrid } from '@wezon/wz-grid-vue'
+import type { Column } from '@wezon/wz-grid-vue'
 
 const columns: Column[] = [
   { key: 'name',   title: '이름',     width: 200, type: 'text', pinned: true },

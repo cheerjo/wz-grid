@@ -35,7 +35,7 @@ WZ-Grid는 WAI-ARIA 패턴과 키보드 단축키를 기본 탑재합니다.
 
 ```ts
 import { ref } from 'vue'
-import { useFocusTrap } from 'wz-grid'
+import { useFocusTrap } from '@wezon/wz-grid-vue'
 
 const menuEl = ref<HTMLElement | null>(null)
 const visible = ref(false)

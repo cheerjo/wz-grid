@@ -7,7 +7,7 @@ import {
   useSort, useFilter, useTree, useCheckbox, useValidation,
   useSelection, useClipboard, useVirtualScroll,
   useColumnDrag, useRowDragDrop
-} from 'wz-grid'
+} from '@wezon/wz-grid-vue'
 ```
 
 ---

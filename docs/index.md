@@ -3,15 +3,15 @@ layout: home
 
 hero:
   name: "WZ-Grid"
-  text: "엔터프라이즈급 Vue 그리드"
-  tagline: Vue 2 & 3를 동시 지원하는 고성능 데이터 그리드. 가상 스크롤, Excel 연동, 실시간 검증을 기본 제공.
+  text: "엔터프라이즈급 데이터 그리드"
+  tagline: Vue 2/3, React를 모두 지원하는 고성능 데이터 그리드. 가상 스크롤, Excel 연동, 실시간 검증을 기본 제공.
   actions:
     - theme: brand
       text: 빠른 시작
       link: /guide/getting-started
     - theme: alt
-      text: 라이선스 보기
-      link: /guide/license
+      text: React 사용법
+      link: /guide/react
 
 features:
   - icon: ⚡
@@ -36,6 +36,6 @@ features:
     title: 실시간 검증
     details: required, validator 커스텀 함수 등 컬럼별 검증. 오류 셀은 빨간 테두리로 표시합니다.
   - icon: 🔧
-    title: Vue 2 & 3 지원
-    details: vue-demi 기반으로 Vue 2, Vue 3 프로젝트 모두에서 동일하게 동작합니다.
+    title: 멀티 프레임워크
+    details: Vue 2/3(@wezon/wz-grid-vue), React(@wezon/wz-grid-react), 프레임워크 무관(@wezon/wz-grid-core) 패키지를 제공합니다.
 ---

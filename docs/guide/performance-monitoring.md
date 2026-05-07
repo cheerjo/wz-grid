@@ -24,7 +24,7 @@
 성능 측정이 완료될 때마다 `PerfEntry` 객체가 emit됩니다.
 
 ```ts
-import type { PerfEntry } from 'wz-grid'
+import type { PerfEntry } from '@wezon/wz-grid-vue'
 
 function onPerf(entry: PerfEntry) {
   console.log(entry)
@@ -93,7 +93,7 @@ interface PerfEntry {
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { PerfEntry } from 'wz-grid'
+import type { PerfEntry } from '@wezon/wz-grid-vue'
 
 const perfLog = ref<PerfEntry[]>([])
 

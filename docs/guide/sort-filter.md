@@ -26,7 +26,7 @@
 서버사이드 모드(`serverSide` prop)에서는 내부 정렬이 비활성화되고, `@sort` 이벤트를 통해 외부에서 처리해야 합니다.
 
 ```ts
-import type { SortConfig } from 'wz-grid'
+import type { SortConfig } from '@wezon/wz-grid-vue'
 
 const handleSort = async (configs: SortConfig[]) => {
   const params = configs.map(c => `${c.key}:${c.order}`).join(',')

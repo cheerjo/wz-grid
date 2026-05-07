@@ -44,6 +44,14 @@ export default defineConfig({
           ],
         },
         {
+          text: '프레임워크별 사용법',
+          items: [
+            { text: 'Vue (기본)', link: '/guide/getting-started' },
+            { text: 'React', link: '/guide/react' },
+            { text: 'Headless Core', link: '/guide/headless-core' },
+          ],
+        },
+        {
           text: '기능',
           items: [
             { text: '컬럼 설정', link: '/guide/columns' },

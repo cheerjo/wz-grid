@@ -28,8 +28,8 @@ npm run dev
 ```vue
 <script setup lang="ts">
 import { ref } from "vue";
-import { WZGrid } from "wz-grid";
-import type { Column } from "wz-grid";
+import { WZGrid } from "@wezon/wz-grid-vue";
+import type { Column } from "@wezon/wz-grid-vue";
 
 const columns = ref<Column[]>([
   { key: "id", title: "ID", width: 60 },
@@ -67,8 +67,8 @@ const handleUpdate = ({ row, colKey, value }: any) => {
 ```vue
 <script setup lang="ts">
 import { ref } from "vue";
-import { WZGrid } from "wz-grid";
-import type { Column } from "wz-grid";
+import { WZGrid } from "@wezon/wz-grid-vue";
+import type { Column } from "@wezon/wz-grid-vue";
 
 const columns = ref<Column[]>([
   { key: "name", title: "이름", width: 150, editable: true },
