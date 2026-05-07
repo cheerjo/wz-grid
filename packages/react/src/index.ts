@@ -13,6 +13,12 @@ export type { WZGridRowProps } from './components/WZGridRow';
 export { WZGridCell } from './components/WZGridCell';
 export type { WZGridCellProps } from './components/WZGridCell';
 
+export { WZGridDetailRow } from './components/WZGridDetailRow';
+export type { WZGridDetailRowProps } from './components/WZGridDetailRow';
+
+export { WZGridColumnSettings } from './components/WZGridColumnSettings';
+export type { WZGridColumnSettingsProps } from './components/WZGridColumnSettings';
+
 // ── Hooks ─────────────────────────────────────────────────────────────────────
 export { useSort } from './hooks/useSort';
 export type { UseSortReturn } from './hooks/useSort';
@@ -38,6 +44,18 @@ export type { UseCheckboxReturn } from './hooks/useCheckbox';
 export { useUndoRedo } from './hooks/useUndoRedo';
 export type { UseUndoRedoReturn } from './hooks/useUndoRedo';
 
+export { useClipboard } from './hooks/useClipboard';
+export type { UseClipboardOptions, UseClipboardReturn } from './hooks/useClipboard';
+
+export { useColumnSettings } from './hooks/useColumnSettings';
+export type { UseColumnSettingsReturn } from './hooks/useColumnSettings';
+
+export { useI18n } from './hooks/useI18n';
+export type { UseI18nOptions, UseI18nReturn } from './hooks/useI18n';
+
+// ── 유틸 ─────────────────────────────────────────────────────────────────────
+export { exportToExcel, exportToCsv } from './utils/export';
+
 // ── 코어 타입/유틸 re-export ──────────────────────────────────────────────────
 export type {
   Column,
@@ -49,6 +67,9 @@ export type {
   DataItem,
   GridItem,
   MergeState,
+  Locale,
+  Messages,
+  TFunction,
 } from '@wezon/wz-grid-core';
 export { NON_EDITABLE_TYPES } from '@wezon/wz-grid-core';
 

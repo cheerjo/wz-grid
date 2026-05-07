@@ -25,25 +25,14 @@ import type { Column } from '@wezon/wz-grid-react';
 import '@wezon/wz-grid-react/dist/wz-grid-react.css';
 
 const columns: Column[] = [
-  { key: 'id', title: 'ID', width: 60 },
-  { key: 'name', title: 'Name', width: 150, editable: true },
-  {
-    key: 'role',
-    title: 'Role',
-    width: 120,
-    type: 'select',
-    editable: true,
-    options: [
-      { value: 'admin', label: 'Admin' },
-      { value: 'user', label: 'User' },
-    ],
-  },
-  { key: 'score', title: 'Score', width: 80, type: 'number', align: 'right' },
+  { key: 'id',    title: 'ID',    width: 60 },
+  { key: 'name',  title: 'Name',  width: 150, editable: true },
+  { key: 'score', title: 'Score', width: 80,  type: 'number', align: 'right' },
 ];
 
 const rows = [
-  { id: 1, name: 'Alice', role: 'admin', score: 98 },
-  { id: 2, name: 'Bob', role: 'user', score: 72 },
+  { id: 1, name: 'Alice', score: 98 },
+  { id: 2, name: 'Bob',   score: 72 },
 ];
 
 export default function App() {
@@ -68,9 +57,7 @@ export default function App() {
 
 ---
 
-## Features
-
-The following features are supported in the current release:
+## Features (v0.2.0)
 
 | Feature | Status |
 | --- | --- |
@@ -80,29 +67,27 @@ The following features are supported in the current release:
 | Pagination | Supported |
 | Checkbox selection | Supported |
 | Text / number edit | Supported |
-| Undo / redo | Supported |
+| **Tree view** | **Supported** |
+| **Undo / Redo** | **Supported** |
+| **Clipboard copy/paste** | **Supported** |
+| **Column visibility** | **Supported** |
+| **Pinned columns** | **Supported** |
+| **Row detail expand** | **Supported** |
+| **Excel export** | **Supported** |
+| **CSV export** | **Supported** |
+| **i18n (ko/en)** | **Supported** |
 | Server-side mode | Supported |
 | Loading state | Supported |
 | Custom row class | Supported |
 | TypeScript generics | Supported |
 
-The following features are planned for future releases:
-
-| Feature | Status |
-| --- | --- |
-| Tree view | Planned |
-| Row grouping | Planned |
-| Cell merge | Planned |
-| Excel export | Planned |
-| CSV export | Planned |
-| Row drag & drop | Planned |
-| Column drag & drop | Planned |
-| Context menu | Planned |
-| Column settings panel | Planned |
+Planned for future releases: Row grouping, Cell merge, Column drag & drop, Context menu.
 
 ---
 
 ## Props
+
+### Core
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -117,9 +102,24 @@ The following features are planned for future releases:
 | `useFilter` | `boolean` | `false` | Enable column filters |
 | `serverSide` | `boolean` | `false` | Delegate sort/filter to server |
 | `loading` | `boolean` | `false` | Show loading overlay |
-| `emptyText` | `string` | `'데이터가 없습니다.'` | Empty state message |
 
-## Events (Callbacks)
+### v0.2.0 New Props
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `useTreeMode` | `boolean` | `false` | Enable tree view (rows need `children` field) |
+| `treeKey` | `string` | `'children'` | Children array key |
+| `useUndoRedo` | `boolean` | `false` | Enable Ctrl+Z / Ctrl+Y undo-redo |
+| `undoRedoMaxDepth` | `number` | `50` | Max history depth |
+| `useClipboard` | `boolean` | `false` | Enable Ctrl+C / Ctrl+V clipboard |
+| `useColumnSettings` | `boolean` | `false` | Show column visibility toggle button |
+| `renderDetail` | `(row) => ReactNode` | — | Render function for expanded row detail |
+| `locale` | `'ko' \| 'en'` | `'ko'` | UI locale |
+| `messages` | `Partial<Messages>` | — | Override specific UI strings |
+| `onExportExcel` | `() => void` | — | Callback to trigger Excel export (shows toolbar button) |
+| `onExportCsv` | `() => void` | — | Callback to trigger CSV export (shows toolbar button) |
+
+### Callbacks
 
 | Prop | Signature | Description |
 | --- | --- | --- |
@@ -127,13 +127,13 @@ The following features are planned for future releases:
 | `onSort` | `(configs: SortConfig[]) => void` | Sort changed (server-side) |
 | `onCellUpdate` | `(event: CellUpdateEvent) => void` | Cell value changed |
 | `onCheckedChange` | `(rows: GridRow[]) => void` | Checked rows changed |
+| `onUndo` | `(event: CellUpdateEvent) => void` | Undo triggered |
+| `onRedo` | `(event: CellUpdateEvent) => void` | Redo triggered |
 | `rowClass` | `(row, idx) => string \| undefined` | Custom CSS class per row |
 
 ---
 
 ## Hooks
-
-`@wezon/wz-grid-react` also exports individual React hooks powered by `@wezon/wz-grid-core` for composing custom grid UIs:
 
 ```ts
 import {
@@ -145,10 +145,20 @@ import {
   useSelection,
   useCheckbox,
   useUndoRedo,
+  useClipboard,
+  useColumnSettings,
+  useI18n,
 } from '@wezon/wz-grid-react';
 ```
 
-Each hook returns a stable API that wraps the corresponding core engine with React state management.
+## Export Utilities
+
+```ts
+import { exportToExcel, exportToCsv } from '@wezon/wz-grid-react';
+
+await exportToExcel(columns, rows, { filename: 'report.xlsx' });
+exportToCsv(columns, rows, { filename: 'report.csv' });
+```
 
 ---
 

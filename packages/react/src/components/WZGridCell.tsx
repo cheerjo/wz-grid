@@ -14,6 +14,15 @@ export interface WZGridCellProps {
   onEndEdit?: () => void;
   style?: React.CSSProperties;
   className?: string;
+  /** 트리 들여쓰기 (px). 0이면 적용 안 함 */
+  treeIndent?: number;
+  /** 트리 토글 버튼 정보. undefined이면 렌더 안 함 */
+  treeToggle?: {
+    hasChildren: boolean;
+    expanded: boolean;
+    onToggle?: () => void;
+    ariaLabel?: string;
+  };
 }
 
 /** 컬럼 타입별 셀 읽기 전용 렌더 */
@@ -105,6 +114,8 @@ export function WZGridCell({
   onEndEdit,
   style,
   className,
+  treeIndent = 0,
+  treeToggle,
 }: WZGridCellProps) {
   const type = col.type ?? 'text';
   const value = row[col.key];
@@ -157,17 +168,38 @@ export function WZGridCell({
     'wz-grid-td',
     isSelected ? 'wz-grid-td--selected' : '',
     editing ? 'wz-grid-td--editing' : '',
+    col.pinned ? 'wz-grid-td--pinned' : '',
     className ?? '',
   ].filter(Boolean).join(' ');
 
-  return (
-    <td
-      role="gridcell"
-      aria-colindex={colIdx + 1}
-      className={tdClass}
-      style={{ textAlign: align, height: '100%', ...style }}
-      onDoubleClick={startEdit}
+  // 셀 내용: 트리 들여쓰기 + 토글 버튼 + 실제 값
+  const cellContent = (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        paddingLeft: treeIndent > 0 ? treeIndent : undefined,
+      }}
     >
+      {/* 트리 토글 버튼 */}
+      {treeToggle && (
+        <button
+          className="wz-tree-toggle"
+          aria-label={treeToggle.ariaLabel ?? '펼치기/접기'}
+          aria-expanded={treeToggle.hasChildren ? treeToggle.expanded : undefined}
+          style={{
+            visibility: treeToggle.hasChildren ? 'visible' : 'hidden',
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            treeToggle.onToggle?.();
+          }}
+        >
+          {treeToggle.hasChildren
+            ? (treeToggle.expanded ? '▾' : '▸')
+            : ''}
+        </button>
+      )}
       {editing ? (
         <input
           ref={inputRef}
@@ -175,9 +207,41 @@ export function WZGridCell({
           onChange={e => setEditValue(e.target.value)}
           onBlur={commitEdit}
           onKeyDown={handleKeyDown}
+          style={{ flex: 1 }}
         />
       ) : (
         <CellDisplay col={col} value={value} />
+      )}
+    </div>
+  );
+
+  // 트리/들여쓰기가 없는 단순 셀은 기존 구조 그대로
+  const usesWrapper = treeIndent > 0 || treeToggle !== undefined;
+
+  return (
+    <td
+      role="gridcell"
+      aria-colindex={colIdx + 1}
+      className={tdClass}
+      style={{ textAlign: align, height: '100%', ...style }}
+      onDoubleClick={!usesWrapper ? startEdit : undefined}
+    >
+      {usesWrapper ? (
+        <div onDoubleClick={canEdit ? startEdit : undefined}>
+          {cellContent}
+        </div>
+      ) : (
+        editing ? (
+          <input
+            ref={inputRef}
+            value={editValue}
+            onChange={e => setEditValue(e.target.value)}
+            onBlur={commitEdit}
+            onKeyDown={handleKeyDown}
+          />
+        ) : (
+          <CellDisplay col={col} value={value} />
+        )
       )}
     </td>
   );
